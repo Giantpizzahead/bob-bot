@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",  # Parse Google style docstrings
     "sphinx.ext.viewcode",  # Add links to source code
+    "sphinx.ext.githubpages",  # Add .nojekyll file to the build
 ]
 
 templates_path = ["_templates"]
@@ -33,3 +34,4 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
+# html_static_path = ["_static"]
