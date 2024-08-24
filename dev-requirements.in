@@ -1,0 +1,11 @@
+-r requirements.in
+
+pytest
+flake8
+flake8-docstrings
+Flake8-pyproject
+isort
+black
+sphinx
+sphinx-rtd-theme
+pre-commit
