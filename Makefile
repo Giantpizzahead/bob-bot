@@ -11,7 +11,7 @@ format:
 	isort .
 
 docs:
-	sphinx-build -b html docs build
+	make -C docs html
 
 build:
 	make lint
