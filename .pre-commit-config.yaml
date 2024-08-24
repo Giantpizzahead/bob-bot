@@ -1,8 +1,20 @@
 repos:
   - repo: local
     hooks:
+      - id: make-build
+        name: Run build
+        entry: |
+          sh -c "
+          make build && \
+          git add docs
+          "
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: make-test
         name: Run tests
         entry: make test
         language: system
         pass_filenames: false
+        always_run: true

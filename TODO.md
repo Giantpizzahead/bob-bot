@@ -18,7 +18,7 @@ hi
 
 ### Basics
 
-hi
+- [x] Finally finish setting up the Python development environment
 
 ## Milestones and Capstones
 

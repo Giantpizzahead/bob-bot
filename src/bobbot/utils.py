@@ -11,8 +11,8 @@ def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatte
 
     Args:
         name: The name of the logger.
-        level: The logging level.
-        formatter: The log formatter to use. A colored formatter is used by default.
+        level: The logging level. Defaults to logging.INFO.
+        formatter: The log formatter to use. Defaults to a color formatter.
 
     Returns:
         The logger.
