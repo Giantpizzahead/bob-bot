@@ -3,3 +3,4 @@ langchain-community
 langchain-openai
 discord.py
 python-dotenv
+pyautogen

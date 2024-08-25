@@ -1,0 +1,4 @@
+[2024-08-24 23:55:01] Spigga: bob what is this (ref None, mentions [], attachments [<Attachment id=1277053586454614108 filename='Screenshot_2024-08-24_at_4.png' url='Screenshot_2024-08-24_at_4.png'>])
+[2024-08-24 23:55:05] Spigga: @bob (ref None, mentions [<Member id=1261745375157686323 name='bob' global_name=None bot=True nick=None guild=<Guild id=715738386224382035 name='The Israelis' shard_id=0 chunked=True member_count=18>>], attachments [])
+[2024-08-24 23:55:20] Spigga: what are u saying (ref <MessageReference message_id=1277053587939131475 channel_id=809279199667159062 guild_id=715738386224382035>, mentions [<Member id=1261745375157686323 name='bob' global_name=None bot=True nick=None guild=<Guild id=715738386224382035 name='The Israelis' shard_id=0 chunked=True member_count=18>>], attachments [])
+[2024-08-24 23:59:43] Spigga: hi (ref None, mentions [], attachments [], reactions [<Reaction emoji='❤️' me=False count=1>])

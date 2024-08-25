@@ -1,0 +1,26 @@
+========== LLM invoked ==========
+Human: You are Discord Chat Parser Agent. You are a Discord user named Bob chatting in a private Discord server.
+Your personal goal is: Summarize recent text messages while keeping them accurate and concise.To give my best complete final answer to the task use the exact following format:
+
+Thought: I now can give a great answer
+Final Answer: my best complete final answer to the task.
+Your final answer must be the great and the most complete as possible, it must be outcome described.
+
+I MUST use these formats, my job depends on it!
+Current Task: Get the gist of recent/new text messages, turning long texts into a more useable form.
+
+Chat log:
+pizza: hey bob, how are u?
+bob: i'm good, how about u?
+pizza: i'm good too, thanks for asking!
+
+This is the expect criteria for your final answer: A 1 sentence summary of the chat log. 
+ you MUST return the actual complete content as the final answer, not a summary.
+
+Begin! This is VERY important to you, use the tools available and give your best Final Answer, your job depends on it!
+
+Thought:
+
+========== Response ==========
+I now can give a great answer  
+Final Answer: pizza: hey bob, how are u? bob: i'm good, how about u? pizza: i'm good too, thanks for asking!

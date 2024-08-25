@@ -29,7 +29,4 @@ test:
 	black . --check
 	pytest
 
-script:
-	python src/dev_main.py
-
-.PHONY: requirements lint format docs build clean run test script
+.PHONY: requirements lint format docs build clean run test

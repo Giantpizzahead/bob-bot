@@ -6,7 +6,7 @@ import bobbot
 def main() -> None:
     """Run the bot."""
     bobbot.run_bot()
-    bobbot.get_logger("bobbot").info("Bob has been terminated.")
+    bobbot.get_logger("bobbot").info("Stopping...")
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ skip_glob = ["old", "dev_*.py", "build", "docs"]
 
 [tool.flake8]
 max-line-length = 120
-extend-ignore = ["D203"]
+extend-ignore = ["D203", "E203"]
 extend-exclude = ["old/*.py", "dev_*.py", "build/*.py", "docs/*.py"]
 docstring-convention = "google"
 

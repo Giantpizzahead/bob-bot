@@ -17,6 +17,7 @@ To give some level of control, first, Bob should have some sort of "debug screen
   - Be able to see if someone is currently typing (ex: to decide whether to respond or not).
   - Be able to see if the message was sent as a reply to another message.
   - Be able to see if a previous or current message was edited (ex: right before sending a response).
+  - Be able to remember deleted messages (if Bob saw them before).
   - Be able to see image attachments.
   - Let Bob decide whether to look at the message based on whether he was pinged.
   - Let Bob decide whether to send messages as a reply.

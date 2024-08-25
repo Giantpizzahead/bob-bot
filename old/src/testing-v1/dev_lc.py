@@ -3,22 +3,22 @@ import os
 
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 from langchain.schema import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-# Load environment variables
-load_dotenv()
+from .utils import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_bot() -> None:
     # Langchain setup
     llm = ChatOpenAI(
         api_key=os.getenv("OPENAI_KEY"),
-        model_name="gpt-4o-mini",
+        model="gpt-4o-mini",
         temperature=1,
         max_tokens=256,
-        top_p=1,
+        top_p=0.8,
         frequency_penalty=0.05,
         presence_penalty=0.05,
     )
@@ -52,7 +52,7 @@ def run_bot() -> None:
 
     @client.event
     async def on_ready() -> None:
-        print("Bob is now online!")
+        logger.info("Bob is now online!")
 
     active_channel = None
 
@@ -66,7 +66,7 @@ def run_bot() -> None:
 
     @client.event
     async def on_message(message):
-        print(f"Received message: {message.content}, {message.channel.id}, {CHANNELS}")
+        logger.info(f"Received message: {message.content}, {message.channel.id}, {CHANNELS}")
         global active_channel
         if message.author.bot:
             return

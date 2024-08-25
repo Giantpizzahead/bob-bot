@@ -4,7 +4,7 @@ This list will evolve as the bot progresses.
 
 ### Today
 
-- [ ] Plan out how Bob will be structured (at a high level) in V2
+- [ ] Optimize TextChannelHistory token usage by truncating/summarizing messages as needed
 
 ### Todo
 
@@ -19,6 +19,21 @@ hi
 ### Basics
 
 - [x] Finally finish setting up the Python development environment
+- [x] Plan out how Bob will be structured (at a high level) in V2
+- [x] Attempt to use Crew.AI to build the V1 multiagent system (conclusion: Crew.AI sucks)
+- [x] Attempt to use AutoGen to build something like the V1 multiagent system
+
+### Text
+
+- [x] Implement a class that abstracts away Discord text channel history/event handling
+- [x] Improve TextChannelHistory to include details about replies, reactions, stickers, and attachments
+- [x] Improve TextChannelHistory to include details about edited and deleted messages
+- [x] Begin to optimize TextChannelHistory token usage by truncating messages based on how recent they are
+- [x] (Re)implement a bare bones version of Bob by passing in message history with a simple system prompt and a single agent
+
+### AI
+
+f
 
 ## Milestones and Capstones
 
