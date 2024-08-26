@@ -1,20 +1,18 @@
 repos:
   - repo: local
     hooks:
-      - id: make-build
-        name: Run build
+      - id: make-build-and-test
+        name: Build and test
         entry: |
           sh -c "
-          make build && \
-          git add docs
+          if make build; then
+            git add docs && \
+            make test
+          else
+            echo 'Build failed, skipping tests.' >&2
+            exit 1
+          fi
           "
-        language: system
-        pass_filenames: false
-        always_run: true
-
-      - id: make-test
-        name: Run tests
-        entry: make test
         language: system
         pass_filenames: false
         always_run: true

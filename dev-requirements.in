@@ -9,3 +9,4 @@ black
 sphinx
 sphinx-rtd-theme
 pre-commit
+mypy

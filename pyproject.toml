@@ -22,3 +22,11 @@ docstring-convention = "google"
 
 [tool.pytest.ini_options]
 cache_dir = "build/.pytest_cache"
+
+[tool.mypy]
+exclude = '''
+^(old/.*\.py|dev_.*\.py|build/.*\.py|docs/.*\.py)$
+'''
+ignore_missing_imports = true
+cache_dir = "build/.mypy_cache"
+check_untyped_defs = true

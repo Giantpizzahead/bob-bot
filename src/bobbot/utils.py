@@ -69,7 +69,8 @@ def time_elapsed_str(before: datetime, after: datetime | None = None) -> str:
     if int(seconds) == 0:
         return "Now"
     elif seconds < 60:
-        return f"{int(seconds)} second{'s' if seconds != 1 else ''} ago"
+        return "Recent"
+        # return f"{int(seconds)} second{'s' if seconds != 1 else ''} ago"
     elif minutes < 60:
         return f"{int(minutes)} minute{'s' if minutes != 1 else ''} ago"
     elif hours < 24:

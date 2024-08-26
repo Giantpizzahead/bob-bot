@@ -5,16 +5,37 @@ import json
 import os
 import random
 import re
+from datetime import datetime, timezone
+from enum import Enum
 from logging import Logger
+from typing import Literal, Optional
 
 import discord
 from discord.ext import commands
 
-from ..agents.sender import get_response
+from ..agents.agents import decide_to_respond, get_response
 from ..utils import get_logger
-from .text_channel_history import TextChannelHistory
+from .text_channel_history import TextChannelHistory, get_users_in_channel
+
+
+class Mode(Enum):
+    """Valid modes of the bot."""
+
+    DEFAULT = "default"
+    OBEDIENT = "obedient"
+    OFF = "off"
+
+
+class Speed(Enum):
+    """Valid speeds of the bot."""
+
+    DEFAULT = "default"
+    INSTANT = "instant"
+
 
 logger: Logger = get_logger(__name__)
+mode: Enum = Mode.DEFAULT
+speed: Enum = Speed.INSTANT
 
 
 def init_bot() -> commands.Bot:
@@ -22,18 +43,19 @@ def init_bot() -> commands.Bot:
     intents: discord.Intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True
-    return commands.Bot(command_prefix="!", intents=intents)
+    return commands.Bot(command_prefix="!", help_command=None, intents=intents)
 
 
 def run_bot() -> None:
     """Run the bot. Blocks until the bot is stopped."""
-    # Show debug logs
-    bot.run(os.getenv("DISCORD_TOKEN"))
-    # bot.run(os.getenv("DISCORD_TOKEN"), log_handler=None)
+    token: Optional[str] = os.getenv("DISCORD_TOKEN")
+    if token is None:
+        raise ValueError("DISCORD_TOKEN environment variable is not set.")
+    bot.run(token, log_handler=None)
 
 
 bot: commands.Bot = init_bot()
-active_channel: discord.TextChannel | None = None
+active_channel: Optional[discord.TextChannel] = None
 
 
 CHANNELS: list[int] = list(map(int, json.loads(os.getenv("DISCORD_CHANNELS", "[]"))))
@@ -41,21 +63,84 @@ CHANNELS: list[int] = list(map(int, json.loads(os.getenv("DISCORD_CHANNELS", "[]
 channel_history: dict[int, TextChannelHistory] = {}
 
 
+def get_channel_history(channel: discord.TextChannel) -> TextChannelHistory:
+    """Get the history for a channel, creating it if it doesn't exist."""
+    if channel.id not in channel_history:
+        channel_history[channel.id] = TextChannelHistory(channel)
+    return channel_history[channel.id]
+
+
 @bot.hybrid_command(name="mode")
-async def set_mode(ctx: commands.Context, mode: str) -> None:
+async def set_mode(ctx: commands.Context, new_mode: Literal["default", "obedient", "off"]) -> None:
     """Set the mode of the bot."""
-    valid_modes = ["default", "obedient", "off"]
-    if mode not in valid_modes:
-        await ctx.send(f"Invalid mode: {mode}. Valid modes are {valid_modes}")
-        return
-    await ctx.send(f"Setting mode to {mode} (WIP)")
+    try:
+        selected_mode = Mode(new_mode.lower())
+        global mode
+        mode = selected_mode
+        await ctx.send(f"! mode set to {selected_mode.value}")
+    except ValueError:
+        valid_modes = ", ".join([m.value for m in Mode])
+        await ctx.send(f"! invalid mode. valid modes: {valid_modes}")
+
+
+@bot.hybrid_command(name="speed")
+async def set_speed(ctx: commands.Context, new_speed: Literal["default", "instant"]) -> None:
+    """Set the speed of the bot."""
+    try:
+        selected_speed = Speed(new_speed.lower())
+        global speed
+        speed = selected_speed
+        await ctx.send(f"! speed set to {selected_speed.value}")
+    except ValueError:
+        valid_speeds = ", ".join([s.value for s in Speed])
+        await ctx.send(f"! invalid speed. valid speeds: {valid_speeds}")
+
+
+@bot.hybrid_command(name="reset")
+async def reset(ctx: commands.Context) -> None:
+    """Reset the bot's conversation history."""
+    await ctx.send("! reset conversation history")
+
+
+@bot.hybrid_command(name="status")
+async def status(ctx: commands.Context) -> None:
+    """Get the current mode and speed of the bot."""
+    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}")
+
+
+@bot.hybrid_command(name="help")
+async def help(ctx: commands.Context) -> None:
+    """Get the help message."""
+    await ctx.send(
+        """! hi i am bob 2nd edition v1
+command prefix is `!`, slash commands work too
+mode [default/obedient/off]: Set the mode of the bot.
+speed [default/instant]: Set the typing speed of the bot.
+reset: Reset the bot's conversation history.
+status: Get the current status of the bot.
+help: Get this help message.
+ping: Ping the bot."""
+    )
+
+
+@bot.hybrid_command(name="ping")
+async def ping(ctx: commands.Context) -> None:
+    """Ping the bot."""
+    # Get time taken in ms
+    ms_taken = (datetime.now(timezone.utc) - ctx.message.created_at).total_seconds() * 1000
+    # React with pin
+    await ctx.message.add_reaction("📍")
+    await ctx.reply(f"! pong ({ms_taken:.0f} ms)")
 
 
 @bot.event
 async def on_ready() -> None:
     """Log when Bob is online."""
-    logger.info("Syncing slash commands...")
-    await bot.tree.sync()  # Sync slash commands
+    try:
+        synced = await bot.tree.sync()
+        logger.debug(f"Synced {len(synced)} commands.")
+    except Exception as e:
+        logger.error(e)
     logger.info("Bob is online!")
 
 
@@ -65,27 +150,31 @@ async def on_message(message: discord.Message):
     # Only respond to messages in DMs and specified channels
     if not (message.channel.id in CHANNELS or isinstance(message.channel, discord.DMChannel)):
         return
+    await bot.process_commands(message)
+    # Don't respond if the bot is off, or if it's a command message
+    if mode == Mode.OFF or message.content.startswith(bot.command_prefix):
+        return
     # For now, don't respond to self messages
     if message.author == bot.user:
         return
-    # Also don't respond to commands
-    if message.content.startswith(bot.command_prefix):
-        return
     curr_channel: discord.TextChannel = message.channel
-    # Make sure we have history for the current channel
-    if curr_channel.id not in channel_history:
-        channel_history[curr_channel.id] = TextChannelHistory(curr_channel)
     # Set the active channel
     global active_channel
     active_channel = message.channel
-    # Update the history
-    history: TextChannelHistory = channel_history[curr_channel.id]
+
+    # Get history for the current channel
+    history: TextChannelHistory = get_channel_history(curr_channel)
     await history.aupdate()
+    history.clear_users_typing()
+    saved_message_count: int = history.message_count
     # Get a response
     try:
-        # response: str = history.get_history_str()
-        response: str = await get_response(history.get_history_str())
-        await send_discord_message(response)
+        decision, thoughts = await decide_to_respond(history.get_history_str(10))
+        if decision:
+            await curr_channel.typing()
+            response: str = await get_response(history.get_history_str(), thoughts, obedient=(mode == Mode.OBEDIENT))
+            if history.message_count == saved_message_count:
+                await send_discord_message(response)
     except Exception as e:
         logger.error(e)
         await send_discord_message(str(e))
@@ -97,21 +186,27 @@ async def on_typing(channel, user, when):
     if not (channel.id in CHANNELS or isinstance(channel, discord.DMChannel)):
         return
     curr_channel: discord.TextChannel = channel
-    # Make sure we have history for the current channel
-    if curr_channel.id not in channel_history:
-        channel_history[curr_channel.id] = TextChannelHistory(curr_channel)
-    history: TextChannelHistory = channel_history[curr_channel.id]
+    history: TextChannelHistory = get_channel_history(curr_channel)
     history.on_typing(user, when)
 
 
 async def send_discord_message(message_str: str) -> bool:
-    """Send a message to the active channel."""
+    """Send a message to the active channel.
+
+    Args:
+        message_str (str): The message to send.
+
+    Returns:
+        Whether the message was actually sent.
+    """
     if not message_str.strip():
-        return
-    channel = active_channel
+        return False
+    channel: Optional[discord.TextChannel] = active_channel
+    if channel is None:
+        raise ValueError("No active channel.")
 
     # Fetch all guild members to replace display names with mentions
-    async for member in channel.guild.fetch_members():
+    for member in get_users_in_channel(channel):
         display_name = member.display_name
         # Escape spaces in display name for regex matching
         escaped_display_name = re.escape(display_name)
@@ -122,6 +217,7 @@ async def send_discord_message(message_str: str) -> bool:
         message_str = mention_pattern.sub(f"<@{member.id}>", message_str)
 
     # Emulate typing time
+    history: TextChannelHistory = get_channel_history(channel)
     async with channel.typing():
         chunk_size_limit = 2000
         i = 0
@@ -129,13 +225,28 @@ async def send_discord_message(message_str: str) -> bool:
             j = min(i + chunk_size_limit, len(message_str))  # Ending of this message
             chunk = message_str[i:j]
             i = j
-            # Calculate typing time: ~200 WPM or 8-12 seconds max
+            # Calculate typing time (on top of generation time): ~200 WPM or 6-10 seconds max
             typing_time = min(
-                random.random() * 2000 + (random.random() / 2 + 1) * 75 * len(chunk), 8000 + random.random() * 4000
+                random.random() * 500 + (random.random() / 2 + 1) * 75 * len(chunk), 6000 + random.random() * 4000
             )
+            if speed == Speed.INSTANT:
+                typing_time = 0
+            saved_message_count: int = history.message_count
             await asyncio.sleep(typing_time / 1000)
-            # Only send if message is not outdated
+            # Only send if no new messages were sent and no one is typing (excluding Bob)
+            if history.message_count != saved_message_count:
+                logger.info("Not sending: New message sent.")
+                return False
+            others_typing: list[discord.User] = get_channel_history(channel).get_users_typing()
+            if bot.user in others_typing:
+                others_typing.remove(bot.user)
+            if others_typing:
+                logger.info(f"Not sending: Others typing {[user.display_name for user in others_typing]}")
+                return False
+            # Send the message
             try:
                 await channel.send(chunk, suppress_embeds=True)
             except discord.DiscordException as error:
                 logger.error(error)
+                return False
+    return True

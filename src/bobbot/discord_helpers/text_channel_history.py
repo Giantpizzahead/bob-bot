@@ -12,6 +12,15 @@ from ..utils import get_logger, time_elapsed_str, truncate_middle
 logger: Logger = get_logger(__name__)
 
 
+def get_users_in_channel(channel: discord.DMChannel | discord.TextChannel) -> list[discord.User]:
+    """Get a list of users in a Discord channel."""
+    if isinstance(channel, discord.DMChannel):
+        users = channel.recipients + [channel.me]
+    else:
+        users = channel.members
+    return users
+
+
 @dataclass
 class MessageEntry:
     """Represents a message entry in the history."""
@@ -28,11 +37,15 @@ class MessageEntry:
     def __str__(self) -> str:
         """Convert a message entry to a string representation (with a timestamp)."""
         preamble: str = time_elapsed_str(self.message.created_at)
+        # preamble: str = ""
         if self.is_edited:
             preamble = f"{preamble}, edited"
+            # preamble = "[Edited] "
         elif self.is_deleted:
             preamble = f"{preamble}, deleted"
+            # preamble = "[Deleted] "
         return f"[{preamble}] {self.string}"
+        # return f"{preamble}{self.string}"
 
 
 class TextChannelHistory:
@@ -58,6 +71,8 @@ class TextChannelHistory:
         """Recent messages in the channel."""
         self.is_typing: dict[discord.User, datetime] = {}
         """Users currently typing in the channel."""
+        self.message_count: int = 0
+        """Counter for the total number of messages sent in a channel."""
 
     async def amessage_to_str(self, message: discord.Message, max_len: int = 255, core_only: bool = False) -> str:
         """Convert a message to a concise string representation (without a timestamp).
@@ -75,15 +90,12 @@ class TextChannelHistory:
         user_mention_pattern = re.compile(r"<@!?(\d+)>")
         # Find all matches of user mentions in the content
         matches = user_mention_pattern.findall(content)
+        all_users: list[discord.User] = get_users_in_channel(message.channel)
         for user_id in matches:
-            try:
-                # Fetch the member object using the user ID
-                member = await message.guild.fetch_member(user_id)
-                if member:
-                    # Replace the mention with the member's display name
-                    content = re.sub(f"<@!?{user_id}>", f"@{member.display_name}", content)
-            except discord.DiscordException as e:
-                print(f"Error fetching member: {e}")
+            # Check if the user is in the channel
+            if (user := discord.utils.get(all_users, id=int(user_id))) is not None:
+                # Replace the mention with the member's display name
+                content = re.sub(f"<@!?{user_id}>", f"@{user.display_name}", content)
 
         # Add stickers and attachments
         stickers: str = ", ".join([sticker.name for sticker in message.stickers])
@@ -144,28 +156,34 @@ class TextChannelHistory:
                     # Message was deleted
                     history.append(MessageEntry(old_entry.message, old_entry.string, is_deleted=True))
             if not is_old:
+                self.message_count += 1
                 if prev_msg.content.startswith("!"):
                     break  # Stop tracking history at the first command
                 history.append(MessageEntry(prev_msg, await self.amessage_to_str(prev_msg, max_len=curr_len)))
         # Truncate history and reverse it
         history = history[: TextChannelHistory.MAX_MSGS][::-1]
         self.history = history
-        logger.info("Updated text channel history.")
-
-        # Update typing status, removing entries that are >= 10 seconds old
-        now: datetime = datetime.now(timezone.utc)
-        self.is_typing = {user: when for user, when in self.is_typing.items() if (now - when).total_seconds() < 10}
+        logger.debug("Updated text channel history.")
 
     def on_typing(self, user: discord.User, when: datetime) -> None:
         """Handle a typing event."""
         self.is_typing[user] = when
 
-    def get_history_str(self) -> str:
+    def get_history_str(self, max_msgs: int = MAX_MSGS) -> str:
         """Get a string representation of the history."""
-        result: str = "\n".join([str(e) for e in self.history])
-        logger.info(f"Text channel history:\n{result}")
+        result: str = "\n".join([str(e) for e in self.history[-max_msgs:]])
+        logger.debug(f"Text channel history:\n{result}")
         return result
+
+    def clear_users_typing(self) -> None:
+        """Clear all currently typing users."""
+        self.is_typing = {}
 
     def get_users_typing(self) -> list[discord.User]:
         """Returns a list of users currently typing."""
+        # Update typing status, removing entries that are >= 10 seconds old
+        now: datetime = datetime.now(timezone.utc)
+        # debug = {user.display_name: (now - when).total_seconds() for user, when in self.is_typing.items()}
+        # print(f"Typing: {debug}")
+        self.is_typing = {user: when for user, when in self.is_typing.items() if (now - when).total_seconds() < 10}
         return list(self.is_typing.keys())

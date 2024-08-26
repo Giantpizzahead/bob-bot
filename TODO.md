@@ -22,6 +22,8 @@ hi
 - [x] Plan out how Bob will be structured (at a high level) in V2
 - [x] Attempt to use Crew.AI to build the V1 multiagent system (conclusion: Crew.AI sucks)
 - [x] Attempt to use AutoGen to build something like the V1 multiagent system
+- [x] Implement default and off modes, along with default and instant speeds
+- [x] Reorganize by moving the bot and the agent into classes (for easier abstraction/usage) (decided not to do for now, instead put them in separate functions)
 
 ### Text
 
@@ -30,10 +32,12 @@ hi
 - [x] Improve TextChannelHistory to include details about edited and deleted messages
 - [x] Begin to optimize TextChannelHistory token usage by truncating messages based on how recent they are
 - [x] (Re)implement a bare bones version of Bob by passing in message history with a simple system prompt and a single agent
+- [x] Wait for users to finish typing before sending a message
+- [x] Refine message quality and handle content filtering by testing different models
 
-### AI
+### Multi-agent
 
-f
+- [x] Implement a basic chain: Response decision -> Message sender
 
 ## Milestones and Capstones
 
