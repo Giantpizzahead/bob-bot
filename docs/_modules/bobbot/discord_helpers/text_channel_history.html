@@ -184,7 +184,7 @@
         <span class="n">result</span><span class="p">:</span> <span class="nb">str</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">core_only</span><span class="p">:</span>
-            <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span>
+            <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="c1"># Add reply context (if any)</span>
             <span class="n">replying</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
             <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">reference</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>

@@ -107,7 +107,7 @@ class TextChannelHistory:
         result: str
 
         if not core_only:
-            author: str = message.author.display_name
+            author: str = f"@{message.author.display_name}"
             # Add reply context (if any)
             replying: str = ""
             if message.reference and isinstance(message.reference.resolved, discord.Message):

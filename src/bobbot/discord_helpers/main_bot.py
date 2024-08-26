@@ -8,9 +8,10 @@ import re
 from datetime import datetime, timezone
 from enum import Enum
 from logging import Logger
-from typing import Literal, Optional
+from typing import Optional
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from ..agents.agents import decide_to_respond, get_response
@@ -71,12 +72,18 @@ def get_channel_history(channel: discord.TextChannel) -> TextChannelHistory:
 
 
 @bot.hybrid_command(name="mode")
-async def set_mode(ctx: commands.Context, new_mode: Literal["default", "obedient", "off"]) -> None:
+@app_commands.choices(
+    mode=[
+        app_commands.Choice(name="default", value="default"),
+        app_commands.Choice(name="obedient", value="obedient"),
+        app_commands.Choice(name="off", value="off"),
+    ]
+)
+async def set_mode(ctx: commands.Context, mode: str) -> None:
     """Set the mode of the bot."""
     try:
-        selected_mode = Mode(new_mode.lower())
-        global mode
-        mode = selected_mode
+        selected_mode = Mode(mode.lower())
+        globals()["mode"] = selected_mode
         await ctx.send(f"! mode set to {selected_mode.value}")
     except ValueError:
         valid_modes = ", ".join([m.value for m in Mode])
@@ -84,12 +91,17 @@ async def set_mode(ctx: commands.Context, new_mode: Literal["default", "obedient
 
 
 @bot.hybrid_command(name="speed")
-async def set_speed(ctx: commands.Context, new_speed: Literal["default", "instant"]) -> None:
+@app_commands.choices(
+    speed=[
+        app_commands.Choice(name="default", value="default"),
+        app_commands.Choice(name="instant", value="instant"),
+    ]
+)
+async def set_speed(ctx: commands.Context, speed: str) -> None:
     """Set the speed of the bot."""
     try:
-        selected_speed = Speed(new_speed.lower())
-        global speed
-        speed = selected_speed
+        selected_speed = Speed(speed.lower())
+        globals()["speed"] = selected_speed
         await ctx.send(f"! speed set to {selected_speed.value}")
     except ValueError:
         valid_speeds = ", ".join([s.value for s in Speed])
@@ -128,9 +140,13 @@ async def ping(ctx: commands.Context) -> None:
     """Ping the bot."""
     # Get time taken in ms
     ms_taken = (datetime.now(timezone.utc) - ctx.message.created_at).total_seconds() * 1000
-    # React with pin
-    await ctx.message.add_reaction("📍")
-    await ctx.reply(f"! pong ({ms_taken:.0f} ms)")
+    msg = f"! pong ({ms_taken:.0f} ms)"
+    # React with pin if not slash command
+    if ctx.interaction is None:
+        await ctx.message.add_reaction("📍")
+        await ctx.reply(msg)
+    else:
+        await ctx.send(msg)
 
 
 @bot.event
@@ -212,7 +228,9 @@ async def send_discord_message(message_str: str) -> bool:
         escaped_display_name = re.escape(display_name)
         underscore_display_name = display_name.replace(" ", "_")
         # Create a regex pattern to match both versions of the display name
-        mention_pattern = re.compile(f"@{escaped_display_name}|@{underscore_display_name}")
+        mention_pattern = re.compile(
+            f"@{escaped_display_name}|@{underscore_display_name}|{escaped_display_name}|{underscore_display_name}"
+        )
         # Replace all occurrences of the display name with the member's mention
         message_str = mention_pattern.sub(f"<@{member.id}>", message_str)
 
@@ -225,9 +243,9 @@ async def send_discord_message(message_str: str) -> bool:
             j = min(i + chunk_size_limit, len(message_str))  # Ending of this message
             chunk = message_str[i:j]
             i = j
-            # Calculate typing time (on top of generation time): ~200 WPM or 6-10 seconds max
+            # Calculate typing time (on top of generation time): ~100 WPM or 18-22 seconds max
             typing_time = min(
-                random.random() * 500 + (random.random() / 2 + 1) * 75 * len(chunk), 6000 + random.random() * 4000
+                random.random() * 1000 + (random.random() / 2 + 1) * 150 * len(chunk), 18000 + random.random() * 4000
             )
             if speed == Speed.INSTANT:
                 typing_time = 0

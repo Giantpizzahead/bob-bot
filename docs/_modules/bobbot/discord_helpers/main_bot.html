@@ -78,9 +78,10 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">Logger</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">discord</span>
+<span class="kn">from</span> <span class="nn">discord</span> <span class="kn">import</span> <span class="n">app_commands</span>
 <span class="kn">from</span> <span class="nn">discord.ext</span> <span class="kn">import</span> <span class="n">commands</span>
 
 <span class="kn">from</span> <span class="nn">..agents.agents</span> <span class="kn">import</span> <span class="n">decide_to_respond</span><span class="p">,</span> <span class="n">get_response</span>
@@ -144,12 +145,18 @@
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;mode&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">set_mode</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">new_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;obedient&quot;</span><span class="p">,</span> <span class="s2">&quot;off&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+    <span class="n">mode</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;obedient&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;obedient&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">set_mode</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the mode of the bot.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">selected_mode</span> <span class="o">=</span> <span class="n">Mode</span><span class="p">(</span><span class="n">new_mode</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-        <span class="k">global</span> <span class="n">mode</span>
-        <span class="n">mode</span> <span class="o">=</span> <span class="n">selected_mode</span>
+        <span class="n">selected_mode</span> <span class="o">=</span> <span class="n">Mode</span><span class="p">(</span><span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected_mode</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! mode set to </span><span class="si">{</span><span class="n">selected_mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="n">valid_modes</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">Mode</span><span class="p">])</span>
@@ -157,12 +164,17 @@
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;speed&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">set_speed</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">new_speed</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;instant&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+    <span class="n">speed</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;instant&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;instant&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">set_speed</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the speed of the bot.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">selected_speed</span> <span class="o">=</span> <span class="n">Speed</span><span class="p">(</span><span class="n">new_speed</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-        <span class="k">global</span> <span class="n">speed</span>
-        <span class="n">speed</span> <span class="o">=</span> <span class="n">selected_speed</span>
+        <span class="n">selected_speed</span> <span class="o">=</span> <span class="n">Speed</span><span class="p">(</span><span class="n">speed</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;speed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">selected_speed</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! speed set to </span><span class="si">{</span><span class="n">selected_speed</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="n">valid_speeds</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">Speed</span><span class="p">])</span>
@@ -201,9 +213,13 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Ping the bot.&quot;&quot;&quot;</span>
     <span class="c1"># Get time taken in ms</span>
     <span class="n">ms_taken</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">ctx</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">created_at</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>
-    <span class="c1"># React with pin</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;📍&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! pong (</span><span class="si">{</span><span class="n">ms_taken</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms)&quot;</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;! pong (</span><span class="si">{</span><span class="n">ms_taken</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms)&quot;</span>
+    <span class="c1"># React with pin if not slash command</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">interaction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;📍&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">event</span>
@@ -287,7 +303,9 @@
         <span class="n">escaped_display_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">display_name</span><span class="p">)</span>
         <span class="n">underscore_display_name</span> <span class="o">=</span> <span class="n">display_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
         <span class="c1"># Create a regex pattern to match both versions of the display name</span>
-        <span class="n">mention_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">escaped_display_name</span><span class="si">}</span><span class="s2">|@</span><span class="si">{</span><span class="n">underscore_display_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">mention_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">escaped_display_name</span><span class="si">}</span><span class="s2">|@</span><span class="si">{</span><span class="n">underscore_display_name</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">escaped_display_name</span><span class="si">}</span><span class="s2">|</span><span class="si">{</span><span class="n">underscore_display_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
         <span class="c1"># Replace all occurrences of the display name with the member&#39;s mention</span>
         <span class="n">message_str</span> <span class="o">=</span> <span class="n">mention_pattern</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;@</span><span class="si">{</span><span class="n">member</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;&quot;</span><span class="p">,</span> <span class="n">message_str</span><span class="p">)</span>
 
@@ -300,9 +318,9 @@
             <span class="n">j</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">chunk_size_limit</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">message_str</span><span class="p">))</span>  <span class="c1"># Ending of this message</span>
             <span class="n">chunk</span> <span class="o">=</span> <span class="n">message_str</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">j</span>
-            <span class="c1"># Calculate typing time (on top of generation time): ~200 WPM or 6-10 seconds max</span>
+            <span class="c1"># Calculate typing time (on top of generation time): ~100 WPM or 18-22 seconds max</span>
             <span class="n">typing_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">+</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">75</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="mi">6000</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">4000</span>
+                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">150</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="mi">18000</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">4000</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">speed</span> <span class="o">==</span> <span class="n">Speed</span><span class="o">.</span><span class="n">INSTANT</span><span class="p">:</span>
                 <span class="n">typing_time</span> <span class="o">=</span> <span class="mi">0</span>
