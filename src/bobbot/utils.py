@@ -8,6 +8,7 @@ from discord.utils import _ColourFormatter as ColourFormatter
 from dotenv import load_dotenv
 
 load_dotenv()
+debug_info: str = ""
 
 
 def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatter | None = None) -> logging.Logger:
@@ -39,6 +40,26 @@ def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatte
     return logger
 
 
+def reset_debug_info() -> None:
+    """Clear the bot's debug info."""
+    global debug_info
+    debug_info = ""
+
+
+def log_debug_info(info: str) -> None:
+    """Append to the bot's debug info and log it."""
+    global debug_info
+    if debug_info:
+        debug_info += "\n\n"
+    debug_info += info
+    logger.info(info)
+
+
+def get_debug_info() -> str:
+    """Get the bot's debug info."""
+    return debug_info
+
+
 def truncate_length(text: str, limit: int = 255, replace_newlines: bool = False) -> str:
     """Make text concise by cutting out the middle, up to limit characters.
 
@@ -52,7 +73,7 @@ def truncate_length(text: str, limit: int = 255, replace_newlines: bool = False)
     """
     if replace_newlines:
         text = text.replace("\n", "    ")
-    text = text if len(text) <= limit else text[: (limit + 1) // 2] + "..." + text[-limit // 2 :]
+    text = text if len(text) <= limit else text[: (limit - 3 + 1) // 2] + "..." + text[-((limit - 3) // 2) :]
     return text
 
 
@@ -86,3 +107,6 @@ def time_elapsed_str(before: datetime, after: datetime | None = None) -> str:
         return f"{int(months)} month{'s' if months != 1 else ''} ago"
     else:
         return f"~{int(years)} year{'s' if years != 1 else ''} ago"
+
+
+logger: logging.Logger = get_logger(__name__)

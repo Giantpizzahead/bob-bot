@@ -14,9 +14,18 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from ..agents.agents import decide_to_respond, get_response
-from ..utils import get_logger
-from .text_channel_history import TextChannelHistory, get_users_in_channel
+from bobbot.agents.agents import decide_to_respond, get_response
+from bobbot.discord_helpers.text_channel_history import (
+    TextChannelHistory,
+    get_users_in_channel,
+)
+from bobbot.utils import (
+    get_debug_info,
+    get_logger,
+    log_debug_info,
+    reset_debug_info,
+    truncate_length,
+)
 
 
 class Mode(Enum):
@@ -80,7 +89,7 @@ def get_channel_history(channel: discord.TextChannel) -> TextChannelHistory:
     ]
 )
 async def set_mode(ctx: commands.Context, mode: str) -> None:
-    """Set the mode of the bot."""
+    """Set the mode of the bot, clearing the conversation history."""
     try:
         selected_mode = Mode(mode.lower())
         globals()["mode"] = selected_mode
@@ -98,7 +107,7 @@ async def set_mode(ctx: commands.Context, mode: str) -> None:
     ]
 )
 async def set_speed(ctx: commands.Context, speed: str) -> None:
-    """Set the speed of the bot."""
+    """Set the typing speed of the bot."""
     try:
         selected_speed = Speed(speed.lower())
         globals()["speed"] = selected_speed
@@ -114,28 +123,23 @@ async def reset(ctx: commands.Context) -> None:
     await ctx.send("! reset conversation history")
 
 
-@bot.hybrid_command(name="status")
-async def status(ctx: commands.Context) -> None:
-    """Get the current mode and speed of the bot."""
-    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}")
-
-
 @bot.hybrid_command(name="help")
 async def help(ctx: commands.Context) -> None:
-    """Get the help message."""
+    """Show the help message."""
     await ctx.send(
         """! hi i am bob 2nd edition v1.1
 command prefix is `!`, slash commands work too
 
 config:
-`reset` - Reset the bot's conversation history.
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
 `speed [default/instant]` - Set the typing speed of the bot.
+`reset` - Reset the bot's conversation history.
 
 info:
 `help` - Show this help message.
-`ping` - Ping the bot.
-`status` - Show the current mode and speed of the bot."""
+`status` - Show the current mode and speed of the bot.
+`debug` - Show debug info for the last message Bob sent.
+`ping` - Ping the bot."""
     )
 
 
@@ -151,6 +155,22 @@ async def ping(ctx: commands.Context) -> None:
         await ctx.reply(msg)
     else:
         await ctx.send(msg)
+
+
+@bot.hybrid_command(name="status")
+async def status(ctx: commands.Context) -> None:
+    """Show the current mode and speed of the bot."""
+    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}")
+
+
+@bot.hybrid_command(name="debug")
+async def debug(ctx: commands.Context) -> None:
+    """Show debug info for the last message Bob sent."""
+    debug_info = get_debug_info()
+    if not debug_info:
+        await ctx.send("! No trace available.")
+    else:
+        await ctx.send(truncate_length("!```Trace:\n" + debug_info + "```", 2000))
 
 
 @bot.event
@@ -189,6 +209,7 @@ async def on_message(message: discord.Message):
     saved_message_count: int = history.message_count
     # Get a response
     try:
+        reset_debug_info()
         decision, thoughts = await decide_to_respond(history.as_string(5))
         if decision:
             await curr_channel.typing()
@@ -212,14 +233,15 @@ async def on_typing(channel, user, when):
     history.on_typing(user, when)
 
 
-async def send_discord_message(message_str: str) -> bool:
+async def send_discord_message(message_str: str, instant: bool = False) -> bool:
     """Send a message to the active channel.
 
     Args:
         message_str (str): The message to send.
+        instant (bool): Whether to force send the message instantly.
 
     Returns:
-        Whether the message was actually sent.
+        Whether the message was sent in full.
     """
     if not message_str.strip():
         return False
@@ -249,23 +271,23 @@ async def send_discord_message(message_str: str) -> bool:
             j = min(i + chunk_size_limit, len(message_str))  # Ending of this message
             chunk = message_str[i:j]
             i = j
-            # Calculate typing time (on top of generation time): ~100 WPM or 18-22 seconds max
+            # Calculate typing time (on top of generation time): ~150 WPM or 18-22 seconds max
             typing_time = min(
-                random.random() * 1000 + (random.random() / 2 + 1) * 150 * len(chunk), 18000 + random.random() * 4000
+                random.random() * 1000 + (random.random() / 2 + 1) * 100 * len(chunk), 18000 + random.random() * 4000
             )
-            if speed == Speed.INSTANT:
+            if instant or speed == Speed.INSTANT:
                 typing_time = 0
             saved_message_count: int = history.message_count
             await asyncio.sleep(typing_time / 1000)
             # Only send if no new messages were sent and no one is typing (excluding Bob)
             if history.message_count != saved_message_count:
-                logger.info("Not sending: New message sent.")
+                log_debug_info("Not sending: New message sent.")
                 return False
             others_typing: list[discord.User] = get_channel_history(channel).get_users_typing()
             if bot.user in others_typing:
                 others_typing.remove(bot.user)
             if others_typing:
-                logger.info(f"Not sending: Others typing {[user.display_name for user in others_typing]}")
+                log_debug_info(f"Not sending: Others typing {[user.display_name for user in others_typing]}.")
                 return False
             # Send the message
             try:

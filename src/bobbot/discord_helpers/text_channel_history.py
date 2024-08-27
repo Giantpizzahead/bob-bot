@@ -11,7 +11,7 @@ import discord
 import requests
 from langchain.schema import AIMessage, BaseMessage, HumanMessage
 
-from ..utils import get_logger, time_elapsed_str, truncate_length
+from bobbot.utils import get_logger, time_elapsed_str, truncate_length
 
 logger: Logger = get_logger(__name__)
 

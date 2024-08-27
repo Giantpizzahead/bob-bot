@@ -75,7 +75,10 @@
 <li><a class="reference internal" href="#bobbot.TextChannelHistory.on_typing"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.on_typing()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#bobbot.get_debug_info"><code class="docutils literal notranslate"><span class="pre">get_debug_info()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
+<li><a class="reference internal" href="#bobbot.log_debug_info"><code class="docutils literal notranslate"><span class="pre">log_debug_info()</span></code></a></li>
+<li><a class="reference internal" href="#bobbot.reset_debug_info"><code class="docutils literal notranslate"><span class="pre">reset_debug_info()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.run_bot"><code class="docutils literal notranslate"><span class="pre">run_bot()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.send_discord_message"><code class="docutils literal notranslate"><span class="pre">send_discord_message()</span></code></a></li>
 </ul>
@@ -309,6 +312,12 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="bobbot.get_debug_info">
+<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">get_debug_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#get_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.get_debug_info" title="Link to this definition"></a></dt>
+<dd><p>Get the bot’s debug info.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="bobbot.get_logger">
 <span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Formatter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Logger</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#get_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.get_logger" title="Link to this definition"></a></dt>
 <dd><p>Get a logger with the specified name and logging level.</p>
@@ -333,6 +342,18 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="bobbot.log_debug_info">
+<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">log_debug_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#log_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.log_debug_info" title="Link to this definition"></a></dt>
+<dd><p>Append to the bot’s debug info and log it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.reset_debug_info">
+<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">reset_debug_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#reset_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.reset_debug_info" title="Link to this definition"></a></dt>
+<dd><p>Clear the bot’s debug info.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="bobbot.run_bot">
 <span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">run_bot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#run_bot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.run_bot" title="Link to this definition"></a></dt>
 <dd><p>Run the bot. Blocks until the bot is stopped.</p>
@@ -340,14 +361,17 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="bobbot.send_discord_message">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">send_discord_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#send_discord_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.send_discord_message" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">send_discord_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#send_discord_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.send_discord_message" title="Link to this definition"></a></dt>
 <dd><p>Send a message to the active channel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>message_str</strong> (<em>str</em>) – The message to send.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message_str</strong> (<em>str</em>) – The message to send.</p></li>
+<li><p><strong>instant</strong> (<em>bool</em>) – Whether to force send the message instantly.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Whether the message was actually sent.</p>
+<dd class="field-even"><p>Whether the message was sent in full.</p>
 </dd>
 </dl>
 </dd></dl>

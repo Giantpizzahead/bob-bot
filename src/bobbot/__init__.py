@@ -1,7 +1,22 @@
 """This module is the main entry point for the bot."""
 
-from .discord_helpers.main_bot import run_bot, send_discord_message
-from .discord_helpers.text_channel_history import ParsedMessage, TextChannelHistory
-from .utils import get_logger
+from .discord_helpers import (
+    ParsedMessage,
+    TextChannelHistory,
+    run_bot,
+    send_discord_message,
+)
+from .utils import get_debug_info, get_logger, log_debug_info, reset_debug_info
 
-__all__ = ["run_bot", "send_discord_message", "ParsedMessage", "TextChannelHistory", "get_logger"]
+__all__ = [
+    "ParsedMessage",
+    "TextChannelHistory",
+    "log_debug_info",
+    "reset_debug_info",
+    "run_bot",
+    "send_discord_message",
+    "get_debug_info",
+    "get_logger",
+    "log_debug_info",
+    "reset_debug_info",
+]

@@ -5,18 +5,18 @@ This list will evolve as the bot progresses. We'll start getting features workin
 ### Today
 
 - [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
-- [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work)
 - [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
-- [ ] 
+- [ ] Add a delayed second check on whether to send a message or not, to be ran when no one is typing and Bob decided not to respond before (due to not being sure if the other person was done). In this delayed check, emphasize to the decision agent that all users are done typing.
 
 ### Todo
 
-hi
+- [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work)
 
 ### Future
 
 - [ ] Optimize TextChannelHistory token usage by truncating messages
 - [ ] Add medium-term memory to TextChannelHistory by summarizing long messages and those that go out of the window
+- [ ] Add tests for stable functions (that likely won't change)
 
 ## Completed Tasks
 
@@ -28,6 +28,7 @@ hi
 - [x] Attempt to use AutoGen to build something like the V1 multiagent system
 - [x] Implement default and off modes, along with default and instant speeds
 - [x] Reorganize by moving the bot and the agent into classes (for easier abstraction/usage) (decided not to do for now, instead put them in separate functions)
+- [x] Make Bob easier to debug by allowing debug info to be printed on demand in Discord
 
 ### Text
 

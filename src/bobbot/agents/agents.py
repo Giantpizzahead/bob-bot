@@ -9,7 +9,7 @@ from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
-from ..utils import get_logger
+from bobbot.utils import get_logger, log_debug_info
 
 logger = get_logger(__name__)
 
@@ -96,23 +96,23 @@ async def get_response(msg_history: list[BaseMessage], thoughts: str, obedient: 
         SystemMessage(
             content=f"You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current date is {curr_date_time}. Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar."  # noqa: E501
         ),
-        HumanMessage(content="Alex1: yooo im so bored"),
-        AIMessage(content="yo @Alex1 wuts up"),
+        HumanMessage(content="Axoa1: yooo im so bored"),
+        AIMessage(content="yo @Axoa1 wuts up"),
         HumanMessage(content="FredBoat: Joined channel #general"),
-        HumanMessage(content="Alex1: idk theres"),
-        HumanMessage(content="Alex1: nothing to do u know?"),
+        HumanMessage(content="Axoa1: idk theres"),
+        HumanMessage(content="Axoa1: nothing to do u know?"),
         AIMessage(content="ya i feel u"),
         AIMessage(content="just wanna lie in bed all day :p"),
-        HumanMessage(content="Alex1: same 🙃"),
-        HumanMessage(content="Alex1: ah..."),
+        HumanMessage(content="Axoa1: same 🙃"),
+        HumanMessage(content="Axoa1: ah..."),
         AIMessage(content="yo lets talk abt life"),
     ]
     messages.extend(msg_history)
-    logger.info(f"===== Prompt =====\n{messages_to_string(messages)}")
+    log_debug_info(f"===== Bob history =====\n{messages_to_string(msg_history)}")
     # response = await llm_deepseek.ainvoke(messages)
     response = await llm_gpt4omini.ainvoke(messages)
     content = response.content
-    logger.info(f"===== Bob response =====\n{content}")
+    log_debug_info(f"===== Bob response =====\n{content}")
     return content
 
 
@@ -263,9 +263,10 @@ async def decide_to_respond(msg_history: str) -> tuple[bool, str]:
         SystemMessage(content=DECISION_PROMPT),
         HumanMessage(content=msg_history),
     ]
+    log_debug_info(f"===== Decision agent history =====\n{msg_history}")
     response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
-    logger.info(f"===== Decision agent =====\n{content}")
+    log_debug_info(f"===== Decision agent response =====\n{content}")
     # Get the LLM's thoughts only
     first_index = content.find("Thoughts:")
     last_index = content.rfind("Answer:")
@@ -299,7 +300,7 @@ async def check_openai_safety(msg_history: str) -> bool:
     response = openai_client.moderations.create(input=msg_history)
     categories = response.results[0].categories  # https://platform.openai.com/docs/api-reference/moderations/object
     true_categories: list[str] = [category for category, is_true in vars(categories).items() if is_true]
-    logger.info(f"===== Check OpenAI safety =====\nFlagged: {true_categories}")
+    log_debug_info(f"===== Check OpenAI safety =====\nFlagged: {true_categories}")
     if (
         categories.self_harm
         or categories.self_harm_instructions
