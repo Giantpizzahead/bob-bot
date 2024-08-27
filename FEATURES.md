@@ -4,18 +4,18 @@ This is a list of ideal features, along with which are currently implemented.
 
 ### Discord Text
 
-- [ ] Detect when Bob is pinged (DM, direct ping, or name), and differentiate that from just a new message.
+- [x] Detect when Bob is pinged (DM, direct ping, or name), and differentiate that from just a new message.
 - [x] Be able to remember a short conversation history (last 6 non-command messages truncated to last 128 tokens, not including current one), for context.
 - [ ] Make a running summary / status report of what Bob is talking about (and with who), shared across server and DMs.
-- [ ] Be able to see if someone is currently typing (ex: to decide whether to respond or not).
+- [x] Be able to see if someone is currently typing (ex: to decide whether to respond or not).
 - [x] Be able to see if the message was sent as a reply to another message.
 - [x] Be able to see if a previous or current message was edited (ex: right before sending a response).
 - [x] Be able to remember deleted messages (if Bob saw them before).
-- [ ] Be able to see image attachments.
-- [ ] Let Bob decide whether to look at the message based on whether he was pinged.
-- [ ] Let Bob decide whether to send messages as a reply.
+- [x] Be able to see image attachments.
+- [x] Let Bob decide whether to look at the message based on whether he was pinged.
+- [x] Let Bob decide whether to send messages as a reply.
 - [ ] Query external tools (web search, image search, reasoning, mood, etc) to determine a good reply.
-- [ ] Give a reply in Discord's writing/humor style.
+- [x] Give a reply in Discord's writing/humor style.
 - [ ] Be fine and open with NSFW messages and replies.
 - [ ] Still, send all messages with the intention of ensuring everyone has a good time.
 

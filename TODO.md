@@ -1,10 +1,13 @@
-This list will evolve as the bot progresses.
+This list will evolve as the bot progresses. We'll start getting features working, and add polish later.
 
 ## Current Tasks
 
 ### Today
 
-- [ ] Optimize TextChannelHistory token usage by truncating/summarizing messages as needed
+- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
+- [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work)
+- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+- [ ] 
 
 ### Todo
 
@@ -12,7 +15,8 @@ hi
 
 ### Future
 
-hi
+- [ ] Optimize TextChannelHistory token usage by truncating messages
+- [ ] Add medium-term memory to TextChannelHistory by summarizing long messages and those that go out of the window
 
 ## Completed Tasks
 
@@ -34,6 +38,8 @@ hi
 - [x] (Re)implement a bare bones version of Bob by passing in message history with a simple system prompt and a single agent
 - [x] Wait for users to finish typing before sending a message
 - [x] Refine message quality and handle content filtering by testing different models
+- [x] Clean up message history class (OOP kinda sucks ngl)
+- [x] Bring back the original Bob's chatting style, and keep it that way
 
 ### Multi-agent
 

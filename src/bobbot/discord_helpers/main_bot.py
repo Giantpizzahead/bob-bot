@@ -36,7 +36,7 @@ class Speed(Enum):
 
 logger: Logger = get_logger(__name__)
 mode: Enum = Mode.DEFAULT
-speed: Enum = Speed.INSTANT
+speed: Enum = Speed.DEFAULT
 
 
 def init_bot() -> commands.Bot:
@@ -124,14 +124,18 @@ async def status(ctx: commands.Context) -> None:
 async def help(ctx: commands.Context) -> None:
     """Get the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1
+        """! hi i am bob 2nd edition v1.1
 command prefix is `!`, slash commands work too
-mode [default/obedient/off]: Set the mode of the bot.
-speed [default/instant]: Set the typing speed of the bot.
-reset: Reset the bot's conversation history.
-status: Get the current status of the bot.
-help: Get this help message.
-ping: Ping the bot."""
+
+config:
+`reset` - Reset the bot's conversation history.
+`mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
+`speed [default/instant]` - Set the typing speed of the bot.
+
+info:
+`help` - Show this help message.
+`ping` - Ping the bot.
+`status` - Show the current mode and speed of the bot."""
     )
 
 
@@ -155,8 +159,8 @@ async def on_ready() -> None:
     try:
         synced = await bot.tree.sync()
         logger.debug(f"Synced {len(synced)} commands.")
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.exception("Error syncing commands")
     logger.info("Bob is online!")
 
 
@@ -185,14 +189,16 @@ async def on_message(message: discord.Message):
     saved_message_count: int = history.message_count
     # Get a response
     try:
-        decision, thoughts = await decide_to_respond(history.get_history_str(10))
+        decision, thoughts = await decide_to_respond(history.as_string(5))
         if decision:
             await curr_channel.typing()
-            response: str = await get_response(history.get_history_str(), thoughts, obedient=(mode == Mode.OBEDIENT))
+            response: str = await get_response(
+                history.as_langchain_msgs(bot.user), thoughts, obedient=(mode == Mode.OBEDIENT)
+            )
             if history.message_count == saved_message_count:
                 await send_discord_message(response)
     except Exception as e:
-        logger.error(e)
+        logger.exception("Error getting response")
         await send_discord_message(str(e))
 
 
@@ -264,7 +270,7 @@ async def send_discord_message(message_str: str) -> bool:
             # Send the message
             try:
                 await channel.send(chunk, suppress_embeds=True)
-            except discord.DiscordException as error:
-                logger.error(error)
+            except discord.DiscordException:
+                logger.exception("Error sending message")
                 return False
     return True

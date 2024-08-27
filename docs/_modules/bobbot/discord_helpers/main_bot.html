@@ -106,7 +106,7 @@
 
 <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">mode</span><span class="p">:</span> <span class="n">Enum</span> <span class="o">=</span> <span class="n">Mode</span><span class="o">.</span><span class="n">DEFAULT</span>
-<span class="n">speed</span><span class="p">:</span> <span class="n">Enum</span> <span class="o">=</span> <span class="n">Speed</span><span class="o">.</span><span class="n">INSTANT</span>
+<span class="n">speed</span><span class="p">:</span> <span class="n">Enum</span> <span class="o">=</span> <span class="n">Speed</span><span class="o">.</span><span class="n">DEFAULT</span>
 
 
 <span class="k">def</span> <span class="nf">init_bot</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">commands</span><span class="o">.</span><span class="n">Bot</span><span class="p">:</span>
@@ -197,14 +197,18 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">help</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the help message.&quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;! hi i am bob 2nd edition v1</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;! hi i am bob 2nd edition v1.1</span>
 <span class="sd">command prefix is `!`, slash commands work too</span>
-<span class="sd">mode [default/obedient/off]: Set the mode of the bot.</span>
-<span class="sd">speed [default/instant]: Set the typing speed of the bot.</span>
-<span class="sd">reset: Reset the bot&#39;s conversation history.</span>
-<span class="sd">status: Get the current status of the bot.</span>
-<span class="sd">help: Get this help message.</span>
-<span class="sd">ping: Ping the bot.&quot;&quot;&quot;</span>
+
+<span class="sd">config:</span>
+<span class="sd">`reset` - Reset the bot&#39;s conversation history.</span>
+<span class="sd">`mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.</span>
+<span class="sd">`speed [default/instant]` - Set the typing speed of the bot.</span>
+
+<span class="sd">info:</span>
+<span class="sd">`help` - Show this help message.</span>
+<span class="sd">`ping` - Ping the bot.</span>
+<span class="sd">`status` - Show the current mode and speed of the bot.&quot;&quot;&quot;</span>
     <span class="p">)</span>
 
 
@@ -228,8 +232,8 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">synced</span> <span class="o">=</span> <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Synced </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">synced</span><span class="p">)</span><span class="si">}</span><span class="s2"> commands.&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error syncing commands&quot;</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bob is online!&quot;</span><span class="p">)</span>
 
 
@@ -258,14 +262,16 @@
     <span class="n">saved_message_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span>
     <span class="c1"># Get a response</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">decision</span><span class="p">,</span> <span class="n">thoughts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_to_respond</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">get_history_str</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">decision</span><span class="p">,</span> <span class="n">thoughts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_to_respond</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">decision</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">curr_channel</span><span class="o">.</span><span class="n">typing</span><span class="p">()</span>
-            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">get_history_str</span><span class="p">(),</span> <span class="n">thoughts</span><span class="p">,</span> <span class="n">obedient</span><span class="o">=</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Mode</span><span class="o">.</span><span class="n">OBEDIENT</span><span class="p">))</span>
+            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">),</span> <span class="n">thoughts</span><span class="p">,</span> <span class="n">obedient</span><span class="o">=</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Mode</span><span class="o">.</span><span class="n">OBEDIENT</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span> <span class="o">==</span> <span class="n">saved_message_count</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">send_discord_message</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error getting response&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">send_discord_message</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
 
@@ -339,8 +345,8 @@
             <span class="c1"># Send the message</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">suppress_embeds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">discord</span><span class="o">.</span><span class="n">DiscordException</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">discord</span><span class="o">.</span><span class="n">DiscordException</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error sending message&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="kc">True</span></div>
 

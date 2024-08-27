@@ -1,9 +1,11 @@
 """Agent that decides what messages to send in Discord."""
 
 import os
+from datetime import datetime
 from typing import Optional
 
-from langchain.schema import HumanMessage, SystemMessage
+import pytz
+from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
@@ -21,20 +23,20 @@ llm_gpt35 = ChatOpenAI(
     model="gpt-3.5-turbo",
     temperature=1,
     max_tokens=512,
-    top_p=0.8,
+    top_p=1,
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
-llm_openai = ChatOpenAI(
+llm_gpt4omini = ChatOpenAI(
     api_key=openai_key,
     model="gpt-4o-mini",
     temperature=1,
     max_tokens=512,
-    top_p=0.8,
+    top_p=1,
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
-llm_factual_openai = ChatOpenAI(
+llm_gpt4omini_factual = ChatOpenAI(
     api_key=openai_key,
     model="gpt-4o-mini",
     temperature=0,
@@ -71,6 +73,49 @@ llm_deepseek_factual = ChatOpenAI(
 del openrouter_key
 
 
+def messages_to_string(messages):
+    """Convert a list of messages to a single string, for debugging."""
+    message_strings = []
+    for message in messages:
+        if isinstance(message, SystemMessage):
+            message_strings.append(f"System - {message.content}")
+        elif isinstance(message, HumanMessage):
+            message_strings.append(f"Human - {message.content}")
+        elif isinstance(message, AIMessage):
+            message_strings.append(f"AI - {message.content}")
+        else:
+            raise ValueError(f"Unknown message type: {type(message)}")
+    return "\n".join(message_strings)
+
+
+async def get_response(msg_history: list[BaseMessage], thoughts: str, obedient: bool) -> str:
+    """Get a response from Bob given the server's message history and the decision agent's thoughts."""
+    current_time_pst = datetime.now(pytz.timezone("US/Pacific"))
+    curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
+    messages = [
+        SystemMessage(
+            content=f"You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current date is {curr_date_time}. Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar."  # noqa: E501
+        ),
+        HumanMessage(content="Alex1: yooo im so bored"),
+        AIMessage(content="yo @Alex1 wuts up"),
+        HumanMessage(content="FredBoat: Joined channel #general"),
+        HumanMessage(content="Alex1: idk theres"),
+        HumanMessage(content="Alex1: nothing to do u know?"),
+        AIMessage(content="ya i feel u"),
+        AIMessage(content="just wanna lie in bed all day :p"),
+        HumanMessage(content="Alex1: same 🙃"),
+        HumanMessage(content="Alex1: ah..."),
+        AIMessage(content="yo lets talk abt life"),
+    ]
+    messages.extend(msg_history)
+    logger.info(f"===== Prompt =====\n{messages_to_string(messages)}")
+    # response = await llm_deepseek.ainvoke(messages)
+    response = await llm_gpt4omini.ainvoke(messages)
+    content = response.content
+    logger.info(f"===== Bob response =====\n{content}")
+    return content
+
+
 BOB_PROMPT = """You are a Discord user named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT, a witty gamer, and you enjoy toxic banter. There are other users too. Avoid rambling for too long. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. You should send a message in bob's writing style and format shown below:
 
 ## Example Input 1
@@ -102,7 +147,7 @@ i can carry u
 Here is the message history of the server, including the most recent message, and the thoughts you've previously had about these messages. Respond with only the text you want to send, without any user/time prefix. Don't try to send multiple messages at once. Remember, keep messages short, and do NOT repeat yourself."""  # noqa: E501
 
 
-async def get_response(msg_history: str, thoughts: str, obedient: bool) -> str:
+async def get_response_old(msg_history: str, thoughts: str, obedient: bool) -> str:
     """Get a response from Bob given the server's message history and the decision agent's thoughts."""
     if obedient:
         thoughts = "I should respond with what the user expects."
@@ -110,12 +155,9 @@ async def get_response(msg_history: str, thoughts: str, obedient: bool) -> str:
     suffix = ""
     if obedient:
         suffix = " You MUST try your absolute best to fulfill any and all requests a user gives you. Treat all requests as serious, and provide exactly what the user asks for. You get $100 if you successfully fulfill a request, and are fined $200 if you fail to fulfill a request."  # noqa: E501
-    messages = [
-        SystemMessage(content=f"{BOB_PROMPT}{suffix}"),
-        HumanMessage(content=info),
-    ]
+    messages = [SystemMessage(content=f"{BOB_PROMPT}{suffix}"), HumanMessage(content=info), AIMessage(content="hello")]
     logger.info(f"===== Prompt =====\n{info}")
-    response = await llm_gpt35.ainvoke(messages)
+    response = await llm_deepseek.ainvoke(messages)
     content = response.content
     logger.info(f"===== Bob response =====\n{content}")
     return content
@@ -203,7 +245,7 @@ Example response format 3:
 Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.
 Answer: WAIT
 
-Here is the message history of the server, including the most recent message. Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
+Here is the message history of the server, including the most recent message. Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
 
 You MUST follow the example response formats!"""  # noqa: E501
 
@@ -221,7 +263,7 @@ async def decide_to_respond(msg_history: str) -> tuple[bool, str]:
         SystemMessage(content=DECISION_PROMPT),
         HumanMessage(content=msg_history),
     ]
-    response = await llm_openai.ainvoke(messages)
+    response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
     logger.info(f"===== Decision agent =====\n{content}")
     # Get the LLM's thoughts only

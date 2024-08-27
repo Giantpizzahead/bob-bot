@@ -1,19 +1,40 @@
 """Contains the TextChannelHistory class for tracking the history of a text channel."""
 
+import pprint
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from logging import Logger
+from typing import Callable
 
 import discord
+import requests
+from langchain.schema import AIMessage, BaseMessage, HumanMessage
 
-from ..utils import get_logger, time_elapsed_str, truncate_middle
+from ..utils import get_logger, time_elapsed_str, truncate_length
 
 logger: Logger = get_logger(__name__)
 
 
+def get_images_in(content: str) -> list[str]:
+    """Get a (potentially empty) list of all URLs that lead to valid, static images in the given content."""
+    url_pattern = re.compile(r"(https?://[^\s]+)")
+    urls = url_pattern.findall(content)
+    image_urls = []
+    for url in urls:
+        # Check if the URL is valid and points to an image
+        try:
+            response = requests.head(url, allow_redirects=True)
+            content_type = response.headers.get("Content-Type")
+            if content_type is not None and content_type.startswith("image"):
+                image_urls.append(url)
+        except requests.RequestException:
+            pass
+    return image_urls
+
+
 def get_users_in_channel(channel: discord.DMChannel | discord.TextChannel) -> list[discord.User]:
-    """Get a list of users in a Discord channel."""
+    """Get a list of all users in a Discord channel."""
     if isinstance(channel, discord.DMChannel):
         users = channel.recipients + [channel.me]
     else:
@@ -21,31 +42,137 @@ def get_users_in_channel(channel: discord.DMChannel | discord.TextChannel) -> li
     return users
 
 
+def pings_to_usernames(content: str, channel: discord.TextChannel) -> str:
+    """Replace raw ID mentions with username mentions in the given content."""
+    user_mention_pattern = re.compile(r"<@!?(\d+)>")
+    # Find all matches of user mentions in the content
+    matches = user_mention_pattern.findall(content)
+    all_users: list[discord.User] = get_users_in_channel(channel)
+    for user_id in matches:
+        # Check if the user is in the channel
+        if (user := discord.utils.get(all_users, id=int(user_id))) is not None:
+            # Replace the mention with the member's display name
+            content = re.sub(f"<@!?{user_id}>", f"@{user.display_name}", content)
+    return content
+
+
+def get_full_content(message: discord.Message) -> str:
+    """Get the full content of a message, including attachment URLs and sticker names."""
+    # Replace user mentions with display names
+    content: str = pings_to_usernames(message.content, message.channel)
+    # Add stickers and attachments
+    stickers: str = ", ".join([sticker.name for sticker in message.stickers])
+    if stickers:
+        content = f"{content} {stickers}"
+    attachments: str = ", ".join([f"{attachment.url}" for attachment in message.attachments])
+    if attachments:
+        content = f"{content} {attachments}"
+    # Check for embed
+    if message.embeds and not content:
+        pass
+    return content
+
+
 @dataclass
-class MessageEntry:
-    """Represents a message entry in the history."""
+class ParsedMessage:
+    """Represents a parsed Discord message."""
 
     message: discord.Message
-    """The message."""
-    string: str
-    """A cached string representation of the message (without a timestamp)."""
-    is_edited: bool = False
-    """Whether the message was edited."""
+    """The raw message."""
     is_deleted: bool = False
     """Whether the message was deleted."""
 
+    @property
+    def is_edited(self) -> bool:
+        """Whether the message was edited."""
+        return self.message.edited_at is not None
+
+    @property
+    def author(self) -> str:
+        """As a string."""
+        return self.message.author.display_name
+
+    @property
+    def content(self) -> str:
+        """Text of the message."""
+        return self.message.content
+
+    @property
+    def full_content(self) -> str:
+        """Includes content, attachment URLs, and stickers."""
+        return get_full_content(self.message)
+
+    @property
+    def reactions(self) -> str:
+        """As a string."""
+        return ", ".join([f"{r.count} {r.emoji}" for r in self.message.reactions])
+
+    @property
+    def timestamp(self) -> str:
+        """Relative to now, as a string."""
+        return time_elapsed_str(self.message.created_at)
+
+    @property
+    def context(self) -> str:
+        """Whether the message is edited/deleted, plus if it's a reply/command response."""
+        context = "Deleted" if self.is_deleted else "Edited" if self.is_edited else ""
+        replying = ""
+        if self.message.reference and isinstance(self.message.reference.resolved, discord.Message):
+            # Replying to a message
+            old_msg: discord.Message = self.message.reference.resolved
+            replying = f"replying to {old_msg.author.display_name}"
+        elif self.message.interaction_metadata:
+            # Slash command response
+            replying = "triggered by a command"
+        context = f"{context}, {replying}" if context and replying else replying if replying else context
+        return context
+
+    def __init__(self, message: discord.Message, is_deleted: bool = False):
+        """Create a message entry.
+
+        Args:
+            message: The message to parse.
+            is_deleted: Whether the message was deleted.
+        """
+        self.message = message
+        self.is_deleted = is_deleted
+
+    def as_string(
+        self,
+        with_author: bool = True,
+        with_context: bool = True,
+        with_reactions: bool = True,
+        with_timestamp: bool = False,
+    ) -> str:
+        """Format the message as a string.
+
+        Args:
+            with_author: Whether to include the author.
+            with_context: Whether to include context info.
+            with_reactions: Whether to include reactions.
+            with_timestamp: Whether to include a timestamp.
+
+        Returns:
+            The formatted message.
+        """
+        result = ""
+        if with_timestamp:
+            result += f"[{self.timestamp}] "
+        if with_author:
+            if with_context and self.context:
+                result += f"{self.author} ({self.context}): "
+            else:
+                result += f"{self.author}: "
+        elif with_context and self.context:
+            result += f"({self.context}) "
+        result += self.full_content
+        if with_reactions and self.reactions:
+            result += f" | Reactions: {self.reactions}"
+        return result
+
     def __str__(self) -> str:
-        """Convert a message entry to a string representation (with a timestamp)."""
-        preamble: str = time_elapsed_str(self.message.created_at)
-        # preamble: str = ""
-        if self.is_edited:
-            preamble = f"{preamble}, edited"
-            # preamble = "[Edited] "
-        elif self.is_deleted:
-            preamble = f"{preamble}, deleted"
-            # preamble = "[Deleted] "
-        return f"[{preamble}] {self.string}"
-        # return f"{preamble}{self.string}"
+        """Format the message as a full string, containing all info."""
+        return self.as_string(with_timestamp=True)
 
 
 class TextChannelHistory:
@@ -56,124 +183,30 @@ class TextChannelHistory:
     """The maximum lengths for message content, starting with the most recent."""
     MAX_MSGS: int = len(MAX_CONTENT_LENS)
     """The maximum number of messages to track."""
-    REPLY_CONTENT_LEN: int = 64
-    """The maximum length of a reply's content."""
+
+    channel: discord.TextChannel
+    """The channel being tracked."""
+    is_typing: dict[discord.User, datetime]
+    """Users currently typing in the channel."""
+    history: list[ParsedMessage]
+    """Recent messages in the channel."""
+    message_count: int
+    """Counter for the total number of messages sent in the channel."""
 
     def __init__(self, channel: discord.TextChannel):
-        """Initialize the tracker with the specified channel.
+        """Create a tracker for the specified channel.
 
         Args:
             channel: The channel to track.
         """
-        self.channel: discord.TextChannel = channel
-        """The channel being tracked."""
-        self.history: list[MessageEntry] = []
-        """Recent messages in the channel."""
-        self.is_typing: dict[discord.User, datetime] = {}
-        """Users currently typing in the channel."""
-        self.message_count: int = 0
-        """Counter for the total number of messages sent in a channel."""
-
-    async def amessage_to_str(self, message: discord.Message, max_len: int = 255, core_only: bool = False) -> str:
-        """Convert a message to a concise string representation (without a timestamp).
-
-        Args:
-            message: The message to convert.
-            max_len: The max length of the message content.
-            core_only: Whether to only include the core message content (no tracing replies or reactions).
-
-        Returns:
-            A concise string representation of the message.
-        """
-        # Replace user mentions with display names
-        content: str = message.content
-        user_mention_pattern = re.compile(r"<@!?(\d+)>")
-        # Find all matches of user mentions in the content
-        matches = user_mention_pattern.findall(content)
-        all_users: list[discord.User] = get_users_in_channel(message.channel)
-        for user_id in matches:
-            # Check if the user is in the channel
-            if (user := discord.utils.get(all_users, id=int(user_id))) is not None:
-                # Replace the mention with the member's display name
-                content = re.sub(f"<@!?{user_id}>", f"@{user.display_name}", content)
-
-        # Add stickers and attachments
-        stickers: str = ", ".join([sticker.name for sticker in message.stickers])
-        if stickers:
-            content = f"{content} {stickers}"
-        attachments: str = ", ".join([f"{attachment.url}" for attachment in message.attachments])
-        if attachments:
-            content = f"{content} {attachments}"
-        result: str
-
-        if not core_only:
-            author: str = f"@{message.author.display_name}"
-            # Add reply context (if any)
-            replying: str = ""
-            if message.reference and isinstance(message.reference.resolved, discord.Message):
-                old_msg: discord.Message = message.reference.resolved
-                old_content: str = await self.amessage_to_str(
-                    message.reference.resolved, max_len=TextChannelHistory.REPLY_CONTENT_LEN, core_only=True
-                )
-                replying = f' (replying to {old_msg.author.display_name}\'s "{old_content}")'
-            # Add reactions
-            reactions: str = ", ".join([f"{r.count} {r.emoji}" for r in message.reactions])
-            if reactions:
-                reactions = f" | Reactions: {reactions}"
-            result = f"{author}{replying}: {content}{reactions}"
-        else:
-            result = f"{content}"
-        return truncate_middle(result, max_len=max_len, replace_newlines=True)
-
-    async def aupdate(self) -> None:
-        """Update the history with the latest messages and events.
-
-        This method should be called before querying the history after every idle period.
-        """
-        history: list[MessageEntry] = []
-        old_history: list[MessageEntry] = self.history
-        old_history_index: int = len(old_history) - 1
-        async for prev_msg in self.channel.history(limit=TextChannelHistory.MAX_MSGS):  # From most to least recent
-            # Get allowed content length
-            if len(history) >= TextChannelHistory.MAX_MSGS:
-                break
-            curr_len: int = TextChannelHistory.MAX_CONTENT_LENS[len(history)]
-            # Check for messages that are already in history
-            is_old: bool = False
-            while old_history_index >= 0 and old_history[old_history_index].message.created_at >= prev_msg.created_at:
-                old_entry: MessageEntry = old_history[old_history_index]
-                old_history_index -= 1
-                if prev_msg.id == old_entry.message.id:
-                    is_old = True
-                    # Was the message edited?
-                    if prev_msg.edited_at != old_entry.message.edited_at:
-                        edited: str = await self.amessage_to_str(prev_msg, max_len=curr_len)
-                        history.append(MessageEntry(prev_msg, edited, is_edited=True))
-                    else:
-                        old_content: str = truncate_middle(old_entry.string, max_len=curr_len, replace_newlines=True)
-                        history.append(MessageEntry(old_entry.message, old_content, is_edited=old_entry.is_edited))
-                else:
-                    # Message was deleted
-                    history.append(MessageEntry(old_entry.message, old_entry.string, is_deleted=True))
-            if not is_old:
-                self.message_count += 1
-                if prev_msg.content.startswith("!"):
-                    break  # Stop tracking history at the first command
-                history.append(MessageEntry(prev_msg, await self.amessage_to_str(prev_msg, max_len=curr_len)))
-        # Truncate history and reverse it
-        history = history[: TextChannelHistory.MAX_MSGS][::-1]
-        self.history = history
-        logger.debug("Updated text channel history.")
+        self.channel = channel
+        self.is_typing = {}
+        self.history = []
+        self.message_count = 0
 
     def on_typing(self, user: discord.User, when: datetime) -> None:
         """Handle a typing event."""
         self.is_typing[user] = when
-
-    def get_history_str(self, max_msgs: int = MAX_MSGS) -> str:
-        """Get a string representation of the history."""
-        result: str = "\n".join([str(e) for e in self.history[-max_msgs:]])
-        logger.debug(f"Text channel history:\n{result}")
-        return result
 
     def clear_users_typing(self) -> None:
         """Clear all currently typing users."""
@@ -183,7 +216,112 @@ class TextChannelHistory:
         """Returns a list of users currently typing."""
         # Update typing status, removing entries that are >= 10 seconds old
         now: datetime = datetime.now(timezone.utc)
-        # debug = {user.display_name: (now - when).total_seconds() for user, when in self.is_typing.items()}
-        # print(f"Typing: {debug}")
         self.is_typing = {user: when for user, when in self.is_typing.items() if (now - when).total_seconds() < 10}
         return list(self.is_typing.keys())
+
+    async def aupdate(self) -> None:
+        """Update the history with the latest messages and events.
+
+        This method should be called before querying the history after every idle period.
+        """
+        history: list[ParsedMessage] = []
+        old_history: list[ParsedMessage] = self.history
+        old_history_index: int = len(old_history) - 1
+        async for prev_msg in self.channel.history(limit=TextChannelHistory.MAX_MSGS):  # From most to least recent
+            # Get allowed content length
+            if len(history) >= TextChannelHistory.MAX_MSGS:
+                break
+            # Check for messages that are already in history
+            is_old: bool = False
+            while old_history_index >= 0 and old_history[old_history_index].message.created_at >= prev_msg.created_at:
+                old_entry: ParsedMessage = old_history[old_history_index]
+                old_history_index -= 1
+                if prev_msg.id == old_entry.message.id:
+                    is_old = True
+                    history.append(old_entry)
+                else:
+                    # Message was deleted
+                    history.append(ParsedMessage(old_entry.message, is_deleted=True))
+            if not is_old:
+                self.message_count += 1
+                if prev_msg.content.startswith(("! reset", "! mode")):
+                    break  # Stop tracking history at the first command
+                elif prev_msg.content.startswith("!"):
+                    continue  # Skip other commands
+                history.append(ParsedMessage(prev_msg))
+        # Truncate history and reverse it
+        history = history[: TextChannelHistory.MAX_MSGS][::-1]
+        self.history = history
+        logger.info("Updated text channel history.")
+
+    def history_to_strings(self, transform: Callable[[ParsedMessage], str], limit: int = MAX_MSGS) -> list[str]:
+        """Get a list of truncated strings representing the history, up to the last limit messages.
+
+        Messages are truncated based on how recent they are, with older messages being truncated more.
+
+        Args:
+            transform: A function to convert a ParsedMessage to a string.
+            limit: The maximum number of messages to include.
+
+        Returns:
+            A list of strings representing the history.
+        """
+        history_strs: list[str] = []
+        for i, entry in enumerate(reversed(self.history[-limit:])):
+            curr_str = truncate_length(transform(entry), TextChannelHistory.MAX_CONTENT_LENS[i])
+            history_strs.append(curr_str)
+        return history_strs[::-1]
+
+    def as_parsed_messages(self, limit: int = MAX_MSGS) -> list[ParsedMessage]:
+        """Get the channel's message history, up to the last limit messages."""
+        return self.history[-limit:]
+
+    def as_string(self, limit: int = MAX_MSGS) -> str:
+        """Get a string representation of the history, up to the last limit messages."""
+        result = "\n".join(self.history_to_strings(str, limit))
+        logger.debug(f"Text channel history as string:\n{result}")
+        return result
+
+    def as_langchain_msgs(
+        self, bot_user: discord.User, limit: int = MAX_MSGS, get_image: bool = True
+    ) -> list[BaseMessage]:
+        """Get a list of LangChain messages representing the history, up to the last limit messages.
+
+        Args:
+            bot_user: The bot user. Used to distinguish AIMessages from HumanMessages.
+            limit: The maximum number of messages to include.
+            get_image: Whether to include a single image URL in the most recent message (if present).
+
+        Returns:
+            A list of LangChain message objects, with only HumanMessages containing author/context info.
+        """
+
+        def transform(entry: ParsedMessage) -> str:
+            """Bot messages should not contain author or context info."""
+            if entry.message.author == bot_user:
+                return entry.as_string(with_author=False, with_context=False, with_reactions=True, with_timestamp=False)
+            else:
+                return entry.as_string(with_author=True, with_context=True, with_reactions=True, with_timestamp=False)
+
+        history_strs: list[str] = self.history_to_strings(transform, limit)
+        result: list[BaseMessage] = []
+        for entry, text in zip(self.history[-limit:], history_strs):
+            if entry.message.author == bot_user:
+                result.append(AIMessage(content=text))
+            else:
+                # Include image in most recent message
+                if entry == self.history[-1]:
+                    image_urls: list[str] = get_images_in(text)
+                    if image_urls:
+                        result.append(
+                            HumanMessage(
+                                content=[
+                                    {"type": "text", "text": text},
+                                    {"type": "image_url", "image_url": {"url": image_urls[-1]}},
+                                ]
+                            )
+                        )
+                        continue
+                result.append(HumanMessage(content=text))
+        logger.debug(f"Text channel history as langchain messages:\n{pprint.pformat(result)}")
+        return result

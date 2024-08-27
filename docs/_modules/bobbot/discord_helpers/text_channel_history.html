@@ -70,20 +70,41 @@
   <h1>Source code for bobbot.discord_helpers.text_channel_history</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Contains the TextChannelHistory class for tracking the history of a text channel.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">Logger</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="kn">import</span> <span class="nn">discord</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">langchain.schema</span> <span class="kn">import</span> <span class="n">AIMessage</span><span class="p">,</span> <span class="n">BaseMessage</span><span class="p">,</span> <span class="n">HumanMessage</span>
 
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">time_elapsed_str</span><span class="p">,</span> <span class="n">truncate_middle</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">time_elapsed_str</span><span class="p">,</span> <span class="n">truncate_length</span>
 
 <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">get_images_in</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a (potentially empty) list of all URLs that lead to valid, static images in the given content.&quot;&quot;&quot;</span>
+    <span class="n">url_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(https?://[^\s]+)&quot;</span><span class="p">)</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="n">url_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">image_urls</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="c1"># Check if the URL is valid and points to an image</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">content_type</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">content_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">):</span>
+                <span class="n">image_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">image_urls</span>
+
+
 <span class="k">def</span> <span class="nf">get_users_in_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">DMChannel</span> <span class="o">|</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a list of users in a Discord channel.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a list of all users in a Discord channel.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">DMChannel</span><span class="p">):</span>
         <span class="n">users</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">recipients</span> <span class="o">+</span> <span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">me</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -91,34 +112,143 @@
     <span class="k">return</span> <span class="n">users</span>
 
 
-<div class="viewcode-block" id="MessageEntry">
-<a class="viewcode-back" href="../../../index.html#bobbot.MessageEntry">[docs]</a>
+<span class="k">def</span> <span class="nf">pings_to_usernames</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace raw ID mentions with username mentions in the given content.&quot;&quot;&quot;</span>
+    <span class="n">user_mention_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&lt;@!?(\d+)&gt;&quot;</span><span class="p">)</span>
+    <span class="c1"># Find all matches of user mentions in the content</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">user_mention_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">all_users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_users_in_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="c1"># Check if the user is in the channel</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">user</span> <span class="o">:=</span> <span class="n">discord</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">all_users</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">user_id</span><span class="p">)))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Replace the mention with the member&#39;s display name</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;@!?</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&gt;&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">content</span>
+
+
+<span class="k">def</span> <span class="nf">get_full_content</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the full content of a message, including attachment URLs and sticker names.&quot;&quot;&quot;</span>
+    <span class="c1"># Replace user mentions with display names</span>
+    <span class="n">content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">pings_to_usernames</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+    <span class="c1"># Add stickers and attachments</span>
+    <span class="n">stickers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sticker</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sticker</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">stickers</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">stickers</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">stickers</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">attachments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attachment</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">attachment</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">attachments</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">attachments</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">attachments</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="c1"># Check for embed</span>
+    <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">embeds</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">content</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">content</span>
+
+
+<div class="viewcode-block" id="ParsedMessage">
+<a class="viewcode-back" href="../../../index.html#bobbot.ParsedMessage">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">MessageEntry</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a message entry in the history.&quot;&quot;&quot;</span>
+<span class="k">class</span> <span class="nc">ParsedMessage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a parsed Discord message.&quot;&quot;&quot;</span>
 
     <span class="n">message</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The message.&quot;&quot;&quot;</span>
-    <span class="n">string</span><span class="p">:</span> <span class="nb">str</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A cached string representation of the message (without a timestamp).&quot;&quot;&quot;</span>
-    <span class="n">is_edited</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether the message was edited.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The raw message.&quot;&quot;&quot;</span>
     <span class="n">is_deleted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Whether the message was deleted.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a message entry to a string representation (with a timestamp).&quot;&quot;&quot;</span>
-        <span class="n">preamble</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">time_elapsed_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">created_at</span><span class="p">)</span>
-        <span class="c1"># preamble: str = &quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edited</span><span class="p">:</span>
-            <span class="n">preamble</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">preamble</span><span class="si">}</span><span class="s2">, edited&quot;</span>
-            <span class="c1"># preamble = &quot;[Edited] &quot;</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_deleted</span><span class="p">:</span>
-            <span class="n">preamble</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">preamble</span><span class="si">}</span><span class="s2">, deleted&quot;</span>
-            <span class="c1"># preamble = &quot;[Deleted] &quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">preamble</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="si">}</span><span class="s2">&quot;</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_edited</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether the message was edited.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">edited_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
-        <span class="c1"># return f&quot;{preamble}{self.string}&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">author</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;As a string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Text of the message.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_content</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Includes content, attachment URLs, and stickers.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_full_content</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;As a string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">emoji</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reactions</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Relative to now, as a string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">time_elapsed_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">created_at</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether the message is edited/deleted, plus if it&#39;s a reply/command response.&quot;&quot;&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="s2">&quot;Deleted&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_deleted</span> <span class="k">else</span> <span class="s2">&quot;Edited&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edited</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">replying</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reference</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
+            <span class="c1"># Replying to a message</span>
+            <span class="n">old_msg</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span>
+            <span class="n">replying</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;replying to </span><span class="si">{</span><span class="n">old_msg</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">interaction_metadata</span><span class="p">:</span>
+            <span class="c1"># Slash command response</span>
+            <span class="n">replying</span> <span class="o">=</span> <span class="s2">&quot;triggered by a command&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">replying</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">context</span> <span class="ow">and</span> <span class="n">replying</span> <span class="k">else</span> <span class="n">replying</span> <span class="k">if</span> <span class="n">replying</span> <span class="k">else</span> <span class="n">context</span>
+        <span class="k">return</span> <span class="n">context</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="n">is_deleted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a message entry.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: The message to parse.</span>
+<span class="sd">            is_deleted: Whether the message was deleted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_deleted</span> <span class="o">=</span> <span class="n">is_deleted</span>
+
+<div class="viewcode-block" id="ParsedMessage.as_string">
+<a class="viewcode-back" href="../../../index.html#bobbot.ParsedMessage.as_string">[docs]</a>
+    <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">with_author</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_context</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_reactions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_timestamp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format the message as a string.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            with_author: Whether to include the author.</span>
+<span class="sd">            with_context: Whether to include context info.</span>
+<span class="sd">            with_reactions: Whether to include reactions.</span>
+<span class="sd">            with_timestamp: Whether to include a timestamp.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The formatted message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">with_timestamp</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">] &quot;</span>
+        <span class="k">if</span> <span class="n">with_author</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">with_context</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="si">}</span><span class="s2">): &quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">author</span><span class="si">}</span><span class="s2">: &quot;</span>
+        <span class="k">elif</span> <span class="n">with_context</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="si">}</span><span class="s2">) &quot;</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_content</span>
+        <span class="k">if</span> <span class="n">with_reactions</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; | Reactions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format the message as a full string, containing all info.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="n">with_timestamp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="TextChannelHistory">
@@ -131,135 +261,32 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum lengths for message content, starting with the most recent.&quot;&quot;&quot;</span>
     <span class="n">MAX_MSGS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">MAX_CONTENT_LENS</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum number of messages to track.&quot;&quot;&quot;</span>
-    <span class="n">REPLY_CONTENT_LEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The maximum length of a reply&#39;s content.&quot;&quot;&quot;</span>
+
+    <span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The channel being tracked.&quot;&quot;&quot;</span>
+    <span class="n">is_typing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Users currently typing in the channel.&quot;&quot;&quot;</span>
+    <span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParsedMessage</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recent messages in the channel.&quot;&quot;&quot;</span>
+    <span class="n">message_count</span><span class="p">:</span> <span class="nb">int</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Counter for the total number of messages sent in the channel.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the tracker with the specified channel.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a tracker for the specified channel.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            channel: The channel to track.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span> <span class="o">=</span> <span class="n">channel</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The channel being tracked.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MessageEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Recent messages in the channel.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Users currently typing in the channel.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">message_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Counter for the total number of messages sent in a channel.&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="TextChannelHistory.amessage_to_str">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.amessage_to_str">[docs]</a>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">amessage_to_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="n">max_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span> <span class="n">core_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a message to a concise string representation (without a timestamp).</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            message: The message to convert.</span>
-<span class="sd">            max_len: The max length of the message content.</span>
-<span class="sd">            core_only: Whether to only include the core message content (no tracing replies or reactions).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A concise string representation of the message.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Replace user mentions with display names</span>
-        <span class="n">content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span>
-        <span class="n">user_mention_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&lt;@!?(\d+)&gt;&quot;</span><span class="p">)</span>
-        <span class="c1"># Find all matches of user mentions in the content</span>
-        <span class="n">matches</span> <span class="o">=</span> <span class="n">user_mention_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-        <span class="n">all_users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_users_in_channel</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
-            <span class="c1"># Check if the user is in the channel</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">user</span> <span class="o">:=</span> <span class="n">discord</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">all_users</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">user_id</span><span class="p">)))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Replace the mention with the member&#39;s display name</span>
-                <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;@!?</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&gt;&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
-
-        <span class="c1"># Add stickers and attachments</span>
-        <span class="n">stickers</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">sticker</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sticker</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">stickers</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">stickers</span><span class="p">:</span>
-            <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">stickers</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">attachments</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attachment</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">attachment</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">attachments</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">attachments</span><span class="p">:</span>
-            <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">attachments</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">result</span><span class="p">:</span> <span class="nb">str</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">core_only</span><span class="p">:</span>
-            <span class="n">author</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="c1"># Add reply context (if any)</span>
-            <span class="n">replying</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">reference</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
-                <span class="n">old_msg</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span>
-                <span class="n">old_content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">amessage_to_str</span><span class="p">(</span>
-                    <span class="n">message</span><span class="o">.</span><span class="n">reference</span><span class="o">.</span><span class="n">resolved</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">REPLY_CONTENT_LEN</span><span class="p">,</span> <span class="n">core_only</span><span class="o">=</span><span class="kc">True</span>
-                <span class="p">)</span>
-                <span class="n">replying</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; (replying to </span><span class="si">{</span><span class="n">old_msg</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">display_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s1">s &quot;</span><span class="si">{</span><span class="n">old_content</span><span class="si">}</span><span class="s1">&quot;)&#39;</span>
-            <span class="c1"># Add reactions</span>
-            <span class="n">reactions</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">count</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">emoji</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">reactions</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">reactions</span><span class="p">:</span>
-                <span class="n">reactions</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; | Reactions: </span><span class="si">{</span><span class="n">reactions</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">author</span><span class="si">}{</span><span class="n">replying</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">content</span><span class="si">}{</span><span class="n">reactions</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">truncate_middle</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">max_len</span><span class="p">,</span> <span class="n">replace_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TextChannelHistory.aupdate">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.aupdate">[docs]</a>
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">aupdate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the history with the latest messages and events.</span>
-
-<span class="sd">        This method should be called before querying the history after every idle period.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MessageEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">old_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">MessageEntry</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span>
-        <span class="n">old_history_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_history</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">async</span> <span class="k">for</span> <span class="n">prev_msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">):</span>  <span class="c1"># From most to least recent</span>
-            <span class="c1"># Get allowed content length</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">:</span>
-                <span class="k">break</span>
-            <span class="n">curr_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_CONTENT_LENS</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">)]</span>
-            <span class="c1"># Check for messages that are already in history</span>
-            <span class="n">is_old</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">while</span> <span class="n">old_history_index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">old_history</span><span class="p">[</span><span class="n">old_history_index</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">created_at</span> <span class="o">&gt;=</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">created_at</span><span class="p">:</span>
-                <span class="n">old_entry</span><span class="p">:</span> <span class="n">MessageEntry</span> <span class="o">=</span> <span class="n">old_history</span><span class="p">[</span><span class="n">old_history_index</span><span class="p">]</span>
-                <span class="n">old_history_index</span> <span class="o">-=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
-                    <span class="n">is_old</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="c1"># Was the message edited?</span>
-                    <span class="k">if</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">edited_at</span> <span class="o">!=</span> <span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">edited_at</span><span class="p">:</span>
-                        <span class="n">edited</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">amessage_to_str</span><span class="p">(</span><span class="n">prev_msg</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">curr_len</span><span class="p">)</span>
-                        <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MessageEntry</span><span class="p">(</span><span class="n">prev_msg</span><span class="p">,</span> <span class="n">edited</span><span class="p">,</span> <span class="n">is_edited</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">old_content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">truncate_middle</span><span class="p">(</span><span class="n">old_entry</span><span class="o">.</span><span class="n">string</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">curr_len</span><span class="p">,</span> <span class="n">replace_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                        <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MessageEntry</span><span class="p">(</span><span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">old_content</span><span class="p">,</span> <span class="n">is_edited</span><span class="o">=</span><span class="n">old_entry</span><span class="o">.</span><span class="n">is_edited</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># Message was deleted</span>
-                    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MessageEntry</span><span class="p">(</span><span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">old_entry</span><span class="o">.</span><span class="n">string</span><span class="p">,</span> <span class="n">is_deleted</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_old</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">message_count</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">):</span>
-                    <span class="k">break</span>  <span class="c1"># Stop tracking history at the first command</span>
-                <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MessageEntry</span><span class="p">(</span><span class="n">prev_msg</span><span class="p">,</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">amessage_to_str</span><span class="p">(</span><span class="n">prev_msg</span><span class="p">,</span> <span class="n">max_len</span><span class="o">=</span><span class="n">curr_len</span><span class="p">)))</span>
-        <span class="c1"># Truncate history and reverse it</span>
-        <span class="n">history</span> <span class="o">=</span> <span class="n">history</span><span class="p">[:</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">history</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Updated text channel history.&quot;</span><span class="p">)</span></div>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message_count</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="TextChannelHistory.on_typing">
 <a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.on_typing">[docs]</a>
     <span class="k">def</span> <span class="nf">on_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">when</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle a typing event.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="n">when</span></div>
-
-
-<div class="viewcode-block" id="TextChannelHistory.get_history_str">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.get_history_str">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_history_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_msgs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a string representation of the history.&quot;&quot;&quot;</span>
-        <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="n">max_msgs</span><span class="p">:]])</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text channel history:</span><span class="se">\n</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="TextChannelHistory.clear_users_typing">
@@ -275,10 +302,130 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of users currently typing.&quot;&quot;&quot;</span>
         <span class="c1"># Update typing status, removing entries that are &gt;= 10 seconds old</span>
         <span class="n">now</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-        <span class="c1"># debug = {user.display_name: (now - when).total_seconds() for user, when in self.is_typing.items()}</span>
-        <span class="c1"># print(f&quot;Typing: {debug}&quot;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span> <span class="o">=</span> <span class="p">{</span><span class="n">user</span><span class="p">:</span> <span class="n">when</span> <span class="k">for</span> <span class="n">user</span><span class="p">,</span> <span class="n">when</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">when</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">}</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="TextChannelHistory.aupdate">
+<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.aupdate">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">aupdate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the history with the latest messages and events.</span>
+
+<span class="sd">        This method should be called before querying the history after every idle period.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParsedMessage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">old_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParsedMessage</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span>
+        <span class="n">old_history_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_history</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">prev_msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">):</span>  <span class="c1"># From most to least recent</span>
+            <span class="c1"># Get allowed content length</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">history</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="c1"># Check for messages that are already in history</span>
+            <span class="n">is_old</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">while</span> <span class="n">old_history_index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">old_history</span><span class="p">[</span><span class="n">old_history_index</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">created_at</span> <span class="o">&gt;=</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">created_at</span><span class="p">:</span>
+                <span class="n">old_entry</span><span class="p">:</span> <span class="n">ParsedMessage</span> <span class="o">=</span> <span class="n">old_history</span><span class="p">[</span><span class="n">old_history_index</span><span class="p">]</span>
+                <span class="n">old_history_index</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                    <span class="n">is_old</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_entry</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Message was deleted</span>
+                    <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ParsedMessage</span><span class="p">(</span><span class="n">old_entry</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">is_deleted</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_old</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">message_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;! reset&quot;</span><span class="p">,</span> <span class="s2">&quot;! mode&quot;</span><span class="p">)):</span>
+                    <span class="k">break</span>  <span class="c1"># Stop tracking history at the first command</span>
+                <span class="k">elif</span> <span class="n">prev_msg</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>  <span class="c1"># Skip other commands</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ParsedMessage</span><span class="p">(</span><span class="n">prev_msg</span><span class="p">))</span>
+        <span class="c1"># Truncate history and reverse it</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="n">history</span><span class="p">[:</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_MSGS</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">history</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updated text channel history.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TextChannelHistory.history_to_strings">
+<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.history_to_strings">[docs]</a>
+    <span class="k">def</span> <span class="nf">history_to_strings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">ParsedMessage</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of truncated strings representing the history, up to the last limit messages.</span>
+
+<span class="sd">        Messages are truncated based on how recent they are, with older messages being truncated more.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            transform: A function to convert a ParsedMessage to a string.</span>
+<span class="sd">            limit: The maximum number of messages to include.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of strings representing the history.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">history_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="n">limit</span><span class="p">:])):</span>
+            <span class="n">curr_str</span> <span class="o">=</span> <span class="n">truncate_length</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span> <span class="n">TextChannelHistory</span><span class="o">.</span><span class="n">MAX_CONTENT_LENS</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">history_strs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">history_strs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="TextChannelHistory.as_parsed_messages">
+<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_parsed_messages">[docs]</a>
+    <span class="k">def</span> <span class="nf">as_parsed_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParsedMessage</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the channel&#39;s message history, up to the last limit messages.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="n">limit</span><span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="TextChannelHistory.as_string">
+<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_string">[docs]</a>
+    <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a string representation of the history, up to the last limit messages.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history_to_strings</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text channel history as string:</span><span class="se">\n</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="TextChannelHistory.as_langchain_msgs">
+<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_langchain_msgs">[docs]</a>
+    <span class="k">def</span> <span class="nf">as_langchain_msgs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bot_user</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">,</span> <span class="n">get_image</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of LangChain messages representing the history, up to the last limit messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bot_user: The bot user. Used to distinguish AIMessages from HumanMessages.</span>
+<span class="sd">            limit: The maximum number of messages to include.</span>
+<span class="sd">            get_image: Whether to include a single image URL in the most recent message (if present).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of LangChain message objects, with only HumanMessages containing author/context info.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="n">ParsedMessage</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Bot messages should not contain author or context info.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">author</span> <span class="o">==</span> <span class="n">bot_user</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="n">with_author</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_context</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_timestamp</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="n">with_author</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_context</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_reactions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_timestamp</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">history_strs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_to_strings</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">entry</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="n">limit</span><span class="p">:],</span> <span class="n">history_strs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">author</span> <span class="o">==</span> <span class="n">bot_user</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AIMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">text</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Include image in most recent message</span>
+                <span class="k">if</span> <span class="n">entry</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">image_urls</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_images_in</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">image_urls</span><span class="p">:</span>
+                        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">HumanMessage</span><span class="p">(</span>
+                                <span class="n">content</span><span class="o">=</span><span class="p">[</span>
+                                    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">},</span>
+                                    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span> <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">image_urls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]}},</span>
+                                <span class="p">]</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="k">continue</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">text</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text channel history as langchain messages:</span><span class="se">\n</span><span class="si">{</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 </div>
 
 </pre></div>

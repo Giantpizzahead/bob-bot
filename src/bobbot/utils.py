@@ -39,17 +39,20 @@ def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatte
     return logger
 
 
-def truncate_middle(text: str, max_len: int = 255, replace_newlines: bool = False) -> str:
-    """Get a concise version of the text (start and end, up to max_len characters).
+def truncate_length(text: str, limit: int = 255, replace_newlines: bool = False) -> str:
+    """Make text concise by cutting out the middle, up to limit characters.
 
     Args:
         text: The text to truncate.
-        max_len: The maximum length of the text.
+        limit: The maximum length of the text.
         replace_newlines: Whether to replace newlines with 4 spaces.
+
+    Returns:
+        The text (with an ellipsis if truncated).
     """
     if replace_newlines:
         text = text.replace("\n", "    ")
-    text = text if len(text) <= max_len else text[: (max_len + 1) // 2] + "..." + text[-max_len // 2 :]
+    text = text if len(text) <= limit else text[: (limit + 1) // 2] + "..." + text[-limit // 2 :]
     return text
 
 
