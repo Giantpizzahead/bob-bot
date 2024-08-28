@@ -4,13 +4,36 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
-- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
-- [ ] Add a delayed second check on whether to send a message or not, to be ran when no one is typing and Bob decided not to respond before (due to not being sure if the other person was done). In this delayed check, emphasize to the decision agent that all users are done typing.
+#### Activities
+
+- [ ] Get bob to play at a rating of ~800 (intentionally low)
+- [ ] Implement work and sleep activities, along with an overall status message that can be fed into Bob
+- [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
+- [ ] Incorporate activities into Bob
 
 ### Todo
 
-- [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work)
+#### Memory
+
+- [ ] Try using GPT to help create a prompt for GPT :p
+- [ ] Make a summarizer agent that can take in chat history and create a <= N-word summary, where N is a parameter that the user (caller) can control
+- [ ] Make a memory agent that reads chat history and determines important factual memories to store. Memories can be rated by their significance (is it important to remember?), relevancy (will it come up later?) objectiveness (is it a fact?), and accuracy (is the info provably correct?) on scales of 1-10. Potentially split this up into 2 agents, one that generates the memory and one that does the ratings (a verifier).
+  - Some good references to go off of: [This video demonstrating a ChatGPT-like readable long term memory system](https://www.youtube.com/watch?v=oPCKB9MUP6c), [this Github repo using hierarchical memory](https://github.com/kyb3r/emergent/blob/main/emergent/memory.py), and [the corresponding design document](https://github.com/daveshap/HierarchicalMemoryConsolidationSystem).
+  - It looks like no specifically designed libraries exist for creating these memories, so let's build this up ourselves, potentially reusing other people's code, with citations.
+- [ ] Use the memory agent to create candidate long-term memories. Then, before putting them in the vector store, retrieve similar memories that already exist, and combine them into a "knowledge base article" or similar.
+  - We could potentially use [LlamaIndex](https://medium.com/llamaindex-blog/data-agents-eed797d7972f) to process the memories once we've created them. I'm not sure how this would fit together yet.
+- [ ] Implement a memory pruning system that just prunes the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
+
+#### Smarts
+
+- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
+- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+
+#### Quality of Life
+
+- [ ] Add URLs property to ParsedMessage that contains a list of all URLs present in a message (valid or not)
+- [ ] Add a delayed second check on whether to send a message or not, to be ran when no one is typing and Bob decided not to respond before (due to not being sure if the other person was done). In this delayed check, emphasize to the decision agent that all users are done typing.
+- [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work). Switching Bob's prompt to allow for multiple messages as a response doesn't work well. The best way likely involves a small LLM at the end deciding how to split up a long message into smaller messages, since this won't be influenced by history.
 
 ### Future
 
@@ -38,13 +61,22 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Begin to optimize TextChannelHistory token usage by truncating messages based on how recent they are
 - [x] (Re)implement a bare bones version of Bob by passing in message history with a simple system prompt and a single agent
 - [x] Wait for users to finish typing before sending a message
-- [x] Refine message quality and handle content filtering by testing different models
 - [x] Clean up message history class (OOP kinda sucks ngl)
 - [x] Bring back the original Bob's chatting style, and keep it that way
+
+### Memory
+
+hi
+
+### Activities
+
+- [x] Learn how to use Playwright
+- [x] Implement a basic auto-chess player using Playwright that can go to a pre-generated invite link and play a full game
 
 ### Multi-agent
 
 - [x] Implement a basic chain: Response decision -> Message sender
+- [x] Refine message quality and handle content filtering by testing different models
 
 ## Milestones and Capstones
 

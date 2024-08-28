@@ -4,3 +4,5 @@ langchain-openai
 discord.py
 python-dotenv
 pyautogen
+playwright
+chess

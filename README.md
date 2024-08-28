@@ -10,6 +10,7 @@ Use **Python 3.12** in a virtual environment! Install `make` if on Windows.
 # Make sure you are in a Python 3.12 virtual environment first
 pip install pip-tools
 pip-sync requirements.txt
+playwright install
 make run
 ```
 
@@ -36,6 +37,7 @@ Use **Python 3.12** in a virtual environment! Install `make` if on Windows.
 # Make sure you are in a Python 3.12 virtual environment first
 pip install pip-tools
 pip-sync dev-requirements.txt
+playwright install
 pre-commit install
 make build
 make test

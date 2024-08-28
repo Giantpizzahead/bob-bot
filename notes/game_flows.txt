@@ -1,0 +1,12 @@
+Playwright:
+playwright codegen --load-storage local/pw/state.json
+
+Chess
+1. Go to https://www.chess.com/play/online/friend
+2. Click "Create Challenge Link"
+3. Click "1 min" bullet dropdown, switch to "5 min"
+4. Turn off Rated
+4. Click "Copy Link"
+5. Potentially manually copy link if needed
+
+It's best if Bob sets up the challenge to force consistent match settings.
