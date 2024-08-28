@@ -1,1 +1,2 @@
-worker: python src/main.py
+worker: playwright install chromium && python src/main.py
+release: 

@@ -315,7 +315,6 @@ async def play_chess_activity(callback, against_computer: bool = False) -> None:
             await page.wait_for_timeout(1000)
             global last_screenshot
             last_screenshot = await screenshot_chess_activity()
-            last_screenshot.save("local/pw/chess_board.png")
             logger.info("Finished.")
             await context.close()
             await browser.close()

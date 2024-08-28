@@ -10,6 +10,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
 - [ ] Allow Bob to comment on current activities
 - [ ] Allow Bob to auto-start activities based on context
+- [ ] Add new commands to help text
 
 ### Todo
 
