@@ -33,7 +33,7 @@ async def login(page: Page, context: BrowserContext) -> None:
     await page.goto("https://www.chess.com/")
     # Check if already logged in
     try:
-        if "lorduyerko" in await page.locator(".home-username-link").text_content(timeout=1500):
+        if os.getenv("ACTIVITIES_USERNAME") in await page.locator(".home-username-link").text_content(timeout=1500):
             logger.info("Already logged in.")
             return
     except TimeoutError:
