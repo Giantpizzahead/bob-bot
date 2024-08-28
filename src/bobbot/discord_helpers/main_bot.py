@@ -1,6 +1,7 @@
 """Contains main Discord bot functionality."""
 
 import asyncio
+import io
 import json
 import os
 import random
@@ -13,7 +14,9 @@ from typing import Optional
 import discord
 from discord import app_commands
 from discord.ext import commands
+from PIL import Image
 
+from bobbot.activities import play_chess_activity, screenshot_chess_activity
 from bobbot.agents.agents import decide_to_respond, get_response
 from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
@@ -173,6 +176,41 @@ async def debug(ctx: commands.Context) -> None:
         await ctx.send(truncate_length("!```Trace:\n" + debug_info + "```", 2000))
 
 
+@bot.hybrid_command(name="chess")
+@app_commands.choices(
+    against=[
+        app_commands.Choice(name="Human", value="human"),
+        app_commands.Choice(name="Chess.com Bot", value="bot"),
+    ]
+)
+async def chess(ctx: commands.Context, against: str | None) -> None:
+    """Start a chess game with Bob."""
+    against_computer: bool = against is not None and against.lower() == "bot"
+    await ctx.send("! ok lets go")
+    await play_chess_activity(chess_callback, against_computer=against_computer)
+
+
+async def chess_callback(msg: str) -> None:
+    """Send a message to the active channel."""
+    if msg.startswith("Game over"):
+        # Also send screenshot
+        await spectate(active_channel)
+    await send_discord_message(msg, instant=True)
+
+
+@bot.hybrid_command(name="spectate")
+async def spectate(ctx: commands.Context) -> None:
+    """Spectate the current activity."""
+    image: Optional[Image.Image] = await screenshot_chess_activity()
+    if image is not None:
+        with io.BytesIO() as image_binary:
+            image.save(image_binary, "JPEG")
+            image_binary.seek(0)
+            await ctx.send(file=discord.File(fp=image_binary, filename="current_chess_match.jpeg"))
+    else:
+        await ctx.send("! no activity, start a game first")
+
+
 @bot.event
 async def on_ready() -> None:
     """Log when Bob is online."""
@@ -190,6 +228,10 @@ async def on_message(message: discord.Message):
     # Only respond to messages in DMs and specified channels
     if not (message.channel.id in CHANNELS or isinstance(message.channel, discord.DMChannel)):
         return
+    curr_channel: discord.TextChannel = message.channel
+    # Set the active channel
+    global active_channel
+    active_channel = message.channel
     await bot.process_commands(message)
     # Don't respond if the bot is off, or if it's a command message
     if mode == Mode.OFF or message.content.startswith(bot.command_prefix):
@@ -197,10 +239,6 @@ async def on_message(message: discord.Message):
     # For now, don't respond to self messages
     if message.author == bot.user:
         return
-    curr_channel: discord.TextChannel = message.channel
-    # Set the active channel
-    global active_channel
-    active_channel = message.channel
 
     # Get history for the current channel
     history: TextChannelHistory = get_channel_history(curr_channel)

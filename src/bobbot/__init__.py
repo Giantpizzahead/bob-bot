@@ -1,12 +1,12 @@
 """This module is the main entry point for the bot."""
 
-from .discord_helpers import (
+from bobbot.discord_helpers import (
     ParsedMessage,
     TextChannelHistory,
     run_bot,
     send_discord_message,
 )
-from .utils import get_debug_info, get_logger, log_debug_info, reset_debug_info
+from bobbot.utils import get_debug_info, get_logger, log_debug_info, reset_debug_info
 
 __all__ = [
     "ParsedMessage",

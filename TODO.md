@@ -6,12 +6,16 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Activities
 
-- [ ] Get bob to play at a rating of ~800 (intentionally low)
 - [ ] Implement work and sleep activities, along with an overall status message that can be fed into Bob
 - [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
-- [ ] Incorporate activities into Bob
+- [ ] Allow Bob to comment on current activities
+- [ ] Allow Bob to auto-start activities based on context
 
 ### Todo
+
+#### Activities
+
+- [ ] Get bob to play chess at a rating of ~800 (intentionally low)
 
 #### Memory
 
@@ -72,6 +76,7 @@ hi
 
 - [x] Learn how to use Playwright
 - [x] Implement a basic auto-chess player using Playwright that can go to a pre-generated invite link and play a full game
+- [x] Incorporate activities into Bob through direct commands
 
 ### Multi-agent
 
