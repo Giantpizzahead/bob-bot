@@ -16,7 +16,13 @@ from discord import app_commands
 from discord.ext import commands
 from PIL import Image
 
-from bobbot.activities import play_chess_activity, screenshot_chess_activity
+from bobbot.activities import (  # stop_activity,
+    Activity,
+    configure_chess,
+    get_activity_status,
+    spectate_activity,
+    start_activity,
+)
 from bobbot.agents.agents import decide_to_respond, get_response
 from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
@@ -162,8 +168,8 @@ async def ping(ctx: commands.Context) -> None:
 
 @bot.hybrid_command(name="status")
 async def status(ctx: commands.Context) -> None:
-    """Show the current mode and speed of the bot."""
-    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}")
+    """Show the current mode, speed, and activity of the bot."""
+    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}\nactivity: {await get_activity_status()}")
 
 
 @bot.hybrid_command(name="debug")
@@ -186,13 +192,14 @@ async def debug(ctx: commands.Context) -> None:
 async def chess(ctx: commands.Context, against: str | None) -> None:
     """Start a chess game with Bob."""
     against_computer: bool = against is not None and against.lower() == "bot"
+    configure_chess(800, against_computer)
     await ctx.send("! ok lets go")
-    await play_chess_activity(chess_callback, against_computer=against_computer)
+    await start_activity(Activity.CHESS, chess_callback)
 
 
 async def chess_callback(msg: str) -> None:
     """Send a message to the active channel."""
-    if msg.startswith("Game over"):
+    if "game over" in msg:
         # Also send screenshot
         await spectate(active_channel)
     await send_discord_message(msg, instant=True)
@@ -201,7 +208,7 @@ async def chess_callback(msg: str) -> None:
 @bot.hybrid_command(name="spectate")
 async def spectate(ctx: commands.Context) -> None:
     """Spectate the current activity."""
-    image: Optional[Image.Image] = await screenshot_chess_activity()
+    image: Optional[Image.Image] = await spectate_activity()
     if image is not None:
         with io.BytesIO() as image_binary:
             image.save(image_binary, "JPEG")

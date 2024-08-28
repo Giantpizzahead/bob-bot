@@ -11,12 +11,13 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Allow Bob to comment on current activities
 - [ ] Allow Bob to auto-start activities based on context
 - [ ] Add new commands to help text
+- [ ] Chess polishing: Send result message first and close game over prompt before taking final screenshot
 
 ### Todo
 
 #### Activities
 
-- [ ] Get bob to play chess at a rating of ~800 (intentionally low)
+- [ ] Get bob to play chess at a rating of ~800 (intentionally low) by fixing the dumb broken chess API system
 
 #### Memory
 

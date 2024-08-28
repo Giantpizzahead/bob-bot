@@ -1,8 +1,19 @@
 """This module contains activites that the bot can perform."""
 
-from bobbot.activities.chess_player import (
-    play_chess_activity,
-    screenshot_chess_activity,
+from bobbot.activities.activities import (
+    Activity,
+    get_activity_status,
+    spectate_activity,
+    start_activity,
+    stop_activity,
 )
+from bobbot.activities.chess_player import configure_chess
 
-__all__ = ["screenshot_chess_activity", "play_chess_activity"]
+__all__ = [
+    "Activity",
+    "get_activity_status",
+    "spectate_activity",
+    "start_activity",
+    "stop_activity",
+    "configure_chess",
+]
