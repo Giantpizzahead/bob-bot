@@ -6,3 +6,4 @@ python-dotenv
 pyautogen
 playwright
 chess
+pillow
