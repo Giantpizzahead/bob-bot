@@ -206,6 +206,8 @@ python-dotenv==1.0.1
     # via
     #   -r requirements.in
     #   pyautogen
+pytz==2024.1
+    # via -r requirements.in
 pyyaml==6.0.2
     # via
     #   langchain
