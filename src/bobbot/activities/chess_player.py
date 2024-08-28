@@ -46,8 +46,9 @@ async def login(page: Page, context: BrowserContext) -> None:
     await page.get_by_placeholder("Password").fill(os.getenv("ACTIVITIES_PWD"))
     await page.get_by_text("Remember me").click()
     await page.get_by_role("button", name="Log In").click()
-    # Save state
+    # Save state, making folders if they don't exist
     logger.info("Saving state...")
+    Path("local/pw").mkdir(parents=True, exist_ok=True)
     await context.storage_state(path=STATE_FILE)
 
 
