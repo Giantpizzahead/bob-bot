@@ -77,10 +77,10 @@
 </li>
 <li><a class="reference internal" href="#bobbot.get_debug_info"><code class="docutils literal notranslate"><span class="pre">get_debug_info()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
+<li><a class="reference internal" href="#bobbot.lazy_send_message"><code class="docutils literal notranslate"><span class="pre">lazy_send_message()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.log_debug_info"><code class="docutils literal notranslate"><span class="pre">log_debug_info()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.reset_debug_info"><code class="docutils literal notranslate"><span class="pre">reset_debug_info()</span></code></a></li>
 <li><a class="reference internal" href="#bobbot.run_bot"><code class="docutils literal notranslate"><span class="pre">run_bot()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.send_discord_message"><code class="docutils literal notranslate"><span class="pre">send_discord_message()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -238,8 +238,22 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bobbot.TextChannelHistory.as_string">
-<span class="sig-name descname"><span class="pre">as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.as_string" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_author</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_reactions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.as_string" title="Link to this definition"></a></dt>
 <dd><p>Get a string representation of the history, up to the last limit messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>limit</strong> – The maximum number of messages to include.</p></li>
+<li><p><strong>with_author</strong> – Whether to include the author.</p></li>
+<li><p><strong>with_context</strong> – Whether to include context info.</p></li>
+<li><p><strong>with_reactions</strong> – Whether to include reactions.</p></li>
+<li><p><strong>with_timestamp</strong> – Whether to include a timestamp.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string representing the history.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -342,6 +356,28 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="bobbot.lazy_send_message">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">lazy_send_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TextChannel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#lazy_send_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.lazy_send_message" title="Link to this definition"></a></dt>
+<dd><p>Send a message to a channel with typing time. Cancels the send on new messages or others typing.</p>
+<p>If the message is too long, it will be split into chunks before sending.
+If instant is True, the message will be sent instantly (regardless of the bot’s mode).
+If force is True, the message will not be cancelled. Note that empty messages still won’t be sent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – The channel to send the message to.</p></li>
+<li><p><strong>message_str</strong> – The message to send.</p></li>
+<li><p><strong>instant</strong> – Whether to try to send the message instantly. May still be cancelled.</p></li>
+<li><p><strong>force</strong> – Whether to force the message to be sent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the message was sent in full.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="bobbot.log_debug_info">
 <span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">log_debug_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#log_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.log_debug_info" title="Link to this definition"></a></dt>
 <dd><p>Append to the bot’s debug info and log it.</p>
@@ -357,23 +393,6 @@
 <dt class="sig sig-object py" id="bobbot.run_bot">
 <span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">run_bot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#run_bot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.run_bot" title="Link to this definition"></a></dt>
 <dd><p>Run the bot. Blocks until the bot is stopped.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.send_discord_message">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">send_discord_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#send_discord_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.send_discord_message" title="Link to this definition"></a></dt>
-<dd><p>Send a message to the active channel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>message_str</strong> (<em>str</em>) – The message to send.</p></li>
-<li><p><strong>instant</strong> (<em>bool</em>) – Whether to force send the message instantly.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Whether the message was sent in full.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

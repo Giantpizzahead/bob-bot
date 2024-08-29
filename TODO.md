@@ -4,23 +4,17 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-#### Activities
-
-- [ ] Implement work and sleep activities, along with an overall status message that can be fed into Bob
-- [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
-- [ ] Allow Bob to comment on current activities
-- [ ] Allow Bob to auto-start activities based on context
-- [ ] Add new commands to help text
+- [ ] Implement an overall status message that can be fed into Bob
 
 ### Todo
 
 #### Activities
 
-hi
+- [ ] Allow Bob to comment on current activities
+- [ ] Allow Bob to auto-start activities based on context
 
 #### Memory
 
-- [ ] Try using GPT to help create a prompt for GPT :p
 - [ ] Make a summarizer agent that can take in chat history and create a <= N-word summary, where N is a parameter that the user (caller) can control
 - [ ] Make a memory agent that reads chat history and determines important factual memories to store. Memories can be rated by their significance (is it important to remember?), relevancy (will it come up later?) objectiveness (is it a fact?), and accuracy (is the info provably correct?) on scales of 1-10. Potentially split this up into 2 agents, one that generates the memory and one that does the ratings (a verifier).
   - Some good references to go off of: [This video demonstrating a ChatGPT-like readable long term memory system](https://www.youtube.com/watch?v=oPCKB9MUP6c), [this Github repo using hierarchical memory](https://github.com/kyb3r/emergent/blob/main/emergent/memory.py), and [the corresponding design document](https://github.com/daveshap/HierarchicalMemoryConsolidationSystem).
@@ -39,11 +33,14 @@ hi
 - [ ] Add URLs property to ParsedMessage that contains a list of all URLs present in a message (valid or not)
 - [ ] Add a delayed second check on whether to send a message or not, to be ran when no one is typing and Bob decided not to respond before (due to not being sure if the other person was done). In this delayed check, emphasize to the decision agent that all users are done typing.
 - [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work). Switching Bob's prompt to allow for multiple messages as a response doesn't work well. The best way likely involves a small LLM at the end deciding how to split up a long message into smaller messages, since this won't be influenced by history.
+- [ ] Make a Discord status message based on current activity
 
 ### Future
 
 - [ ] Optimize TextChannelHistory token usage by truncating messages
 - [ ] Add medium-term memory to TextChannelHistory by summarizing long messages and those that go out of the window
+- [ ] Implement simulated work, sleep, eat, and shower activities
+- [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
 - [ ] Add tests for stable functions (that likely won't change)
 
 ## Completed Tasks
@@ -80,6 +77,10 @@ hi
 - [x] Incorporate activities into Bob through direct commands
 - [x] Get bob to play chess at a rating of ~800 (intentionally low) by fixing the dumb broken chess API system
 - [x] Chess polishing: Send result message first and close game over prompt before taking final screenshot
+- [x] Add new commands to help text
+- [x] Try using GPT to help create a prompt for GPT :p
+- [x] Allow Bob to relay commands to the user in an appropriate style
+- [x] Allow Bob to ask and receive answers to commands in an appropriate style using an answer extraction agent
 
 ### Multi-agent
 
@@ -116,7 +117,6 @@ hi
 ### Gaming
 
 - [x] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept
-- [ ] Play Skribbl.io, a medium difficulty game involving images
 - [ ] **Capstone:** Play League, a comprehensive, tough game with an anticheat
 
 ### All Together

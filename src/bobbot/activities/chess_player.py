@@ -7,7 +7,7 @@ import random
 import re
 from math import tanh
 from pathlib import Path
-from typing import Awaitable, Callable, Optional
+from typing import Callable, Optional
 
 import chess
 import chess.engine
@@ -402,7 +402,7 @@ async def screenshot_chess_activity() -> Optional[Image.Image]:
     return last_screenshot
 
 
-async def play_chess_activity(cmd_handler: Callable[[str], Awaitable[str]]) -> None:
+async def play_chess_activity(cmd_handler: Callable) -> None:
     """Play chess against the user (or the computer).
 
     Args:
@@ -413,7 +413,7 @@ async def play_chess_activity(cmd_handler: Callable[[str], Awaitable[str]]) -> N
     """
     global status, chess_page, curr_win_chance, last_screenshot, match_result
     if status != "idle":
-        await cmd_handler("Failed to start: You are already in a chess match.")
+        await cmd_handler("Echo this to the user. Failed to start: You are already in a chess match.")
         return
     status = "starting"
     curr_win_chance = 50
@@ -440,7 +440,9 @@ async def play_chess_activity(cmd_handler: Callable[[str], Awaitable[str]]) -> N
                 await cmd_handler("Tell the user that you are now in a chess game against a bot.")
             else:
                 challenge_link = await get_challenge_link(page)
-                await cmd_handler(f"Send the user this link so they can join your chess match: {challenge_link}")
+                await cmd_handler(
+                    f"Send the user this link (don't use Markdown) so they can join your chess match: {challenge_link}"
+                )
                 await wait_for_accepted_match(page)
             status = "playing"
             while True:

@@ -374,9 +374,37 @@
 
 <div class="viewcode-block" id="TextChannelHistory.as_string">
 <a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_string">[docs]</a>
-    <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a string representation of the history, up to the last limit messages.&quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history_to_strings</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">,</span>
+        <span class="n">with_author</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_context</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_reactions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">with_timestamp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a string representation of the history, up to the last limit messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            limit: The maximum number of messages to include.</span>
+<span class="sd">            with_author: Whether to include the author.</span>
+<span class="sd">            with_context: Whether to include context info.</span>
+<span class="sd">            with_reactions: Whether to include reactions.</span>
+<span class="sd">            with_timestamp: Whether to include a timestamp.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A string representing the history.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history_to_strings</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span>
+                    <span class="n">with_author</span><span class="o">=</span><span class="n">with_author</span><span class="p">,</span>
+                    <span class="n">with_context</span><span class="o">=</span><span class="n">with_context</span><span class="p">,</span>
+                    <span class="n">with_reactions</span><span class="o">=</span><span class="n">with_reactions</span><span class="p">,</span>
+                    <span class="n">with_timestamp</span><span class="o">=</span><span class="n">with_timestamp</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">limit</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Text channel history as string:</span><span class="se">\n</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 

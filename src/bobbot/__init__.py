@@ -3,8 +3,8 @@
 from bobbot.discord_helpers import (
     ParsedMessage,
     TextChannelHistory,
+    lazy_send_message,
     run_bot,
-    send_discord_message,
 )
 from bobbot.utils import get_debug_info, get_logger, log_debug_info, reset_debug_info
 
@@ -13,8 +13,8 @@ __all__ = [
     "TextChannelHistory",
     "log_debug_info",
     "reset_debug_info",
+    "lazy_send_message",
     "run_bot",
-    "send_discord_message",
     "get_debug_info",
     "get_logger",
     "log_debug_info",

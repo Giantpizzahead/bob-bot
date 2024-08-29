@@ -276,9 +276,37 @@ class TextChannelHistory:
         """Get the channel's message history, up to the last limit messages."""
         return self.history[-limit:]
 
-    def as_string(self, limit: int = MAX_MSGS) -> str:
-        """Get a string representation of the history, up to the last limit messages."""
-        result = "\n".join(self.history_to_strings(str, limit))
+    def as_string(
+        self,
+        limit: int = MAX_MSGS,
+        with_author: bool = True,
+        with_context: bool = True,
+        with_reactions: bool = True,
+        with_timestamp: bool = False,
+    ) -> str:
+        """Get a string representation of the history, up to the last limit messages.
+
+        Args:
+            limit: The maximum number of messages to include.
+            with_author: Whether to include the author.
+            with_context: Whether to include context info.
+            with_reactions: Whether to include reactions.
+            with_timestamp: Whether to include a timestamp.
+
+        Returns:
+            A string representing the history.
+        """
+        result = "\n".join(
+            self.history_to_strings(
+                lambda e: e.as_string(
+                    with_author=with_author,
+                    with_context=with_context,
+                    with_reactions=with_reactions,
+                    with_timestamp=with_timestamp,
+                ),
+                limit,
+            )
+        )
         logger.debug(f"Text channel history as string:\n{result}")
         return result
 

@@ -6,10 +6,11 @@ import json
 import os
 import random
 import re
+import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from logging import Logger
-from typing import Optional
+from typing import Callable, Optional
 
 import discord
 from discord import app_commands
@@ -19,11 +20,12 @@ from PIL import Image
 from bobbot.activities import (  # stop_activity,
     Activity,
     configure_chess,
+    configure_meal,
     get_activity_status,
     spectate_activity,
     start_activity,
 )
-from bobbot.agents.agents import decide_to_respond, get_response
+from bobbot.agents.agents import decide_to_respond, extract_answers, get_response
 from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_users_in_channel,
@@ -54,7 +56,7 @@ class Speed(Enum):
 
 logger: Logger = get_logger(__name__)
 mode: Enum = Mode.DEFAULT
-speed: Enum = Speed.DEFAULT
+speed: Enum = Speed.INSTANT
 
 
 def init_bot() -> commands.Bot:
@@ -200,15 +202,24 @@ async def chess(ctx: commands.Context, against: str | None, elo: int) -> None:
     against_computer: bool = against is not None and against.lower() == "bot"
     configure_chess(elo, against_computer)
     await ctx.send(f"! ok, playing at {elo} elo, lets go")
-    await start_activity(Activity.CHESS, cmd_handler)
+    await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
 
 
-async def cmd_handler(command: str) -> None:
-    """Handle a command from the current activity."""
-    if "Comment on your chess match" in command:
-        # Send screenshot first
-        await spectate(active_channel)
-    await send_discord_message(command, instant=True)
+@bot.hybrid_command(name="eat")
+@app_commands.choices(
+    meal=[
+        app_commands.Choice(name="Lunch", value="lunch"),
+        app_commands.Choice(name="Dinner", value="dinner"),
+    ]
+)
+async def eat(ctx: commands.Context, meal: str) -> None:
+    """Start eating a meal."""
+    if meal.lower() not in ["lunch", "dinner"]:
+        await ctx.send("! invalid meal, must be lunch or dinner")
+        return
+    configure_meal(meal)
+    await ctx.send("! ok... but why")
+    await start_activity(Activity.EAT, gen_command_handler(ctx.channel))
 
 
 @bot.hybrid_command(name="spectate")
@@ -264,14 +275,13 @@ async def on_message(message: discord.Message):
         decision, thoughts = await decide_to_respond(history.as_string(5))
         if decision:
             await curr_channel.typing()
-            response: str = await get_response(
-                history.as_langchain_msgs(bot.user), thoughts, obedient=(mode == Mode.OBEDIENT)
-            )
+            await check_waiting_responses(curr_channel)
+            response: str = await get_response(history.as_langchain_msgs(bot.user))
             if history.message_count == saved_message_count:
-                await send_discord_message(response)
+                await lazy_send_message(message.channel, response)
     except Exception as e:
         logger.exception("Error getting response")
-        await send_discord_message(str(e))
+        await lazy_send_message(message.channel, str(e), instant=True, force=True)
 
 
 @bot.event
@@ -284,21 +294,96 @@ async def on_typing(channel, user, when):
     history.on_typing(user, when)
 
 
-async def send_discord_message(message_str: str, instant: bool = False) -> bool:
-    """Send a message to the active channel.
+waiting_cmd_events: dict[str, asyncio.Event] = {}
+waiting_responses: dict[str, str] = {}
+
+
+async def command_handler(channel: discord.TextChannel, command: str, expect_response: bool = False) -> Optional[str]:
+    """Handle a command from the current activity.
+
+    Commands are directions to Bob, with info or requests to be relayed to the user.
+    If expect_response is True, the user's response will be waited for and returned.
 
     Args:
-        message_str (str): The message to send.
-        instant (bool): Whether to force send the message instantly.
+        channel: The channel the command is associated with.
+        command: The command to give to Bob.
+        expect_response: Whether to wait for the user's response.
+    """
+    # Command-specific handlers
+    if "Comment on your chess match" in command:
+        # Send screenshot first
+        await spectate(channel)
+
+    # Update history
+    history: TextChannelHistory = get_channel_history(channel)
+    await history.aupdate()
+
+    # In-character response
+    response: str = await get_response(history.as_langchain_msgs(bot.user), context=command)
+    logger.info(f"Command: {command} -> Response: {response}")
+    await lazy_send_message(channel, response, force=True)
+
+    if expect_response:
+        # Wait for the user's response
+        id = str(uuid.uuid4())
+        event: asyncio.Event = asyncio.Event()
+        waiting_cmd_events[id] = event
+        waiting_responses[id] = command
+        logger.info(f"Waiting for response to '{command}'...")
+        await event.wait()
+        waiting_cmd_events.pop(id, None)
+        return waiting_responses.pop(id, None)
+
+
+def gen_command_handler(channel: discord.TextChannel) -> Callable:
+    """Generate a command handler for the given channel."""
+
+    async def _channel_command_handler(command: str, expect_response: bool = False) -> str:
+        """Handle a command from the current activity."""
+        return await command_handler(channel, command, expect_response)
+
+    return _channel_command_handler
+
+
+async def check_waiting_responses(channel: discord.TextChannel) -> None:
+    """Check if any waiting responses were answered."""
+    history: TextChannelHistory = get_channel_history(channel)
+    assert len(waiting_cmd_events) == len(waiting_responses)  # Check for race conditions
+    waiting_ids = list(waiting_cmd_events.keys())
+    answers = await extract_answers(history.as_string(10), list(waiting_responses.values()))
+    for question_num, [is_answer, text] in answers.items():
+        curr_id = waiting_ids[question_num - 1]
+        if curr_id in waiting_cmd_events:  # Still waiting (not answered by another call)
+            question = waiting_responses[curr_id]
+            if is_answer:
+                logger.info(f"Answer to '{question}': {text}")
+                waiting_responses[curr_id] = text
+                waiting_cmd_events[curr_id].set()
+            else:
+                logger.info(f"Clarification for '{question}': {text}")
+                await command_handler(channel, text)  # Send clarification
+
+
+async def lazy_send_message(
+    channel: discord.TextChannel, message_str: str, instant: bool = False, force: bool = False
+) -> bool:
+    """Send a message to a channel with typing time. Cancels the send on new messages or others typing.
+
+    If the message is too long, it will be split into chunks before sending.
+    If instant is True, the message will be sent instantly (regardless of the bot's mode).
+    If force is True, the message will not be cancelled. Note that empty messages still won't be sent.
+
+    Args:
+        channel: The channel to send the message to.
+        message_str: The message to send.
+        instant: Whether to try to send the message instantly. May still be cancelled.
+        force: Whether to force the message to be sent.
 
     Returns:
         Whether the message was sent in full.
     """
     if not message_str.strip():
         return False
-    channel: Optional[discord.TextChannel] = active_channel
-    if channel is None:
-        raise ValueError("No active channel.")
 
     # Fetch all guild members to replace display names with mentions
     for member in get_users_in_channel(channel):
@@ -331,14 +416,14 @@ async def send_discord_message(message_str: str, instant: bool = False) -> bool:
             saved_message_count: int = history.message_count
             await asyncio.sleep(typing_time / 1000)
             # Only send if no new messages were sent and no one is typing (excluding Bob)
-            if history.message_count != saved_message_count:
-                log_debug_info("Not sending: New message sent.")
+            if not force and history.message_count != saved_message_count:
+                log_debug_info(f"Not sending '{chunk}': New message sent.")
                 return False
             others_typing: list[discord.User] = get_channel_history(channel).get_users_typing()
             if bot.user in others_typing:
                 others_typing.remove(bot.user)
-            if others_typing:
-                log_debug_info(f"Not sending: Others typing {[user.display_name for user in others_typing]}.")
+            if not force and others_typing:
+                log_debug_info(f"Not sending '{chunk}': Others typing {[user.display_name for user in others_typing]}.")
                 return False
             # Send the message
             try:

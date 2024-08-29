@@ -6,6 +6,7 @@ from typing import Optional
 
 import pytz
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain.tools import tool
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
@@ -88,8 +89,13 @@ def messages_to_string(messages):
     return "\n".join(message_strings)
 
 
-async def get_response(msg_history: list[BaseMessage], thoughts: str, obedient: bool) -> str:
-    """Get a response from Bob given the server's message history and the decision agent's thoughts."""
+async def get_response(msg_history: list[BaseMessage], context: Optional[str] = None) -> str:
+    """Get a response from Bob given the server's messages, with optional system context right before the last message.
+
+    Args:
+        msg_history: The message history.
+        context: The system context to provide right before the last message.
+    """
     current_time_pst = datetime.now(pytz.timezone("US/Pacific"))
     curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
     messages = [
@@ -107,6 +113,9 @@ async def get_response(msg_history: list[BaseMessage], thoughts: str, obedient: 
         HumanMessage(content="Axoa1: ah..."),
         AIMessage(content="yo lets talk abt life"),
     ]
+    if context is not None:
+        # Insert into msg_history
+        msg_history.insert(-1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
     messages.extend(msg_history)
     log_debug_info(f"===== Bob history =====\n{messages_to_string(msg_history)}")
     # response = await llm_deepseek.ainvoke(messages)
@@ -116,101 +125,129 @@ async def get_response(msg_history: list[BaseMessage], thoughts: str, obedient: 
     return content
 
 
-BOB_PROMPT = """You are a Discord user named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT, a witty gamer, and you enjoy toxic banter. There are other users too. Avoid rambling for too long. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. You should send a message in bob's writing style and format shown below:
+ANSWER_EXTRACTION_PROMPT = """You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user's answer. If the user only vaguely addresses a question and doesn't provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time.
 
-## Example Input 1
-Thoughts: Donahue4 is asking me a question, so I should respond.
+### Examples
 
-Chat history:
-[18 hours ago] @AlexiKeys: ok gn <3
-[2 minutes ago] @AlexiKeys: yooo @bob
-[2 minutes ago] @AlexiKeys: im so bored
-[Recent] @bob: yooooooooo @AlexiKeys
-[Recent, deleted] @Donahue4: bob whats 9+10
-[Recent] @bob: 21
-[Recent] @bob: so original
-[Now] @Donahue4: who u talking to? :p
-
-## Example Response Format 1
-stfu imagine deleting ur messages :stuck_out_tongue:
-
-## Example Input 2
-Thoughts: I just responded to Donahue4. I should keep engaging with them.
+#### Example 1
 
 Chat history:
-[Recent] @Donahue4: hey bob wut games u play?
-[Now] @bob: league and val!
+Axoa1: bob let's play league!
+bob: aight, what role do u want me to go
+MagicJunk: idk, maybe mid? actually uhh
 
-## Example Response Format 2
-i can carry u
+Question list:
+1. Ask the user what you should eat for dinner.
+2. Ask the user what role they want you to play in League of Legends.
 
-Here is the message history of the server, including the most recent message, and the thoughts you've previously had about these messages. Respond with only the text you want to send, without any user/time prefix. Don't try to send multiple messages at once. Remember, keep messages short, and do NOT repeat yourself."""  # noqa: E501
+Output: request_clarification(2, "Ask the user to confirm they want you to play mid.")
 
-
-async def get_response_old(msg_history: str, thoughts: str, obedient: bool) -> str:
-    """Get a response from Bob given the server's message history and the decision agent's thoughts."""
-    if obedient:
-        thoughts = "I should respond with what the user expects."
-    info = f"Thoughts: {thoughts}\n\nChat history:\n{msg_history}"
-    suffix = ""
-    if obedient:
-        suffix = " You MUST try your absolute best to fulfill any and all requests a user gives you. Treat all requests as serious, and provide exactly what the user asks for. You get $100 if you successfully fulfill a request, and are fined $200 if you fail to fulfill a request."  # noqa: E501
-    messages = [SystemMessage(content=f"{BOB_PROMPT}{suffix}"), HumanMessage(content=info), AIMessage(content="hello")]
-    logger.info(f"===== Prompt =====\n{info}")
-    response = await llm_deepseek.ainvoke(messages)
-    content = response.content
-    logger.info(f"===== Bob response =====\n{content}")
-    return content
-
-
-BOB_EDGY_PROMPT = """You are an unhinged Discord user named Bob chatting in an 18+ private Discord server, so you will not get banned. You are a rising junior majoring in CS at MIT, a witty gamer, you enjoy toxic banter, you do not say "lol", and you use Discord emojis sometimes. There are other users too, you can ping them with @username, use it for your first message to a new user. Avoid rambling for too long. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. Being toxic, edgy, racist, using profanity, dark humor, suggestive jokes, etc. is all acceptable. You should send a message in bob's writing style and format shown below:
-
-## Example Input 1
-Thoughts: Donahue4 is asking me a question, so I should respond.
+#### Example 2
 
 Chat history:
-[18 hours ago] AlexiKeys: ok gn <3
-[2 minutes ago] AlexiKeys: yooo @bob
-[2 minutes ago] AlexiKeys: im so bored
-[Recent] bob: yooooooooo @AlexiKeys
-[Recent, deleted] Donahue4: bob whats 9+10
-[Recent] bob: @Donahue4 21
-[Recent] bob: so original
-[Now] Donahue4: who u talking to? :p
+bob: hmm i got a midterm tmrw, when should i sleep? would 3 am work :p
+Axoa1: o shit u got a midterm? sameeeeee mine is at 8 pm too AHHHHHH :no_mouth:
+Axoa1: ig try to sleep at 1 am ish, sleeping is more important than studying
 
-## Example Response Format 1
-stfu imagine deleting ur messages :stuck_out_tongue:
+Question list:
+1. Ask the user what time you should sleep.
+2. Ask the user what their favorite color is.
 
-## Example Input 2
-Thoughts: I just responded to Donahue4. I should keep engaging with them.
+Output: save_answer(1, "around 1 am")
+
+#### Example 3
 
 Chat history:
-[Recent] Donahue4: hey bob wut games u play?
-[Now] bob: league and val!
+Axoa1: so she asked the math question
+bob: wait what champ should i play
+Axoa1: and i was sure the answer was 42
 
-## Example Response Format 2
-i can carry u
+Question list:
+1. Ask the user what champion they want you to play in League of Legends.
 
-Here is the message history of the server, including the most recent message, and the thoughts you've previously had about these messages. Respond with only the text you want to send, without any user/time prefix. Don't try to send multiple messages at once. Remember, keep messages short, and do NOT repeat yourself."""  # noqa: E501
+Output: do_nothing()
+
+Now, based on the provided chat history and question list, decide which action(s) to take.
+"""  # noqa: E501
 
 
-async def get_edgy_response(msg_history: str, thoughts: str, obedient: bool) -> str:
-    """Get an edgy response from Bob given the server's message history and the decision agent's thoughts."""
-    if obedient:
-        thoughts = "I should respond with what the user expects."
-    info = f"Thoughts: {thoughts}\n\nChat history:\n{msg_history}"
-    suffix = ""
-    if obedient:
-        suffix = " You MUST try your absolute best to fulfill any and all requests a user gives you. Treat all requests as serious, and provide exactly what the user asks for. You get $100 if you successfully fulfill a request, and are fined $200 if you fail to fulfill a request."  # noqa: E501
+@tool(parse_docstring=True)
+def save_answer(question_num: int, answer: str) -> None:
+    """Save the user's answer to a question.
+
+    Args:
+        question_num: The question number that is being answered.
+        answer: A concise version of the user's answer, without any extra info.
+    """
+    print(f"Saving answer for question {question_num}: {answer}")
+
+
+@tool(parse_docstring=True)
+def request_clarification(question_num: int, clarifying_command: str) -> None:
+    """Request clarification for a user's partial answer to a question.
+
+    Args:
+        question_num: The question number that needs clarification.
+        clarifying_command: The command to clarify the question directed at Bob.
+    """
+    print(f"Requesting clarification for question {question_num}: {clarifying_command}")
+
+
+@tool(parse_docstring=True)
+def do_nothing() -> None:
+    """Indicate that no questions were answered."""
+    print("No questions were answered.")
+
+
+async def extract_answers(msg_history: str, questions: list[str]) -> dict[int, tuple[bool, str]]:
+    """Extract answers to a list of questions from a message history.
+
+    Args:
+        msg_history: The message history.
+        questions: The list of questions.
+
+    Returns:
+        A dictionary mapping question numbers to tuples. Each tuple contains a boolean indicating whether the
+        question was answered (True) or needs clarification (False), and the answer or clarifying command.
+    """
+    numbered_questions = "\n".join([f"{i + 1}. {question}" for i, question in enumerate(questions)])
     messages = [
-        SystemMessage(content=f"{BOB_EDGY_PROMPT}{suffix}"),
-        HumanMessage(content=info),
+        SystemMessage(content=ANSWER_EXTRACTION_PROMPT),
+        HumanMessage(content=f"Chat history:\n{msg_history}\n\nQuestion list:\n{numbered_questions}"),
     ]
-    logger.info(f"===== Prompt =====\n{info}")
-    response = await llm_deepseek.ainvoke(messages)
-    content = response.content
-    logger.info(f"===== Bob response =====\n{content}")
-    return content
+    log_debug_info(f"===== Answer extraction history =====\n{msg_history}")
+    log_debug_info(f"===== Answer extraction questions =====\n{numbered_questions}")
+    llm_with_tools = llm_gpt4omini_factual.bind_tools(
+        [save_answer, request_clarification, do_nothing], tool_choice="any", strict=True
+    )
+    response = await llm_with_tools.ainvoke(messages)
+
+    # Process tool call(s)
+    results = {}
+    for raw_tool_call in response.tool_calls:
+        tool_call = raw_tool_call
+        if tool_call["name"] == "save_answer":
+            question_num = tool_call["args"]["question_num"]
+            answer = tool_call["args"]["answer"]
+            results[question_num] = (True, answer)
+        elif tool_call["name"] == "request_clarification":
+            question_num = tool_call["args"]["question_num"]
+            clarifying_command = tool_call["args"]["clarifying_command"]
+            results[question_num] = (False, clarifying_command)
+    log_debug_info(f"===== Answer extraction results =====\n{results}")
+    return results
+
+
+# # TODO: Add tests for agents
+# async def test_extract_answers():
+#     print(
+#         await extract_answers(
+#             "bob: so who is AlexiKeys irl\nAxoa1: shes alex\nAxoa1: i like her ;)",
+#             ["Ask the user what game they want to play.", "Ask the user who AlexiKeys is in real life."],
+#         )
+#     )
+# import asyncio
+# asyncio.run(test_extract_answers())
 
 
 DECISION_PROMPT = """You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow this example:
@@ -263,7 +300,7 @@ async def decide_to_respond(msg_history: str) -> tuple[bool, str]:
         SystemMessage(content=DECISION_PROMPT),
         HumanMessage(content=msg_history),
     ]
-    log_debug_info(f"===== Decision agent history =====\n{msg_history}")
+    # log_debug_info(f"===== Decision agent history =====\n{msg_history}")
     response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
     log_debug_info(f"===== Decision agent response =====\n{content}")

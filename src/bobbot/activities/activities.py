@@ -5,7 +5,7 @@ Ex: "You are at work right now."
 """
 
 from enum import Enum
-from typing import Awaitable, Callable, Optional
+from typing import Callable, Optional
 
 from PIL import Image
 
@@ -14,6 +14,7 @@ from bobbot.activities.chess_player import (
     play_chess_activity,
     screenshot_chess_activity,
 )
+from bobbot.activities.eat import eat_meal_activity, get_eating_info
 
 
 class Activity(Enum):
@@ -21,16 +22,16 @@ class Activity(Enum):
 
     WORK = "work"
     EAT = "eat"
+    SHOWER = "shower"
     SLEEP = "sleep"
     CHESS = "chess"
-    LEAGUE = "league_of_legends"
-    SKRIBBL = "skribbl"
+    LEAGUE = "league"
 
 
 current_activity: Optional[Activity] = None
 
 
-async def start_activity(activity: Activity, cmd_handler: Callable[[str], Awaitable[str]]) -> bool:
+async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
     """Starts the given activity.
 
     Args:
@@ -45,11 +46,15 @@ async def start_activity(activity: Activity, cmd_handler: Callable[[str], Awaita
     """
     global current_activity
     if current_activity is not None:
-        await cmd_handler(f"Failed to start: You are already doing something - {await get_activity_status()}")
+        await cmd_handler(
+            f"The user just tried to get you to do an activity '{activity.value}'. Let them know you can't do that because you are already doing something: {await get_activity_status()}"  # noqa: E501
+        )
         return False
     current_activity = activity
     result: bool
-    if activity == Activity.CHESS:
+    if activity == Activity.EAT:
+        result = await eat_meal_activity(cmd_handler)
+    elif activity == Activity.CHESS:
         result = await play_chess_activity(cmd_handler)
     else:
         raise NotImplementedError
@@ -66,6 +71,8 @@ async def get_activity_status() -> str:
     """Returns a readable version of the current activity status directed at Bob."""
     if current_activity is None:
         return "You're free right now."
+    elif current_activity == Activity.EAT:
+        return get_eating_info()
     elif current_activity == Activity.CHESS:
         return get_chess_info()
     else:
@@ -76,7 +83,9 @@ async def spectate_activity() -> Optional[Image.Image]:
     """Returns an image of the current activity (if available)."""
     if current_activity is None:
         return None
-    if current_activity == Activity.CHESS:
+    elif current_activity == Activity.EAT:
+        return None
+    elif current_activity == Activity.CHESS:
         return await screenshot_chess_activity()
     else:
         raise NotImplementedError
