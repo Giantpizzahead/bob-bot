@@ -20,10 +20,10 @@ from PIL import Image
 from bobbot.activities import (  # stop_activity,
     Activity,
     configure_chess,
-    configure_meal,
     get_activity_status,
     spectate_activity,
     start_activity,
+    stop_activity,
 )
 from bobbot.agents.agents import decide_to_respond, extract_answers, get_response
 from bobbot.discord_helpers.text_channel_history import (
@@ -91,6 +91,70 @@ def get_channel_history(channel: discord.TextChannel) -> TextChannelHistory:
     return channel_history[channel.id]
 
 
+@bot.hybrid_command(name="chess")
+@app_commands.choices(
+    against=[
+        app_commands.Choice(name="Human", value="human"),
+        app_commands.Choice(name="Chess.com Bot", value="bot"),
+    ]
+)
+async def chess(ctx: commands.Context, against: str | None, elo: int) -> None:
+    """Start a chess game with Bob."""
+    if elo < 200 or elo > 1600:
+        await ctx.send("! invalid elo, must be between 200 and 1600")
+        return
+    against_computer: bool = against is not None and against.lower() == "bot"
+    configure_chess(elo, against_computer)
+    await ctx.send(f"! ok, playing at {elo} elo vs {'a bot' if against_computer else 'u'}, lets go")
+    await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
+
+
+@bot.hybrid_command(name="activity")
+@app_commands.choices(
+    activity=[
+        app_commands.Choice(name="School", value="school"),
+        app_commands.Choice(name="Eat", value="eat"),
+        app_commands.Choice(name="Shower", value="shower"),
+        app_commands.Choice(name="Sleep", value="sleep"),
+        app_commands.Choice(name="Chess", value="chess"),
+        app_commands.Choice(name="League", value="league"),
+    ]
+)
+async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
+    """Start an activity (without configuring parameters)."""
+    try:
+        act = Activity(activity)
+        await ctx.send(f"! ok i {activity}")
+        await start_activity(act, gen_command_handler(ctx.channel))
+    except ValueError:
+        await ctx.send("! invalid activity, try school, eat, shower, sleep, chess, or league")
+
+
+@bot.hybrid_command(name="spectate")
+async def spectate(ctx: commands.Context) -> None:
+    """Spectate the current activity."""
+    image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
+    if isinstance(image_or_msg, Image.Image):
+        with io.BytesIO() as image_binary:
+            image_or_msg.save(image_binary, "JPEG")
+            image_binary.seek(0)
+            await ctx.send(file=discord.File(fp=image_binary, filename="current_chess_match.jpeg"))
+    elif isinstance(image_or_msg, list):
+        await ctx.send(image_or_msg[0])
+        for msg in image_or_msg[1:]:
+            await asyncio.sleep(1)
+            await lazy_send_message(ctx.channel, msg, instant=True, force=True)
+    else:
+        await ctx.send("! no activity D:")
+
+
+@bot.hybrid_command(name="stop")
+async def stop(ctx: commands.Context) -> None:
+    """Stop the current activity."""
+    await stop_activity()
+    await ctx.send("! stopped activity")
+
+
 @bot.hybrid_command(name="mode")
 @app_commands.choices(
     mode=[
@@ -138,11 +202,14 @@ async def reset(ctx: commands.Context) -> None:
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.1
+        """! hi i am bob 2nd edition v1.2
 command prefix is `!`, slash commands work too
 
 activities:
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
+`activity [school/eat/shower/sleep/chess/league]` - Start an activity (without configuring parameters).
+`spectate` - Spectate the current activity.
+`stop` - Stops the current activity.
 
 config:
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
@@ -151,10 +218,16 @@ config:
 
 info:
 `help` - Show this help message.
-`status` - Show the current mode and speed of the bot.
+`status` - Show the current mode, speed, and activity of the bot.
 `debug` - Show debug info for the last message Bob sent.
 `ping` - Ping the bot."""
     )
+
+
+@bot.hybrid_command(name="status")
+async def status(ctx: commands.Context) -> None:
+    """Show the current mode, speed, and activity of the bot."""
+    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}\nactivity: {await get_activity_status()}")
 
 
 @bot.hybrid_command(name="ping")
@@ -171,12 +244,6 @@ async def ping(ctx: commands.Context) -> None:
         await ctx.send(msg)
 
 
-@bot.hybrid_command(name="status")
-async def status(ctx: commands.Context) -> None:
-    """Show the current mode, speed, and activity of the bot."""
-    await ctx.send(f"! mode: {mode.value}, speed: {speed.value}\nactivity: {await get_activity_status()}")
-
-
 @bot.hybrid_command(name="debug")
 async def debug(ctx: commands.Context) -> None:
     """Show debug info for the last message Bob sent."""
@@ -185,54 +252,6 @@ async def debug(ctx: commands.Context) -> None:
         await ctx.send("! No trace available.")
     else:
         await ctx.send(truncate_length("!```Trace:\n" + debug_info + "```", 2000))
-
-
-@bot.hybrid_command(name="chess")
-@app_commands.choices(
-    against=[
-        app_commands.Choice(name="Human", value="human"),
-        app_commands.Choice(name="Chess.com Bot", value="bot"),
-    ]
-)
-async def chess(ctx: commands.Context, against: str | None, elo: int) -> None:
-    """Start a chess game with Bob."""
-    if elo < 200 or elo > 1600:
-        await ctx.send("! invalid elo, must be between 200 and 1600")
-        return
-    against_computer: bool = against is not None and against.lower() == "bot"
-    configure_chess(elo, against_computer)
-    await ctx.send(f"! ok, playing at {elo} elo, lets go")
-    await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
-
-
-@bot.hybrid_command(name="eat")
-@app_commands.choices(
-    meal=[
-        app_commands.Choice(name="Lunch", value="lunch"),
-        app_commands.Choice(name="Dinner", value="dinner"),
-    ]
-)
-async def eat(ctx: commands.Context, meal: str) -> None:
-    """Start eating a meal."""
-    if meal.lower() not in ["lunch", "dinner"]:
-        await ctx.send("! invalid meal, must be lunch or dinner")
-        return
-    configure_meal(meal)
-    await ctx.send("! ok... but why")
-    await start_activity(Activity.EAT, gen_command_handler(ctx.channel))
-
-
-@bot.hybrid_command(name="spectate")
-async def spectate(ctx: commands.Context) -> None:
-    """Spectate the current activity."""
-    image: Optional[Image.Image] = await spectate_activity()
-    if image is not None:
-        with io.BytesIO() as image_binary:
-            image.save(image_binary, "JPEG")
-            image_binary.seek(0)
-            await ctx.send(file=discord.File(fp=image_binary, filename="current_chess_match.jpeg"))
-    else:
-        await ctx.send("! no activity, start a game first")
 
 
 @bot.event
@@ -347,6 +366,8 @@ def gen_command_handler(channel: discord.TextChannel) -> Callable:
 
 async def check_waiting_responses(channel: discord.TextChannel) -> None:
     """Check if any waiting responses were answered."""
+    if not waiting_cmd_events:
+        return  # No waiting responses
     history: TextChannelHistory = get_channel_history(channel)
     assert len(waiting_cmd_events) == len(waiting_responses)  # Check for race conditions
     waiting_ids = list(waiting_cmd_events.keys())
@@ -407,10 +428,8 @@ async def lazy_send_message(
             j = min(i + chunk_size_limit, len(message_str))  # Ending of this message
             chunk = message_str[i:j]
             i = j
-            # Calculate typing time (on top of generation time): ~150 WPM or 18-22 seconds max
-            typing_time = min(
-                random.random() * 1000 + (random.random() / 2 + 1) * 100 * len(chunk), 18000 + random.random() * 4000
-            )
+            # Calculate typing time (on top of generation time): ~200 WPM or 14-18 seconds max
+            typing_time = min(random.uniform(0.7, 1.3) * 75 * len(chunk), random.uniform(14000, 18000))
             if instant or speed == Speed.INSTANT:
                 typing_time = 0
             saved_message_count: int = history.message_count
@@ -427,7 +446,8 @@ async def lazy_send_message(
                 return False
             # Send the message
             try:
-                await channel.send(chunk, suppress_embeds=True)
+                await channel.send(chunk)
+                # await channel.send(chunk, suppress_embeds=True)
             except discord.DiscordException:
                 logger.exception("Error sending message")
                 return False

@@ -88,12 +88,17 @@ async def get_challenge_link(page: Page) -> str:
 async def wait_for_accepted_match(page: Page) -> None:
     """Wait for the challenge link match to be accepted (3 minutes)."""
     logger.info("Waiting for match to be accepted...")
-    try:
-        await page.locator("h3.challenge-link-modal-title").wait_for(state="detached", timeout=180000)
-    except TimeoutError:
-        raise TimeoutError("Match was not accepted.")
-    logger.info("Match was accepted.")
-    await page.wait_for_timeout(1000)  # Wait for board to update
+    # Poll every second
+    for _ in range(180):
+        if status == "stopping":
+            return
+        try:
+            await page.locator("h3.challenge-link-modal-title").wait_for(state="attached", timeout=1000)
+            logger.info("Match was accepted.")
+            await page.wait_for_timeout(1000)  # Wait for board to update
+        except TimeoutError:
+            pass
+    raise TimeoutError("Match was not accepted.")
 
 
 async def start_match_computer(page: Page) -> None:
@@ -443,7 +448,15 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
                 await cmd_handler(
                     f"Send the user this link (don't use Markdown) so they can join your chess match: {challenge_link}"
                 )
-                await wait_for_accepted_match(page)
+                await wait_for_accepted_match(page)  # Might return early if stopping, but that's ok
+            if status == "stopping":
+                logger.info("Stopping chess match (before starting)...")
+                await stop_sunfish_engine()
+                chess_page = None
+                await context.close()
+                await browser.close()
+                status = "idle"
+                return
             status = "playing"
             while True:
                 await wait_for_move(page)
@@ -451,6 +464,14 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
                 if match_result:
                     break
                 await play_move(page)  # Might dry move, but that's ok
+                if status == "stopping":
+                    logger.info("Stopping chess match (while playing)...")
+                    await stop_sunfish_engine()
+                    chess_page = None
+                    await context.close()
+                    await browser.close()
+                    status = "idle"
+                    return
 
             # Close ending dialog
             status = "finished"
@@ -472,6 +493,12 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
     status = "idle"
 
 
+def stop_playing_chess() -> None:
+    """Stops playing chess (when it's feasible to)."""
+    global status
+    status = "stopping"
+
+
 def configure_chess(elo: int, against_computer: bool) -> None:
     """Configures the chess activity.
 
@@ -487,6 +514,8 @@ def get_chess_info() -> str:
     """Get the current chess activity status."""
     if status == "idle":
         return "You are not currently playing chess."
+    elif status == "stopping":
+        return "You are currently trying to quit a chess match."
     elif status == "starting":
         return f"You are starting a chess match against {'a bot' if against_computer else 'a user'}."
     elif status == "playing":

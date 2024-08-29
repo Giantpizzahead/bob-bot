@@ -90,10 +90,10 @@
 <span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># stop_activity,</span>
     <span class="n">Activity</span><span class="p">,</span>
     <span class="n">configure_chess</span><span class="p">,</span>
-    <span class="n">configure_meal</span><span class="p">,</span>
     <span class="n">get_activity_status</span><span class="p">,</span>
     <span class="n">spectate_activity</span><span class="p">,</span>
     <span class="n">start_activity</span><span class="p">,</span>
+    <span class="n">stop_activity</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">bobbot.agents.agents</span> <span class="kn">import</span> <span class="n">decide_to_respond</span><span class="p">,</span> <span class="n">extract_answers</span><span class="p">,</span> <span class="n">get_response</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.text_channel_history</span> <span class="kn">import</span> <span class="p">(</span>
@@ -164,6 +164,70 @@
     <span class="k">return</span> <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 
 
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;chess&quot;</span><span class="p">)</span>
+<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+    <span class="n">against</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Human&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;human&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Chess.com Bot&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;bot&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">chess</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">against</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a chess game with Bob.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">elo</span> <span class="o">&lt;</span> <span class="mi">200</span> <span class="ow">or</span> <span class="n">elo</span> <span class="o">&gt;</span> <span class="mi">1600</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid elo, must be between 200 and 1600&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">against_computer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">against</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">against</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bot&quot;</span>
+    <span class="n">configure_chess</span><span class="p">(</span><span class="n">elo</span><span class="p">,</span> <span class="n">against_computer</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! ok, playing at </span><span class="si">{</span><span class="n">elo</span><span class="si">}</span><span class="s2"> elo vs </span><span class="si">{</span><span class="s1">&#39;a bot&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">against_computer</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;u&#39;</span><span class="si">}</span><span class="s2">, lets go&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">)</span>
+<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+    <span class="n">activity</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;School&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;school&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Eat&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;eat&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Shower&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;shower&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Sleep&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;sleep&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Chess&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;chess&quot;</span><span class="p">),</span>
+        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;League&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;league&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">do_basic_activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">activity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start an activity (without configuring parameters).&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">act</span> <span class="o">=</span> <span class="n">Activity</span><span class="p">(</span><span class="n">activity</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! ok i </span><span class="si">{</span><span class="n">activity</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">act</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid activity, try school, eat, shower, sleep, chess, or league&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spectate&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spectate the current activity.&quot;&quot;&quot;</span>
+    <span class="n">image_or_msg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">spectate_activity</span><span class="p">()</span>  <span class="c1"># Image or list of messages</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">image_binary</span><span class="p">:</span>
+            <span class="n">image_or_msg</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_binary</span><span class="p">,</span> <span class="s2">&quot;JPEG&quot;</span><span class="p">)</span>
+            <span class="n">image_binary</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">discord</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">image_binary</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;current_chess_match.jpeg&quot;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">image_or_msg</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">instant</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! no activity D:&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop the current activity.&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">stop_activity</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! stopped activity&quot;</span><span class="p">)</span>
+
+
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;mode&quot;</span><span class="p">)</span>
 <span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
     <span class="n">mode</span><span class="o">=</span><span class="p">[</span>
@@ -211,11 +275,14 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">help</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Show the help message.&quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;! hi i am bob 2nd edition v1.1</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;! hi i am bob 2nd edition v1.2</span>
 <span class="sd">command prefix is `!`, slash commands work too</span>
 
 <span class="sd">activities:</span>
 <span class="sd">`chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.</span>
+<span class="sd">`activity [school/eat/shower/sleep/chess/league]` - Start an activity (without configuring parameters).</span>
+<span class="sd">`spectate` - Spectate the current activity.</span>
+<span class="sd">`stop` - Stops the current activity.</span>
 
 <span class="sd">config:</span>
 <span class="sd">`mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.</span>
@@ -224,10 +291,16 @@
 
 <span class="sd">info:</span>
 <span class="sd">`help` - Show this help message.</span>
-<span class="sd">`status` - Show the current mode and speed of the bot.</span>
+<span class="sd">`status` - Show the current mode, speed, and activity of the bot.</span>
 <span class="sd">`debug` - Show debug info for the last message Bob sent.</span>
 <span class="sd">`ping` - Ping the bot.&quot;&quot;&quot;</span>
     <span class="p">)</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show the current mode, speed, and activity of the bot.&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! mode: </span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">, speed: </span><span class="si">{</span><span class="n">speed</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">activity: </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="n">get_activity_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ping&quot;</span><span class="p">)</span>
@@ -244,12 +317,6 @@
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
 
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show the current mode, speed, and activity of the bot.&quot;&quot;&quot;</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! mode: </span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">, speed: </span><span class="si">{</span><span class="n">speed</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">activity: </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="n">get_activity_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Show debug info for the last message Bob sent.&quot;&quot;&quot;</span>
@@ -258,54 +325,6 @@
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! No trace available.&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">truncate_length</span><span class="p">(</span><span class="s2">&quot;!```Trace:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">debug_info</span> <span class="o">+</span> <span class="s2">&quot;```&quot;</span><span class="p">,</span> <span class="mi">2000</span><span class="p">))</span>
-
-
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;chess&quot;</span><span class="p">)</span>
-<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
-    <span class="n">against</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Human&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;human&quot;</span><span class="p">),</span>
-        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Chess.com Bot&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;bot&quot;</span><span class="p">),</span>
-    <span class="p">]</span>
-<span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">chess</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">against</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a chess game with Bob.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">elo</span> <span class="o">&lt;</span> <span class="mi">200</span> <span class="ow">or</span> <span class="n">elo</span> <span class="o">&gt;</span> <span class="mi">1600</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid elo, must be between 200 and 1600&quot;</span><span class="p">)</span>
-        <span class="k">return</span>
-    <span class="n">against_computer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">against</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">against</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;bot&quot;</span>
-    <span class="n">configure_chess</span><span class="p">(</span><span class="n">elo</span><span class="p">,</span> <span class="n">against_computer</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! ok, playing at </span><span class="si">{</span><span class="n">elo</span><span class="si">}</span><span class="s2"> elo, lets go&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
-
-
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eat&quot;</span><span class="p">)</span>
-<span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
-    <span class="n">meal</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lunch&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;lunch&quot;</span><span class="p">),</span>
-        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Dinner&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;dinner&quot;</span><span class="p">),</span>
-    <span class="p">]</span>
-<span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">eat</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">meal</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start eating a meal.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">meal</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lunch&quot;</span><span class="p">,</span> <span class="s2">&quot;dinner&quot;</span><span class="p">]:</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid meal, must be lunch or dinner&quot;</span><span class="p">)</span>
-        <span class="k">return</span>
-    <span class="n">configure_meal</span><span class="p">(</span><span class="n">meal</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! ok... but why&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">EAT</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
-
-
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spectate&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spectate the current activity.&quot;&quot;&quot;</span>
-    <span class="n">image</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">spectate_activity</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">image_binary</span><span class="p">:</span>
-            <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_binary</span><span class="p">,</span> <span class="s2">&quot;JPEG&quot;</span><span class="p">)</span>
-            <span class="n">image_binary</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">discord</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">image_binary</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;current_chess_match.jpeg&quot;</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! no activity, start a game first&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">event</span>
@@ -420,6 +439,8 @@
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">check_waiting_responses</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if any waiting responses were answered.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">waiting_cmd_events</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="c1"># No waiting responses</span>
     <span class="n">history</span><span class="p">:</span> <span class="n">TextChannelHistory</span> <span class="o">=</span> <span class="n">get_channel_history</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">waiting_cmd_events</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">waiting_responses</span><span class="p">)</span>  <span class="c1"># Check for race conditions</span>
     <span class="n">waiting_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">waiting_cmd_events</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -482,10 +503,8 @@
             <span class="n">j</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">chunk_size_limit</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">message_str</span><span class="p">))</span>  <span class="c1"># Ending of this message</span>
             <span class="n">chunk</span> <span class="o">=</span> <span class="n">message_str</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">]</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">j</span>
-            <span class="c1"># Calculate typing time (on top of generation time): ~150 WPM or 18-22 seconds max</span>
-            <span class="n">typing_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="mi">18000</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">4000</span>
-            <span class="p">)</span>
+            <span class="c1"># Calculate typing time (on top of generation time): ~200 WPM or 14-18 seconds max</span>
+            <span class="n">typing_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">75</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">14000</span><span class="p">,</span> <span class="mi">18000</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">instant</span> <span class="ow">or</span> <span class="n">speed</span> <span class="o">==</span> <span class="n">Speed</span><span class="o">.</span><span class="n">INSTANT</span><span class="p">:</span>
                 <span class="n">typing_time</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">saved_message_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span>
@@ -502,7 +521,8 @@
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="c1"># Send the message</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">suppress_embeds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+                <span class="c1"># await channel.send(chunk, suppress_embeds=True)</span>
             <span class="k">except</span> <span class="n">discord</span><span class="o">.</span><span class="n">DiscordException</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error sending message&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>

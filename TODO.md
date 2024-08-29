@@ -4,13 +4,13 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-- [ ] Implement an overall status message that can be fed into Bob
+hi
 
 ### Todo
 
 #### Activities
 
-- [ ] Allow Bob to comment on current activities
+- [ ] Allow Bob to comment on current activities through the status message
 - [ ] Allow Bob to auto-start activities based on context
 
 #### Memory
@@ -81,6 +81,8 @@ hi
 - [x] Try using GPT to help create a prompt for GPT :p
 - [x] Allow Bob to relay commands to the user in an appropriate style
 - [x] Allow Bob to ask and receive answers to commands in an appropriate style using an answer extraction agent
+- [x] Implement a way to force stop activities
+- [x] Implement an overall status message that can be fed into Bob
 
 ### Multi-agent
 
