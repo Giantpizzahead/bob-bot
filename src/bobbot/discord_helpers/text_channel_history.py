@@ -353,3 +353,13 @@ class TextChannelHistory:
                 result.append(HumanMessage(content=text))
         logger.debug(f"Text channel history as langchain messages:\n{pprint.pformat(result)}")
         return result
+
+
+channel_history: dict[int, TextChannelHistory] = {}
+
+
+def get_channel_history(channel: discord.TextChannel) -> TextChannelHistory:
+    """Get the history for a channel, creating it if it doesn't exist."""
+    if channel.id not in channel_history:
+        channel_history[channel.id] = TextChannelHistory(channel)
+    return channel_history[channel.id]

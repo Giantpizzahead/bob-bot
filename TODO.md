@@ -44,7 +44,7 @@ hi
 
 ## Completed Tasks
 
-### Basics
+### General
 
 - [x] Finally finish setting up the Python development environment
 - [x] Plan out how Bob will be structured (at a high level) in V2
@@ -53,6 +53,7 @@ hi
 - [x] Implement default and off modes, along with default and instant speeds
 - [x] Reorganize by moving the bot and the agent into classes (for easier abstraction/usage) (decided not to do for now, instead put them in separate functions)
 - [x] Make Bob easier to debug by allowing debug info to be printed on demand in Discord
+- [x] Split big files (modules) into smaller, manageable modules while avoiding cyclic dependencies for ease of development
 
 ### Text
 

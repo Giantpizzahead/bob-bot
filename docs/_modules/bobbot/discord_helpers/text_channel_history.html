@@ -456,6 +456,16 @@
         <span class="k">return</span> <span class="n">result</span></div>
 </div>
 
+
+
+<span class="n">channel_history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">TextChannelHistory</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span> <span class="nf">get_channel_history</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextChannelHistory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the history for a channel, creating it if it doesn&#39;t exist.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_history</span><span class="p">:</span>
+        <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">TextChannelHistory</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
 </pre></div>
 
            </div>
