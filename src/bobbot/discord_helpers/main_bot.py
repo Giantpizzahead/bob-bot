@@ -139,6 +139,7 @@ async def spectate(ctx: commands.Context) -> None:
             image_or_msg.save(image_binary, "JPEG")
             image_binary.seek(0)
             await ctx.send(file=discord.File(fp=image_binary, filename="current_chess_match.jpeg"))
+        image_or_msg.close()
     elif isinstance(image_or_msg, list):
         await ctx.send(image_or_msg[0])
         for msg in image_or_msg[1:]:

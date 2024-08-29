@@ -9,3 +9,4 @@ chess
 pillow
 pytz
 aiohttp
+playwright-stealth

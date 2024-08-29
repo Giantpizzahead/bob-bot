@@ -8,6 +8,7 @@ aiohappyeyeballs==2.4.0
     # via aiohttp
 aiohttp==3.10.5
     # via
+    #   -r requirements.in
     #   discord-py
     #   langchain
     #   langchain-community
@@ -117,6 +118,10 @@ packaging==24.1
 pillow==10.4.0
     # via -r requirements.in
 playwright==1.46.0
+    # via
+    #   -r requirements.in
+    #   playwright-stealth
+playwright-stealth==1.0.6
     # via -r requirements.in
 pyautogen==0.2.35
     # via -r requirements.in

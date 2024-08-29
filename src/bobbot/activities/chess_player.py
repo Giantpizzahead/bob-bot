@@ -20,6 +20,7 @@ from playwright.async_api import (
     TimeoutError,
     async_playwright,
 )
+from playwright_stealth import StealthConfig, stealth_async
 
 from bobbot.utils import get_logger
 
@@ -428,7 +429,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
     try:
         await start_sunfish_engine()
         async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=True, slow_mo=500)
+            browser = await playwright.chromium.launch(headless=False, slow_mo=500)
             # Create context and page
             if Path(STATE_FILE).exists():
                 logger.info("Restoring state...")
@@ -438,6 +439,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
 
             # Play chess
             page = await context.new_page()
+            await stealth_async(page, StealthConfig(navigator_user_agent=False))  # Already headless!
             chess_page = page
             page.set_default_timeout(10000)
             await login(page, context)

@@ -10,7 +10,6 @@ hi
 
 #### Activities
 
-- [ ] Allow Bob to comment on current activities through the status message
 - [ ] Allow Bob to auto-start activities based on context
 
 #### Memory
@@ -83,6 +82,7 @@ hi
 - [x] Allow Bob to ask and receive answers to commands in an appropriate style using an answer extraction agent
 - [x] Implement a way to force stop activities
 - [x] Implement an overall status message that can be fed into Bob
+- [x] Allow Bob to comment on current activities through the status message
 
 ### Multi-agent
 
@@ -99,7 +99,7 @@ hi
 - [x] Demonstrate emerging reasoning skills by identifying League champs (7/15/24)
 - [x] Recognize and be able to vaguely discuss images (8/18/24)
 - [ ] Demonstrate improved reasoning skills by playing Jeopardy decently
-- [ ] Send multiple messages at once, or send no messages when appropriate in a non-hacky way
+- [x] Send multiple messages at once, or send no messages when appropriate in a non-hacky way (8/26/24)
 - [ ] Initiate a DM or group chat conversation after being inactive for a while
 - [ ] Remember details about people from a long time ago, say >50 messages
 - [ ] Have a persistent mood and/or life story through simulated emotions and events
@@ -118,7 +118,7 @@ hi
 
 ### Gaming
 
-- [x] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept
+- [x] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept (8/28/24)
 - [ ] **Capstone:** Play League, a comprehensive, tough game with an anticheat
 
 ### All Together
