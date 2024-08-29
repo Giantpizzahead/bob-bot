@@ -93,9 +93,10 @@ async def wait_for_accepted_match(page: Page) -> None:
         if status == "stopping":
             return
         try:
-            await page.locator("h3.challenge-link-modal-title").wait_for(state="attached", timeout=1000)
+            await page.locator("h3.challenge-link-modal-title").wait_for(state="detached", timeout=1000)
             logger.info("Match was accepted.")
             await page.wait_for_timeout(1000)  # Wait for board to update
+            return
         except TimeoutError:
             pass
     raise TimeoutError("Match was not accepted.")

@@ -219,7 +219,7 @@ config:
 info:
 `help` - Show this help message.
 `status` - Show the current mode, speed, and activity of the bot.
-`debug` - Show debug info for the last message Bob sent.
+`debug` - Show debug info for the last message Bob processed.
 `ping` - Ping the bot."""
     )
 
@@ -246,7 +246,7 @@ async def ping(ctx: commands.Context) -> None:
 
 @bot.hybrid_command(name="debug")
 async def debug(ctx: commands.Context) -> None:
-    """Show debug info for the last message Bob sent."""
+    """Show debug info for the last message Bob processed."""
     debug_info = get_debug_info()
     if not debug_info:
         await ctx.send("! No trace available.")
@@ -295,7 +295,10 @@ async def on_message(message: discord.Message):
         if decision:
             await curr_channel.typing()
             await check_waiting_responses(curr_channel)
-            response: str = await get_response(history.as_langchain_msgs(bot.user))
+            response: str = await get_response(
+                history.as_langchain_msgs(bot.user),
+                context=f"Context that may be helpful:\nYour status: {await get_activity_status()}",
+            )
             if history.message_count == saved_message_count:
                 await lazy_send_message(message.channel, response)
     except Exception as e:

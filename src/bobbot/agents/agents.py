@@ -117,7 +117,7 @@ async def get_response(msg_history: list[BaseMessage], context: Optional[str] = 
         # Insert into msg_history
         msg_history.insert(-1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
     messages.extend(msg_history)
-    log_debug_info(f"===== Bob history =====\n{messages_to_string(msg_history)}")
+    log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
     # response = await llm_deepseek.ainvoke(messages)
     response = await llm_gpt4omini.ainvoke(messages)
     content = response.content
@@ -282,25 +282,28 @@ Example response format 3:
 Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.
 Answer: WAIT
 
-Here is the message history of the server, including the most recent message. Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
+Here is the message history of the server, including the most recent message. You'll also be given info about what you are currently doing, take this status into account (ex: If you're asleep, then you should never respond). Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
 
 You MUST follow the example response formats!"""  # noqa: E501
 
 
-async def decide_to_respond(msg_history: str) -> tuple[bool, str]:
+async def decide_to_respond(msg_history: str, status: Optional[str] = None) -> tuple[bool, str]:
     """Decide whether to send a response message, given the current message history.
 
     Args:
         msg_history: The message history.
+        status: Bob's current activity status.
 
     Returns:
         A tuple containing a boolean indicating whether to respond and the decision agent's thoughts.
     """
-    messages = [
-        SystemMessage(content=DECISION_PROMPT),
-        HumanMessage(content=msg_history),
-    ]
-    # log_debug_info(f"===== Decision agent history =====\n{msg_history}")
+    messages = [SystemMessage(content=DECISION_PROMPT)]
+    if not status:
+        messages.append(HumanMessage(content=msg_history))
+    else:
+        messages.append(HumanMessage(content=f"Your status: {status}\n\nChat history:\n{msg_history}"))
+
+    log_debug_info(f"===== Decision agent status/history =====\n{messages[1].content}")
     response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
     log_debug_info(f"===== Decision agent response =====\n{content}")

@@ -292,7 +292,7 @@
 <span class="sd">info:</span>
 <span class="sd">`help` - Show this help message.</span>
 <span class="sd">`status` - Show the current mode, speed, and activity of the bot.</span>
-<span class="sd">`debug` - Show debug info for the last message Bob sent.</span>
+<span class="sd">`debug` - Show debug info for the last message Bob processed.</span>
 <span class="sd">`ping` - Ping the bot.&quot;&quot;&quot;</span>
     <span class="p">)</span>
 
@@ -319,7 +319,7 @@
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;debug&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show debug info for the last message Bob sent.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Show debug info for the last message Bob processed.&quot;&quot;&quot;</span>
     <span class="n">debug_info</span> <span class="o">=</span> <span class="n">get_debug_info</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">debug_info</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! No trace available.&quot;</span><span class="p">)</span>
@@ -368,7 +368,10 @@
         <span class="k">if</span> <span class="n">decision</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">curr_channel</span><span class="o">.</span><span class="n">typing</span><span class="p">()</span>
             <span class="k">await</span> <span class="n">check_waiting_responses</span><span class="p">(</span><span class="n">curr_channel</span><span class="p">)</span>
-            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">))</span>
+            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
+                <span class="n">context</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Context that may be helpful:</span><span class="se">\n</span><span class="s2">Your status: </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="n">get_activity_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span> <span class="o">==</span> <span class="n">saved_message_count</span><span class="p">:</span>
                 <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
