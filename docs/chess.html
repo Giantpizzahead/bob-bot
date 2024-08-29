@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Agents" href="agents.html" />
+    <link rel="prev" title="Activities" href="activities.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activities.html">Activities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Chess</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.check_game_over"><code class="docutils literal notranslate"><span class="pre">check_game_over()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.close_ending_dialog"><code class="docutils literal notranslate"><span class="pre">close_ending_dialog()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.configure_chess"><code class="docutils literal notranslate"><span class="pre">configure_chess()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_challenge_link"><code class="docutils literal notranslate"><span class="pre">get_challenge_link()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_chess_info"><code class="docutils literal notranslate"><span class="pre">get_chess_info()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_move"><code class="docutils literal notranslate"><span class="pre">get_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_move_sunfish"><code class="docutils literal notranslate"><span class="pre">get_move_sunfish()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_moves_locator"><code class="docutils literal notranslate"><span class="pre">get_moves_locator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.get_time_left"><code class="docutils literal notranslate"><span class="pre">get_time_left()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.login"><code class="docutils literal notranslate"><span class="pre">login()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.parse_board"><code class="docutils literal notranslate"><span class="pre">parse_board()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.play_chess_activity"><code class="docutils literal notranslate"><span class="pre">play_chess_activity()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.play_move"><code class="docutils literal notranslate"><span class="pre">play_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.screenshot_chess_activity"><code class="docutils literal notranslate"><span class="pre">screenshot_chess_activity()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.start_match_computer"><code class="docutils literal notranslate"><span class="pre">start_match_computer()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.start_sunfish_engine"><code class="docutils literal notranslate"><span class="pre">start_sunfish_engine()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.stop_playing_chess"><code class="docutils literal notranslate"><span class="pre">stop_playing_chess()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.stop_sunfish_engine"><code class="docutils literal notranslate"><span class="pre">stop_sunfish_engine()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.wait_for_accepted_match"><code class="docutils literal notranslate"><span class="pre">wait_for_accepted_match()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.chess_player.wait_for_move"><code class="docutils literal notranslate"><span class="pre">wait_for_move()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Chess</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/chess.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-bobbot.activities.chess_player">
+<span id="chess"></span><h1>Chess<a class="headerlink" href="#module-bobbot.activities.chess_player" title="Link to this heading"></a></h1>
+<p>Play chess as the black pieces against the computer or a user on chess.com.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.check_game_over">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">check_game_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#check_game_over"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.check_game_over" title="Link to this definition"></a></dt>
+<dd><p>Check if the game is over. Returns None if ongoing. Else, returns white/black/draw/unknown and a description.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.close_ending_dialog">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">close_ending_dialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#close_ending_dialog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.close_ending_dialog" title="Link to this definition"></a></dt>
+<dd><p>Close the game over dialog (if it’s open).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.configure_chess">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">configure_chess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">against_computer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#configure_chess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.configure_chess" title="Link to this definition"></a></dt>
+<dd><p>Configures the chess activity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elo</strong> – Bob’s elo rating. Should be in [200, 1600].</p></li>
+<li><p><strong>against_computer</strong> – Whether Bob is playing against the computer or a user.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_challenge_link">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_challenge_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_challenge_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_challenge_link" title="Link to this definition"></a></dt>
+<dd><p>Get a challenge link to play against the bot.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_chess_info">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_chess_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_chess_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_chess_info" title="Link to this definition"></a></dt>
+<dd><p>Get the current chess activity status.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_move">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">board</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Board</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Move</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_move" title="Link to this definition"></a></dt>
+<dd><p>Get a move for the given board. Quality varies based on elo and time left. Simulates thinking time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – The current page.</p></li>
+<li><p><strong>board</strong> – The current board state.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of the suggested move and the estimated win chance (0-100).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_move_sunfish">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_move_sunfish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Board</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Move</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_move_sunfish"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_move_sunfish" title="Link to this definition"></a></dt>
+<dd><p>Get a move using Sunfish for the target elo.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>board</strong> – The current board state.</p></li>
+<li><p><strong>elo</strong> – The target elo.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of the suggested move and the estimated win chance (0-100).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_moves_locator">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_moves_locator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Locator</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_moves_locator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_moves_locator" title="Link to this definition"></a></dt>
+<dd><p>Get the locator for the move list, along with the selector used.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.get_time_left">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">get_time_left</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#get_time_left"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.get_time_left" title="Link to this definition"></a></dt>
+<dd><p>Get Bob’s clock time left in seconds, if it exists.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.login">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BrowserContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#login"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.login" title="Link to this definition"></a></dt>
+<dd><p>Login to chess.com.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.parse_board">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">parse_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Board</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#parse_board"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.parse_board" title="Link to this definition"></a></dt>
+<dd><p>Parse the board from a list of classes representing the pieces.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.play_chess_activity">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">play_chess_activity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd_handler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#play_chess_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.play_chess_activity" title="Link to this definition"></a></dt>
+<dd><p>Play chess against the user (or the computer).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cmd_handler</strong> – The callback to send commands directed at Bob.
+The callback should be an async function that accepts exactly one string argument.
+If the activity fails to start, it will be called with the reason.
+Otherwise, it will be called the activity goes on and important things happen.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.play_move">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">play_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#play_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.play_move" title="Link to this definition"></a></dt>
+<dd><p>Play a move as Black.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.screenshot_chess_activity">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">screenshot_chess_activity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Image</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#screenshot_chess_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.screenshot_chess_activity" title="Link to this definition"></a></dt>
+<dd><p>Get a screenshot of the whole page (including the board), or None if no screenshot is available.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.start_match_computer">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">start_match_computer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#start_match_computer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.start_match_computer" title="Link to this definition"></a></dt>
+<dd><p>Start a match against the computer.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.start_sunfish_engine">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">start_sunfish_engine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#start_sunfish_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.start_sunfish_engine" title="Link to this definition"></a></dt>
+<dd><p>Start the Sunfish engine.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.stop_playing_chess">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">stop_playing_chess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#stop_playing_chess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.stop_playing_chess" title="Link to this definition"></a></dt>
+<dd><p>Stops playing chess (when it’s feasible to).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.stop_sunfish_engine">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">stop_sunfish_engine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#stop_sunfish_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.stop_sunfish_engine" title="Link to this definition"></a></dt>
+<dd><p>Stop the Sunfish engine.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.wait_for_accepted_match">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">wait_for_accepted_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#wait_for_accepted_match"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.wait_for_accepted_match" title="Link to this definition"></a></dt>
+<dd><p>Wait for the challenge link match to be accepted (3 minutes).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.chess_player.wait_for_move">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.chess_player.</span></span><span class="sig-name descname"><span class="pre">wait_for_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Page</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#wait_for_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.chess_player.wait_for_move" title="Link to this definition"></a></dt>
+<dd><p>Wait for the opponent to make a move.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="activities.html" class="btn btn-neutral float-left" title="Activities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="agents.html" class="btn btn-neutral float-right" title="Agents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

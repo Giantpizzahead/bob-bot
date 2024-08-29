@@ -414,9 +414,9 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
 
     Args:
         cmd_handler: The callback to send commands directed at Bob.
-        The callback should be an async function that accepts exactly one string argument.
-        If the activity fails to start, it will be called with the reason.
-        Otherwise, it will be called the activity goes on and important things happen.
+            The callback should be an async function that accepts exactly one string argument.
+            If the activity fails to start, it will be called with the reason.
+            Otherwise, it will be called the activity goes on and important things happen.
     """
     global status, chess_page, curr_win_chance, last_screenshot, match_result
     if status != "idle":
@@ -512,9 +512,11 @@ def configure_chess(elo: int, against_computer: bool) -> None:
     """Configures the chess activity.
 
     Args:
-        elo: Bob's elo rating. Should be in [200, 2400].
+        elo: Bob's elo rating. Should be in [200, 1600].
         against_computer: Whether Bob is playing against the computer or a user.
     """
+    if not (200 <= elo <= 1600):
+        raise ValueError("Elo should be in [200, 1600].")
     globals()["elo"] = elo
     globals()["against_computer"] = against_computer
 

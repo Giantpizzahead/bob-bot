@@ -41,12 +41,14 @@ async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
     Args:
         activity: The activity to start.
         cmd_handler: The callback to send commands directed at Bob.
-        The callback should be an async function that accepts exactly one string argument.
-        If the activity fails to start, it will be called with the reason.
-        Otherwise, it will be called the activity goes on and important things happen.
+            The callback should be an async function that accepts exactly one string argument.
+            If the activity fails to start, it will be called with the reason.
+            Otherwise, it will be called the activity goes on and important things happen.
+            Optionally, it can have a second boolean argument, which specifies when a response from
+            the user is expected. If True, the returned string from the callback is used as the response.
 
     Returns:
-        Whether the activity successfully ran to completion (no errors or early stopping).
+        Whether the activity successfully began running.
     """
     global current_activity
     if current_activity is not None:
@@ -55,7 +57,7 @@ async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
         )
         return False
     current_activity = activity
-    result: bool
+    result = None
     if activity == Activity.SCHOOL:
         result = await school_activity(cmd_handler)
     elif activity == Activity.EAT:
@@ -69,6 +71,7 @@ async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
     else:
         raise NotImplementedError
     current_activity = None
+    result = True
     return result
 
 

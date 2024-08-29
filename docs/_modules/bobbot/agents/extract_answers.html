@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.agents.extract_answers &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.agents.extract_answers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.agents.extract_answers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Agent that extracts answers to questions from a message history.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">langchain.schema</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+<span class="kn">from</span> <span class="nn">langchain.tools</span> <span class="kn">import</span> <span class="n">tool</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini_factual</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">log_debug_info</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">ANSWER_EXTRACTION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user&#39;s answer. If the user only vaguely addresses a question and doesn&#39;t provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time.</span>
+
+<span class="s2">### Examples</span>
+
+<span class="s2">#### Example 1</span>
+
+<span class="s2">Chat history:</span>
+<span class="s2">Axoa1: bob let&#39;s play league!</span>
+<span class="s2">bob: aight, what role do u want me to go</span>
+<span class="s2">MagicJunk: idk, maybe mid? actually uhh</span>
+
+<span class="s2">Question list:</span>
+<span class="s2">1. Ask the user what you should eat for dinner.</span>
+<span class="s2">2. Ask the user what role they want you to play in League of Legends.</span>
+
+<span class="s2">Output: request_clarification(2, &quot;Ask the user to confirm they want you to play mid.&quot;)</span>
+
+<span class="s2">#### Example 2</span>
+
+<span class="s2">Chat history:</span>
+<span class="s2">bob: hmm i got a midterm tmrw, when should i sleep? would 3 am work :p</span>
+<span class="s2">Axoa1: o shit u got a midterm? sameeeeee mine is at 8 pm too AHHHHHH :no_mouth:</span>
+<span class="s2">Axoa1: ig try to sleep at 1 am ish, sleeping is more important than studying</span>
+
+<span class="s2">Question list:</span>
+<span class="s2">1. Ask the user what time you should sleep.</span>
+<span class="s2">2. Ask the user what their favorite color is.</span>
+
+<span class="s2">Output: save_answer(1, &quot;around 1 am&quot;)</span>
+
+<span class="s2">#### Example 3</span>
+
+<span class="s2">Chat history:</span>
+<span class="s2">Axoa1: so she asked the math question</span>
+<span class="s2">bob: wait what champ should i play</span>
+<span class="s2">Axoa1: and i was sure the answer was 42</span>
+
+<span class="s2">Question list:</span>
+<span class="s2">1. Ask the user what champion they want you to play in League of Legends.</span>
+
+<span class="s2">Output: do_nothing()</span>
+
+<span class="s2">Now, based on the provided chat history and question list, decide which action(s) to take.</span>
+<span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<span class="nd">@tool</span><span class="p">(</span><span class="n">parse_docstring</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">save_answer</span><span class="p">(</span><span class="n">question_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save the user&#39;s answer to a question.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        question_num: The question number that is being answered.</span>
+<span class="sd">        answer: A concise version of the user&#39;s answer, without any extra info.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving answer for question </span><span class="si">{</span><span class="n">question_num</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@tool</span><span class="p">(</span><span class="n">parse_docstring</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">request_clarification</span><span class="p">(</span><span class="n">question_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">clarifying_command</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request clarification for a user&#39;s partial answer to a question.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        question_num: The question number that needs clarification.</span>
+<span class="sd">        clarifying_command: The command to clarify the question directed at Bob.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requesting clarification for question </span><span class="si">{</span><span class="n">question_num</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">clarifying_command</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@tool</span><span class="p">(</span><span class="n">parse_docstring</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_nothing</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Indicate that no questions were answered.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No questions were answered.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="extract_answers">
+<a class="viewcode-back" href="../../../agents.html#bobbot.agents.extract_answers">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">extract_answers</span><span class="p">(</span><span class="n">msg_history</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract answers to a list of questions from a message history.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg_history: The message history.</span>
+<span class="sd">        questions: The list of questions.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary mapping question numbers to tuples. Each tuple contains a boolean indicating whether the</span>
+<span class="sd">        question was answered (True) or needs clarification (False), and the answer or clarifying command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">numbered_questions</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">question</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">questions</span><span class="p">)])</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">ANSWER_EXTRACTION_PROMPT</span><span class="p">),</span>
+        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Chat history:</span><span class="se">\n</span><span class="si">{</span><span class="n">msg_history</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Question list:</span><span class="se">\n</span><span class="si">{</span><span class="n">numbered_questions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Answer extraction history =====</span><span class="se">\n</span><span class="si">{</span><span class="n">msg_history</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Answer extraction questions =====</span><span class="se">\n</span><span class="si">{</span><span class="n">numbered_questions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">llm_with_tools</span> <span class="o">=</span> <span class="n">llm_gpt4omini_factual</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">save_answer</span><span class="p">,</span> <span class="n">request_clarification</span><span class="p">,</span> <span class="n">do_nothing</span><span class="p">],</span> <span class="n">tool_choice</span><span class="o">=</span><span class="s2">&quot;any&quot;</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_with_tools</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+    <span class="c1"># Process tool call(s)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">raw_tool_call</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">tool_calls</span><span class="p">:</span>
+        <span class="n">tool_call</span> <span class="o">=</span> <span class="n">raw_tool_call</span>
+        <span class="k">if</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;save_answer&quot;</span><span class="p">:</span>
+            <span class="n">question_num</span> <span class="o">=</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;question_num&quot;</span><span class="p">]</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;answer&quot;</span><span class="p">]</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">question_num</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;request_clarification&quot;</span><span class="p">:</span>
+            <span class="n">question_num</span> <span class="o">=</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;question_num&quot;</span><span class="p">]</span>
+            <span class="n">clarifying_command</span> <span class="o">=</span> <span class="n">tool_call</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;clarifying_command&quot;</span><span class="p">]</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">question_num</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">clarifying_command</span><span class="p">)</span>
+    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Answer extraction results =====</span><span class="se">\n</span><span class="si">{</span><span class="n">results</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<span class="c1"># # TODO: Add tests for agents</span>
+<span class="c1"># async def test_extract_answers():</span>
+<span class="c1">#     print(</span>
+<span class="c1">#         await extract_answers(</span>
+<span class="c1">#             &quot;bob: so who is AlexiKeys irl\nAxoa1: shes alex\nAxoa1: i like her ;)&quot;,</span>
+<span class="c1">#             [&quot;Ask the user what game they want to play.&quot;, &quot;Ask the user who AlexiKeys is in real life.&quot;],</span>
+<span class="c1">#         )</span>
+<span class="c1">#     )</span>
+<span class="c1"># import asyncio</span>
+<span class="c1"># asyncio.run(test_extract_answers())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

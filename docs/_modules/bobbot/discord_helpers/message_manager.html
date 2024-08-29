@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.discord_helpers.message_manager &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.discord_helpers.message_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.discord_helpers.message_manager</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Manages messages received by the bot.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">discord</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="n">get_activity_status</span>
+<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="n">decide_to_respond</span><span class="p">,</span> <span class="n">get_response</span>
+<span class="kn">from</span> <span class="nn">bobbot.discord_helpers.activity_manager</span> <span class="kn">import</span> <span class="n">check_waiting_responses</span>
+<span class="kn">from</span> <span class="nn">bobbot.discord_helpers.main_bot</span> <span class="kn">import</span> <span class="n">Mode</span><span class="p">,</span> <span class="n">bot</span><span class="p">,</span> <span class="n">lazy_send_message</span>
+<span class="kn">from</span> <span class="nn">bobbot.discord_helpers.text_channel_history</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TextChannelHistory</span><span class="p">,</span>
+    <span class="n">get_channel_history</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">reset_debug_info</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="on_message">
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.on_message">[docs]</a>
+<span class="nd">@bot</span><span class="o">.</span><span class="n">event</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Respond to messages.&quot;&quot;&quot;</span>
+    <span class="c1"># Only respond to messages in DMs and specified channels</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">bot</span><span class="o">.</span><span class="n">CHANNELS</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">DMChannel</span><span class="p">)):</span>
+        <span class="k">return</span>
+    <span class="n">curr_channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">channel</span>
+    <span class="c1"># Set the active channel</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">active_channel</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">channel</span>
+    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">process_commands</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="c1"># Don&#39;t respond if the bot is off, or if it&#39;s a command message</span>
+    <span class="k">if</span> <span class="n">bot</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Mode</span><span class="o">.</span><span class="n">OFF</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">command_prefix</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="c1"># For now, don&#39;t respond to self messages</span>
+    <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">author</span> <span class="o">==</span> <span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Get history for the current channel</span>
+    <span class="n">history</span><span class="p">:</span> <span class="n">TextChannelHistory</span> <span class="o">=</span> <span class="n">get_channel_history</span><span class="p">(</span><span class="n">curr_channel</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">history</span><span class="o">.</span><span class="n">aupdate</span><span class="p">()</span>
+    <span class="n">history</span><span class="o">.</span><span class="n">clear_users_typing</span><span class="p">()</span>
+    <span class="n">saved_message_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span>
+    <span class="c1"># Get a response</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">reset_debug_info</span><span class="p">()</span>
+        <span class="n">decision</span><span class="p">,</span> <span class="n">thoughts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_to_respond</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">decision</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">curr_channel</span><span class="o">.</span><span class="n">typing</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">check_waiting_responses</span><span class="p">(</span><span class="n">curr_channel</span><span class="p">)</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Context that may be helpful:</span><span class="se">\n</span><span class="s2">Your status: </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="n">get_activity_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="s2">&quot;You&#39;re free right now.&quot;</span> <span class="ow">in</span> <span class="n">context</span><span class="p">:</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
+                <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span> <span class="o">==</span> <span class="n">saved_message_count</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error getting response&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">instant</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

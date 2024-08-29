@@ -24,10 +24,12 @@ extensions = [
     "sphinx.ext.napoleon",  # Parse Google style docstrings
     "sphinx.ext.viewcode",  # Add links to source code
     "sphinx.ext.githubpages",  # Add .nojekyll file to the build
+    "myst_parser",  # Markdown support
 ]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+suppress_warnings = ["myst.header"]
 
 
 # -- Options for HTML output -------------------------------------------------

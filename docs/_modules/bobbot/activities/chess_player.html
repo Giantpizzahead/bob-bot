@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.activities.chess_player &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.activities.chess_player</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.activities.chess_player</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Play chess as the black pieces against the computer or a user on chess.com.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">tanh</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">chess</span>
+<span class="kn">import</span> <span class="nn">chess.engine</span>
+<span class="kn">from</span> <span class="nn">chess</span> <span class="kn">import</span> <span class="n">Board</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BrowserContext</span><span class="p">,</span>
+    <span class="n">Locator</span><span class="p">,</span>
+    <span class="n">Page</span><span class="p">,</span>
+    <span class="ne">TimeoutError</span><span class="p">,</span>
+    <span class="n">async_playwright</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">playwright_stealth</span> <span class="kn">import</span> <span class="n">StealthConfig</span><span class="p">,</span> <span class="n">stealth_async</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">STATE_FILE</span> <span class="o">=</span> <span class="s2">&quot;local/pw/state.json&quot;</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+<span class="n">match_result</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">curr_win_chance</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">last_screenshot</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">elo</span> <span class="o">=</span> <span class="mi">800</span>  <span class="c1"># Should be in [200, 1600]</span>
+<span class="n">against_computer</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">chess_page</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Page</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">engine</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">UciProtocol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="login">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.login">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">BrowserContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Login to chess.com.&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://www.chess.com/&quot;</span><span class="p">)</span>
+    <span class="c1"># Check if already logged in</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ACTIVITIES_USERNAME&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.home-username-link&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text_content</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1500</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Already logged in.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Logging in...&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_label</span><span class="p">(</span><span class="s2">&quot;Log In&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_placeholder</span><span class="p">(</span><span class="s2">&quot;Username or Email&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_placeholder</span><span class="p">(</span><span class="s2">&quot;Username or Email&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ACTIVITIES_USERNAME&quot;</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_placeholder</span><span class="p">(</span><span class="s2">&quot;Username or Email&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">press</span><span class="p">(</span><span class="s2">&quot;Tab&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_placeholder</span><span class="p">(</span><span class="s2">&quot;Password&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ACTIVITIES_PWD&quot;</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_text</span><span class="p">(</span><span class="s2">&quot;Remember me&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Log In&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="c1"># Save state, making folders if they don&#39;t exist</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving state...&quot;</span><span class="p">)</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">storage_state</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">STATE_FILE</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_challenge_link">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_challenge_link">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_challenge_link</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a challenge link to play against the bot.&quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating challenge link...&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://www.chess.com/play/online/friend&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># Wait for page to load</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Create Challenge Link …&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.color-selector-black&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>  <span class="c1"># Play as Black</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">nth</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>  <span class="c1"># Unrated</span>
+    <span class="n">copy_button</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Copy Link&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">copy_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="c1"># Get the challenge link</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting link...&quot;</span><span class="p">)</span>
+    <span class="n">link_button</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.challenge-link-button-link&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">link_button</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;attached&quot;</span><span class="p">)</span>
+    <span class="c1"># Extract URL from text</span>
+    <span class="n">button_text</span> <span class="o">=</span> <span class="k">await</span> <span class="n">link_button</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;https?://[^\s]+&quot;</span><span class="p">,</span> <span class="n">button_text</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">url</span>
+    <span class="n">challenge_link</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Challenge link: </span><span class="si">{</span><span class="n">challenge_link</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">challenge_link</span></div>
+
+
+
+<div class="viewcode-block" id="wait_for_accepted_match">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.wait_for_accepted_match">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_accepted_match</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wait for the challenge link match to be accepted (3 minutes).&quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for match to be accepted...&quot;</span><span class="p">)</span>
+    <span class="c1"># Poll every second</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">180</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;h3.challenge-link-modal-title&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;detached&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Match was accepted.&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># Wait for board to update</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="s2">&quot;Match was not accepted.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="start_match_computer">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.start_match_computer">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">start_match_computer</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a match against the computer.&quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting match...&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://www.chess.com/play/computer/CoachDannyBot&quot;</span><span class="p">)</span>
+    <span class="c1"># Potential dialog</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Start&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1500</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Choose&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;div.select-playing-as-radio-black&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">get_by_role</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Play&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># Wait for board to update</span></div>
+
+
+
+<div class="viewcode-block" id="get_moves_locator">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_moves_locator">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_moves_locator</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Locator</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the locator for the move list, along with the selector used.&quot;&quot;&quot;</span>
+    <span class="n">move_list</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;wc-move-list&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="k">await</span> <span class="n">move_list</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">move_list</span><span class="p">,</span> <span class="s2">&quot;wc-move-list&quot;</span>
+    <span class="n">move_list</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.play-controller-scrollable&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="k">await</span> <span class="n">move_list</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">move_list</span><span class="p">,</span> <span class="s2">&quot;.play-controller-scrollable&quot;</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Move list not found.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="wait_for_move">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.wait_for_move">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wait for the opponent to make a move.&quot;&quot;&quot;</span>
+    <span class="n">move_list</span><span class="p">,</span> <span class="n">selector</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_moves_locator</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="n">initial_text</span> <span class="o">=</span> <span class="k">await</span> <span class="n">move_list</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="s2">&quot;`&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">initial_text</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">result</span> <span class="ow">in</span> <span class="n">initial_text</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;1-0&quot;</span><span class="p">,</span> <span class="s2">&quot;0-1&quot;</span><span class="p">,</span> <span class="s2">&quot;1/2-1/2&quot;</span><span class="p">]):</span>
+        <span class="k">return</span>  <span class="c1"># Game already ended</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.clock-bottom&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+            <span class="c1"># More reliable</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for clock...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_function</span><span class="p">(</span>
+                <span class="s2">&quot;() =&gt; document.querySelector(&#39;.clock-bottom&#39;).classList.contains(&#39;clock-player-turn&#39;)&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30000</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Less reliable, but works for bots</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for move list update...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_function</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;() =&gt; document.querySelector(&#39;</span><span class="si">{</span><span class="n">selector</span><span class="si">}</span><span class="s2">&#39;).textContent !== `</span><span class="si">{</span><span class="n">initial_text</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>  <span class="c1"># Wait for board to update</span></div>
+
+
+
+<div class="viewcode-block" id="check_game_over">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.check_game_over">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the game is over. Returns None if ongoing. Else, returns white/black/draw/unknown and a description.&quot;&quot;&quot;</span>
+    <span class="c1"># Possible endings: 1-0, 0-1, 1/2-1/2</span>
+    <span class="n">game_over_locator_1</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;div.game-over-header-header&quot;</span><span class="p">)</span>
+    <span class="n">game_over_locator_2</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;div.modal-game-over-header-component&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">game_over_locator_1</span><span class="o">.</span><span class="n">is_visible</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">game_over_locator_2</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1"># Get game state</span>
+    <span class="n">game_over_locator</span> <span class="o">=</span> <span class="n">game_over_locator_1</span> <span class="k">if</span> <span class="k">await</span> <span class="n">game_over_locator_1</span><span class="o">.</span><span class="n">is_visible</span><span class="p">()</span> <span class="k">else</span> <span class="n">game_over_locator_2</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="k">await</span> <span class="n">game_over_locator</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+    <span class="n">move_list</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_moves_locator</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="n">moves</span> <span class="o">=</span> <span class="k">await</span> <span class="n">move_list</span><span class="o">.</span><span class="n">text_content</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;1-0&quot;</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Other bot&quot;</span> <span class="k">if</span> <span class="n">against_computer</span> <span class="k">else</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">description</span>
+    <span class="k">elif</span> <span class="s2">&quot;0-1&quot;</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="n">description</span>
+    <span class="k">elif</span> <span class="s2">&quot;1/2-1/2&quot;</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Draw&quot;</span><span class="p">,</span> <span class="n">description</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">,</span> <span class="n">description</span></div>
+
+
+
+<div class="viewcode-block" id="close_ending_dialog">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.close_ending_dialog">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">close_ending_dialog</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Close the game over dialog (if it&#39;s open).&quot;&quot;&quot;</span>
+    <span class="n">game_over_locator_1</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.game-over-header-close&quot;</span><span class="p">)</span>
+    <span class="n">game_over_locator_2</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.modal-game-over-header-close&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="k">await</span> <span class="n">game_over_locator_1</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.game-over-header-close&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="k">await</span> <span class="n">game_over_locator_2</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.modal-game-over-header-close&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>  <span class="c1"># Wait for dialog to close</span></div>
+
+
+
+<div class="viewcode-block" id="play_move">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.play_move">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Play a move as Black.&quot;&quot;&quot;</span>
+    <span class="c1"># Locate all chess pieces within the board</span>
+    <span class="c1"># logger.info(&quot;Locating pieces...&quot;)</span>
+    <span class="n">board_locator</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;wc-chess-board&quot;</span><span class="p">)</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="n">board_locator</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;div.piece&quot;</span><span class="p">)</span>
+    <span class="c1"># count = await pieces.count()</span>
+    <span class="c1"># logger.info(f&quot;Found {count} pieces on the board.&quot;)</span>
+
+    <span class="c1"># Get pieces in parallel</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">piece</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">piece</span> <span class="ow">in</span> <span class="k">await</span> <span class="n">pieces</span><span class="o">.</span><span class="n">element_handles</span><span class="p">()]</span>
+    <span class="n">classes</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+    <span class="c1"># Parse the board and make a move</span>
+    <span class="n">board</span> <span class="o">=</span> <span class="n">parse_board</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+    <span class="n">board</span><span class="o">.</span><span class="n">turn</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">BLACK</span>
+    <span class="n">move</span><span class="p">,</span> <span class="n">win_chance</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_move</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">board</span><span class="p">)</span>
+    <span class="k">global</span> <span class="n">curr_win_chance</span>
+    <span class="n">curr_win_chance</span> <span class="o">=</span> <span class="n">win_chance</span>
+    <span class="c1"># logger.info(board)</span>
+
+    <span class="c1"># Make the move</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Making move </span><span class="si">{</span><span class="n">move</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Get size of board and each square (width = height)</span>
+    <span class="n">board_size</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">board_locator</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">())[</span><span class="s2">&quot;width&quot;</span><span class="p">]</span>
+    <span class="n">square_size</span> <span class="o">=</span> <span class="n">board_size</span> <span class="o">/</span> <span class="mi">8</span>
+
+    <span class="k">def</span> <span class="nf">square_to_coords</span><span class="p">(</span><span class="n">square</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">Square</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert square number to x, y coordinates, viewing the board as Black.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">board_size</span> <span class="o">-</span> <span class="p">((</span><span class="n">square</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="n">square_size</span> <span class="o">+</span> <span class="n">square_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">square</span> <span class="o">//</span> <span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="n">square_size</span> <span class="o">+</span> <span class="n">square_size</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">}</span>
+
+    <span class="c1"># Click on the squares</span>
+    <span class="n">from_square</span> <span class="o">=</span> <span class="n">square_to_coords</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">from_square</span><span class="p">)</span>
+    <span class="n">to_square</span> <span class="o">=</span> <span class="n">square_to_coords</span><span class="p">(</span><span class="n">move</span><span class="o">.</span><span class="n">to_square</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">board_locator</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">from_square</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">board_locator</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">to_square</span><span class="p">)</span>
+        <span class="c1"># Double click in case of pawn promotion</span>
+        <span class="k">if</span> <span class="n">move</span><span class="o">.</span><span class="n">promotion</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">board_locator</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">to_square</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to make move.&quot;</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>  <span class="c1"># Let the move process</span></div>
+
+
+
+<div class="viewcode-block" id="get_time_left">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_time_left">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_time_left</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Bob&#39;s clock time left in seconds, if it exists.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.clock-bottom&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">time_left</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.clock-bottom&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text_content</span><span class="p">())</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_left</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_left</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="parse_board">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.parse_board">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_board</span><span class="p">(</span><span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Board</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse the board from a list of classes representing the pieces.&quot;&quot;&quot;</span>
+    <span class="n">PIECE_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">ROOK</span><span class="p">,</span>
+        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">KNIGHT</span><span class="p">,</span>
+        <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">BISHOP</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">QUEEN</span><span class="p">,</span>
+        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">KING</span><span class="p">,</span>
+        <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="n">chess</span><span class="o">.</span><span class="n">PAWN</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">parse_piece_info</span><span class="p">(</span><span class="n">piece_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the piece type, color, and square from a class string.&quot;&quot;&quot;</span>
+        <span class="c1"># Example piece_str: &quot;piece wk square-51&quot; or &quot;piece square-23 bp&quot;</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">piece_str</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">piece_color_and_type</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="n">parts</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">,</span> <span class="n">parts</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">:]</span>
+        <span class="n">piece_color</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">WHITE</span> <span class="k">if</span> <span class="n">piece_color_and_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;w&quot;</span> <span class="k">else</span> <span class="n">chess</span><span class="o">.</span><span class="n">BLACK</span>
+        <span class="n">piece_type</span> <span class="o">=</span> <span class="n">PIECE_TYPES</span><span class="p">[</span><span class="n">piece_color_and_type</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">square</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">piece_type</span><span class="p">,</span> <span class="n">piece_color</span><span class="p">,</span> <span class="n">square</span>
+
+    <span class="c1"># Create an empty board and place pieces on it</span>
+    <span class="n">board</span> <span class="o">=</span> <span class="n">Board</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">piece_str</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+        <span class="n">piece_type</span><span class="p">,</span> <span class="n">piece_color</span><span class="p">,</span> <span class="n">square</span> <span class="o">=</span> <span class="n">parse_piece_info</span><span class="p">(</span><span class="n">piece_str</span><span class="p">)</span>
+        <span class="n">piece</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">Piece</span><span class="p">(</span><span class="n">piece_type</span><span class="p">,</span> <span class="n">piece_color</span><span class="p">)</span>
+        <span class="n">board</span><span class="o">.</span><span class="n">set_piece_at</span><span class="p">(</span><span class="n">square</span><span class="p">,</span> <span class="n">piece</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">board</span></div>
+
+
+
+<div class="viewcode-block" id="start_sunfish_engine">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.start_sunfish_engine">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">start_sunfish_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start the Sunfish engine.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">engine</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">load_engine_from_cmd</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">engine</span> <span class="o">=</span> <span class="k">await</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">popen_uci</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">):</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">debug</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">engine</span>
+
+    <span class="n">engine_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;chess_engine&quot;</span> <span class="o">/</span> <span class="s2">&quot;dev_sunfish.py&quot;</span>
+    <span class="n">engine_path</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="k">await</span> <span class="n">load_engine_from_cmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;python </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">engine_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="stop_sunfish_engine">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.stop_sunfish_engine">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">stop_sunfish_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop the Sunfish engine.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">engine</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_move_sunfish">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_move_sunfish">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_move_sunfish</span><span class="p">(</span><span class="n">board</span><span class="p">:</span> <span class="n">Board</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a move using Sunfish for the target elo.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        board: The current board state.</span>
+<span class="sd">        elo: The target elo.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple of the suggested move and the estimated win chance (0-100).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">engine</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Engine not initialized&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Parameters:</span>
+    <span class="c1"># QS = 40  # Lower leads to less base depth for all positions beyond depth 0</span>
+    <span class="c1"># QS_A = 140  # Higher leads to less depth for not-amazing positions beyond depth 0</span>
+    <span class="c1"># EVAL_ROUGHNESS = 15  # Higher leads to faster termination at each depth (less precision)</span>
+    <span class="c1"># MAX_DEPTH = 8  # Max search depth</span>
+    <span class="c1"># RAND_SCORE = 0  # All position scores are randomized by +- this amount</span>
+    <span class="c1"># QS=(0, 300),</span>
+    <span class="c1"># QS_A=(0, 300),</span>
+    <span class="c1"># EVAL_ROUGHNESS=(0, 50),</span>
+    <span class="c1"># MAX_DEPTH=(1, 16),</span>
+    <span class="c1"># RAND_SCORE=(0, 1000),</span>
+
+    <span class="c1"># Get move using weaker search</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">Limit</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>  <span class="c1"># Don&#39;t limit time, unfair for weaker systems</span>
+
+    <span class="c1"># At 600 Elo, QS_A = 240, EVAL_ROUGHNESS = 35, MAX_DEPTH = 3, and bad move chance = 0.55</span>
+    <span class="c1"># At 1600 Elo, QS_A = 140, EVAL_ROUGHNESS = 15, MAX_DEPTH = 9, and bad move chance = 0</span>
+    <span class="n">nerf_qs_a</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">140</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1600</span> <span class="o">-</span> <span class="n">elo</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+    <span class="n">nerf_eval_roughness</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">15</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1600</span> <span class="o">-</span> <span class="n">elo</span><span class="p">)</span> <span class="o">/</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">nerf_max_depth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">elo</span> <span class="o">//</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">bad_move_chance</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(((</span><span class="mi">1600</span> <span class="o">-</span> <span class="n">elo</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1400</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.75</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">bad_move_chance</span><span class="p">:</span>
+        <span class="n">nerf_rand_score</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(((</span><span class="mi">1700</span> <span class="o">-</span> <span class="n">elo</span><span class="p">)</span> <span class="o">/</span> <span class="mi">160</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nerf_rand_score</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nerf_options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;QS_A&quot;</span><span class="p">:</span> <span class="n">nerf_qs_a</span><span class="p">,</span>
+        <span class="s2">&quot;EVAL_ROUGHNESS&quot;</span><span class="p">:</span> <span class="n">nerf_eval_roughness</span><span class="p">,</span>
+        <span class="s2">&quot;MAX_DEPTH&quot;</span><span class="p">:</span> <span class="n">nerf_max_depth</span><span class="p">,</span>
+        <span class="s2">&quot;RAND_SCORE&quot;</span><span class="p">:</span> <span class="n">nerf_rand_score</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Making a </span><span class="si">{</span><span class="s1">&#39;bad&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">nerf_rand_score</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;good&#39;</span><span class="si">}</span><span class="s2"> move (bad chance was </span><span class="si">{</span><span class="n">bad_move_chance</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+    <span class="c1"># print(f&quot;Bad move chance: {bad_move_chance}&quot;)</span>
+    <span class="k">with</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">analysis</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">INFO_ALL</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">nerf_options</span><span class="p">)</span> <span class="k">as</span> <span class="n">analysis</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">analysis</span><span class="p">:</span>  <span class="c1"># Partial results</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">move</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;pv&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># Use a random move</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No chess move found: </span><span class="si">{</span><span class="n">analysis</span><span class="o">.</span><span class="n">info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">move</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">board</span><span class="o">.</span><span class="n">legal_moves</span><span class="p">))</span>
+
+    <span class="c1"># Get resulting score using stronger search</span>
+    <span class="n">board</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+    <span class="n">good_limit</span> <span class="o">=</span> <span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">Limit</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+    <span class="k">with</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">analysis</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">good_limit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">chess</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">INFO_ALL</span><span class="p">)</span> <span class="k">as</span> <span class="n">analysis</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">analysis</span><span class="p">:</span>  <span class="c1"># Partial results</span>
+            <span class="k">pass</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">relative</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">()</span> <span class="o">/</span> <span class="mi">600</span><span class="p">)</span> <span class="k">if</span> <span class="n">score</span><span class="o">.</span><span class="n">score</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">score</span><span class="o">.</span><span class="n">mate</span><span class="p">()</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">-</span> <span class="mi">50</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">score</span><span class="p">)</span>
+    <span class="n">board</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">move</span><span class="p">,</span> <span class="n">score</span></div>
+
+
+
+<div class="viewcode-block" id="get_move">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_move">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span> <span class="n">board</span><span class="p">:</span> <span class="n">Board</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a move for the given board. Quality varies based on elo and time left. Simulates thinking time.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        page: The current page.</span>
+<span class="sd">        board: The current board state.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple of the suggested move and the estimated win chance (0-100).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">time_left</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_time_left</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="c1"># Adjust elo based on time pressure (3 minute game) and good opening moves</span>
+    <span class="n">adjusted_elo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">elo</span>
+    <span class="n">sleep_mult</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="n">time_left</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">time_left</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
+        <span class="n">adjusted_elo</span> <span class="o">-=</span> <span class="p">(</span><span class="mi">90</span> <span class="o">-</span> <span class="n">time_left</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>
+        <span class="n">sleep_mult</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="mi">60</span> <span class="o">-</span> <span class="n">time_left</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">time_left</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">time_left</span> <span class="o">&gt;</span> <span class="mi">165</span><span class="p">:</span>
+        <span class="n">adjusted_elo</span> <span class="o">+=</span> <span class="p">(</span><span class="n">time_left</span> <span class="o">-</span> <span class="mi">165</span><span class="p">)</span> <span class="o">*</span> <span class="mi">20</span>
+        <span class="n">sleep_mult</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="mi">180</span> <span class="o">-</span> <span class="n">time_left</span><span class="p">)</span> <span class="o">/</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">adjusted_elo</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">adjusted_elo</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="mi">1600</span><span class="p">)</span>
+    <span class="c1"># Get move based on elo</span>
+    <span class="n">move</span><span class="p">,</span> <span class="n">win_chance</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_move_sunfish</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">adjusted_elo</span><span class="p">)</span>
+    <span class="c1"># Emulate thinking time</span>
+    <span class="n">wait_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">sleep_mult</span>
+    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adjusted elo: </span><span class="si">{</span><span class="n">adjusted_elo</span><span class="si">}</span><span class="s2">, Wait time: </span><span class="si">{</span><span class="n">wait_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, Bob&#39;s win chance: </span><span class="si">{</span><span class="n">win_chance</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">move</span><span class="p">,</span> <span class="n">win_chance</span></div>
+
+
+
+<div class="viewcode-block" id="screenshot_chess_activity">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.screenshot_chess_activity">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">screenshot_chess_activity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a screenshot of the whole page (including the board), or None if no screenshot is available.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">last_screenshot</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">chess_page</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">last_screenshot</span>
+    <span class="n">last_screenshot</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="k">await</span> <span class="n">chess_page</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">last_screenshot</span></div>
+
+
+
+<div class="viewcode-block" id="play_chess_activity">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.play_chess_activity">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">play_chess_activity</span><span class="p">(</span><span class="n">cmd_handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Play chess against the user (or the computer).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cmd_handler: The callback to send commands directed at Bob.</span>
+<span class="sd">            The callback should be an async function that accepts exactly one string argument.</span>
+<span class="sd">            If the activity fails to start, it will be called with the reason.</span>
+<span class="sd">            Otherwise, it will be called the activity goes on and important things happen.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">status</span><span class="p">,</span> <span class="n">chess_page</span><span class="p">,</span> <span class="n">curr_win_chance</span><span class="p">,</span> <span class="n">last_screenshot</span><span class="p">,</span> <span class="n">match_result</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Echo this to the user. Failed to start: You are already in a chess match.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;starting&quot;</span>
+    <span class="n">curr_win_chance</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">last_screenshot</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">match_result</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">start_sunfish_engine</span><span class="p">()</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">async_playwright</span><span class="p">()</span> <span class="k">as</span> <span class="n">playwright</span><span class="p">:</span>
+            <span class="n">browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">playwright</span><span class="o">.</span><span class="n">chromium</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slow_mo</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+            <span class="c1"># Create context and page</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading initial state from environment variable...&quot;</span><span class="p">)</span>
+                <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restoring state...&quot;</span><span class="p">)</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">(</span><span class="n">storage_state</span><span class="o">=</span><span class="n">STATE_FILE</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">()</span>
+
+            <span class="c1"># Play chess</span>
+            <span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">new_page</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">stealth_async</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">StealthConfig</span><span class="p">(</span><span class="n">navigator_user_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>  <span class="c1"># Already headless!</span>
+            <span class="n">chess_page</span> <span class="o">=</span> <span class="n">page</span>
+            <span class="n">page</span><span class="o">.</span><span class="n">set_default_timeout</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">login</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">against_computer</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">start_match_computer</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+                <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that you are now in a chess game against a bot.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">challenge_link</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_challenge_link</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+                <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Send the user this link (don&#39;t use Markdown) so they can join your chess match, note that the link is different each time! </span><span class="si">{</span><span class="n">challenge_link</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span>
+                <span class="p">)</span>
+                <span class="k">await</span> <span class="n">wait_for_accepted_match</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might return early if stopping, but that&#39;s ok</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (before starting)...&quot;</span><span class="p">)</span>
+                <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
+                <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+                <span class="k">return</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;start_spectating&quot;</span><span class="p">))</span>  <span class="c1"># Start spectating</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">wait_for_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+                <span class="n">match_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">match_result</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">await</span> <span class="n">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might dry move, but that&#39;s ok</span>
+                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (while playing)...&quot;</span><span class="p">)</span>
+                    <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
+                    <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+                    <span class="k">return</span>
+
+            <span class="c1"># Close ending dialog</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;finished&quot;</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">700</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">close_ending_dialog</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+            <span class="n">last_screenshot</span> <span class="o">=</span> <span class="k">await</span> <span class="n">screenshot_chess_activity</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (Reason: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>  <span class="c1"># noqa: E501</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished chess match. Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (</span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tell the user there was an unexpected error while playing chess: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
+    <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="stop_playing_chess">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.stop_playing_chess">[docs]</a>
+<span class="k">def</span> <span class="nf">stop_playing_chess</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stops playing chess (when it&#39;s feasible to).&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">status</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;stopping&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="configure_chess">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.configure_chess">[docs]</a>
+<span class="k">def</span> <span class="nf">configure_chess</span><span class="p">(</span><span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">against_computer</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configures the chess activity.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        elo: Bob&#39;s elo rating. Should be in [200, 1600].</span>
+<span class="sd">        against_computer: Whether Bob is playing against the computer or a user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">200</span> <span class="o">&lt;=</span> <span class="n">elo</span> <span class="o">&lt;=</span> <span class="mi">1600</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Elo should be in [200, 1600].&quot;</span><span class="p">)</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;elo&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elo</span>
+    <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;against_computer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">against_computer</span></div>
+
+
+
+<div class="viewcode-block" id="get_chess_info">
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_chess_info">[docs]</a>
+<span class="k">def</span> <span class="nf">get_chess_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current chess activity status.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;You are not currently playing chess.&quot;</span>
+    <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;You are currently trying to quit a chess match.&quot;</span>
+    <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;starting&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;You are starting a chess match against </span><span class="si">{</span><span class="s1">&#39;a bot&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">against_computer</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;a user&#39;</span><span class="si">}</span><span class="s2">.&quot;</span>
+    <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;playing&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;You are playing a chess match as the Black pieces against </span><span class="si">{</span><span class="s1">&#39;a bot&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">against_computer</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;a user&#39;</span><span class="si">}</span><span class="s2">. Your elo is </span><span class="si">{</span><span class="n">elo</span><span class="si">}</span><span class="s2">. Your current win chance is </span><span class="si">{</span><span class="n">curr_win_chance</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%.&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="k">elif</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;finished&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;You have finished the chess match against </span><span class="si">{</span><span class="s1">&#39;a bot&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">against_computer</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;a user&#39;</span><span class="si">}</span><span class="s2">. Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. Full result: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid chess status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

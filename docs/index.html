@@ -20,7 +20,8 @@
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bob Bot" href="bobbot.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,50 +43,15 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Bob Bot</a><ul>
-<li><a class="reference internal" href="#bobbot.ParsedMessage"><code class="docutils literal notranslate"><span class="pre">ParsedMessage</span></code></a><ul>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.as_string"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.as_string()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.author"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.author</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.content"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.content</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.context"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.context</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.full_content"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.full_content</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.is_deleted"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.is_deleted</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.is_edited"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.is_edited</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.message"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.message</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.reactions"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.reactions</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.ParsedMessage.timestamp"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.timestamp</span></code></a></li>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
 </ul>
-</li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory</span></code></a><ul>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.MAX_CONTENT_LENS"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.MAX_CONTENT_LENS</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.MAX_MSGS"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.MAX_MSGS</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.as_langchain_msgs"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.as_langchain_msgs()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.as_parsed_messages"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.as_parsed_messages()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.as_string"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.as_string()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.aupdate"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.aupdate()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.channel"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.channel</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.clear_users_typing"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.clear_users_typing()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.get_users_typing"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.get_users_typing()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.history"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.history</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.history_to_strings"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.history_to_strings()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.is_typing"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.is_typing</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.message_count"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.message_count</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.TextChannelHistory.on_typing"><code class="docutils literal notranslate"><span class="pre">TextChannelHistory.on_typing()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#bobbot.get_debug_info"><code class="docutils literal notranslate"><span class="pre">get_debug_info()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.lazy_send_message"><code class="docutils literal notranslate"><span class="pre">lazy_send_message()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.log_debug_info"><code class="docutils literal notranslate"><span class="pre">log_debug_info()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.reset_debug_info"><code class="docutils literal notranslate"><span class="pre">reset_debug_info()</span></code></a></li>
-<li><a class="reference internal" href="#bobbot.run_bot"><code class="docutils literal notranslate"><span class="pre">run_bot()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-</ul>
-</div>
+
         </div>
       </div>
     </nav>
@@ -113,288 +79,66 @@
   <section id="bob-bot">
 <h1>Bob Bot<a class="headerlink" href="#bob-bot" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
+</ul>
 </div>
-<p id="module-bobbot">This module is the main entry point for the bot.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">ParsedMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_deleted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ParsedMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.ParsedMessage" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Represents a parsed Discord message.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.as_string">
-<span class="sig-name descname"><span class="pre">as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">with_author</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_reactions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ParsedMessage.as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.ParsedMessage.as_string" title="Link to this definition"></a></dt>
-<dd><p>Format the message as a string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>with_author</strong> – Whether to include the author.</p></li>
-<li><p><strong>with_context</strong> – Whether to include context info.</p></li>
-<li><p><strong>with_reactions</strong> – Whether to include reactions.</p></li>
-<li><p><strong>with_timestamp</strong> – Whether to include a timestamp.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The formatted message.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.author">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">author</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.author" title="Link to this definition"></a></dt>
-<dd><p>As a string.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.content">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.content" title="Link to this definition"></a></dt>
-<dd><p>Text of the message.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.context">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">context</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.context" title="Link to this definition"></a></dt>
-<dd><p>Whether the message is edited/deleted, plus if it’s a reply/command response.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.full_content">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">full_content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.full_content" title="Link to this definition"></a></dt>
-<dd><p>Includes content, attachment URLs, and stickers.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.is_deleted">
-<span class="sig-name descname"><span class="pre">is_deleted</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#bobbot.ParsedMessage.is_deleted" title="Link to this definition"></a></dt>
-<dd><p>Whether the message was deleted.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.is_edited">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_edited</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#bobbot.ParsedMessage.is_edited" title="Link to this definition"></a></dt>
-<dd><p>Whether the message was edited.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.message">
-<span class="sig-name descname"><span class="pre">message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Message</span></em><a class="headerlink" href="#bobbot.ParsedMessage.message" title="Link to this definition"></a></dt>
-<dd><p>The raw message.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.reactions">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reactions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.reactions" title="Link to this definition"></a></dt>
-<dd><p>As a string.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="bobbot.ParsedMessage.timestamp">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bobbot.ParsedMessage.timestamp" title="Link to this definition"></a></dt>
-<dd><p>Relative to now, as a string.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">TextChannelHistory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TextChannel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Tracks the history of a text channel, providing concise representations of messages and other events.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.MAX_CONTENT_LENS">
-<span class="sig-name descname"><span class="pre">MAX_CONTENT_LENS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[4096,</span> <span class="pre">4096,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">256,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64,</span> <span class="pre">64]</span></em><a class="headerlink" href="#bobbot.TextChannelHistory.MAX_CONTENT_LENS" title="Link to this definition"></a></dt>
-<dd><p>The maximum lengths for message content, starting with the most recent.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.MAX_MSGS">
-<span class="sig-name descname"><span class="pre">MAX_MSGS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#bobbot.TextChannelHistory.MAX_MSGS" title="Link to this definition"></a></dt>
-<dd><p>The maximum number of messages to track.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.as_langchain_msgs">
-<span class="sig-name descname"><span class="pre">as_langchain_msgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bot_user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">User</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseMessage</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.as_langchain_msgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.as_langchain_msgs" title="Link to this definition"></a></dt>
-<dd><p>Get a list of LangChain messages representing the history, up to the last limit messages.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bot_user</strong> – The bot user. Used to distinguish AIMessages from HumanMessages.</p></li>
-<li><p><strong>limit</strong> – The maximum number of messages to include.</p></li>
-<li><p><strong>get_image</strong> – Whether to include a single image URL in the most recent message (if present).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of LangChain message objects, with only HumanMessages containing author/context info.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.as_parsed_messages">
-<span class="sig-name descname"><span class="pre">as_parsed_messages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bobbot.ParsedMessage" title="bobbot.discord_helpers.text_channel_history.ParsedMessage"><span class="pre">ParsedMessage</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.as_parsed_messages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.as_parsed_messages" title="Link to this definition"></a></dt>
-<dd><p>Get the channel’s message history, up to the last limit messages.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.as_string">
-<span class="sig-name descname"><span class="pre">as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_author</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_reactions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.as_string" title="Link to this definition"></a></dt>
-<dd><p>Get a string representation of the history, up to the last limit messages.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>limit</strong> – The maximum number of messages to include.</p></li>
-<li><p><strong>with_author</strong> – Whether to include the author.</p></li>
-<li><p><strong>with_context</strong> – Whether to include context info.</p></li>
-<li><p><strong>with_reactions</strong> – Whether to include reactions.</p></li>
-<li><p><strong>with_timestamp</strong> – Whether to include a timestamp.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A string representing the history.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.aupdate">
-<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aupdate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.aupdate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.aupdate" title="Link to this definition"></a></dt>
-<dd><p>Update the history with the latest messages and events.</p>
-<p>This method should be called before querying the history after every idle period.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.channel">
-<span class="sig-name descname"><span class="pre">channel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">TextChannel</span></em><a class="headerlink" href="#bobbot.TextChannelHistory.channel" title="Link to this definition"></a></dt>
-<dd><p>The channel being tracked.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.clear_users_typing">
-<span class="sig-name descname"><span class="pre">clear_users_typing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.clear_users_typing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.clear_users_typing" title="Link to this definition"></a></dt>
-<dd><p>Clear all currently typing users.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.get_users_typing">
-<span class="sig-name descname"><span class="pre">get_users_typing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">User</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.get_users_typing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.get_users_typing" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of users currently typing.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.history">
-<span class="sig-name descname"><span class="pre">history</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bobbot.ParsedMessage" title="bobbot.discord_helpers.text_channel_history.ParsedMessage"><span class="pre">ParsedMessage</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bobbot.TextChannelHistory.history" title="Link to this definition"></a></dt>
-<dd><p>Recent messages in the channel.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.history_to_strings">
-<span class="sig-name descname"><span class="pre">history_to_strings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bobbot.ParsedMessage" title="bobbot.discord_helpers.text_channel_history.ParsedMessage"><span class="pre">ParsedMessage</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.history_to_strings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.history_to_strings" title="Link to this definition"></a></dt>
-<dd><p>Get a list of truncated strings representing the history, up to the last limit messages.</p>
-<p>Messages are truncated based on how recent they are, with older messages being truncated more.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>transform</strong> – A function to convert a ParsedMessage to a string.</p></li>
-<li><p><strong>limit</strong> – The maximum number of messages to include.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of strings representing the history.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.is_typing">
-<span class="sig-name descname"><span class="pre">is_typing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">User</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datetime</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bobbot.TextChannelHistory.is_typing" title="Link to this definition"></a></dt>
-<dd><p>Users currently typing in the channel.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.message_count">
-<span class="sig-name descname"><span class="pre">message_count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#bobbot.TextChannelHistory.message_count" title="Link to this definition"></a></dt>
-<dd><p>Counter for the total number of messages sent in the channel.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bobbot.TextChannelHistory.on_typing">
-<span class="sig-name descname"><span class="pre">on_typing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">User</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">when</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#TextChannelHistory.on_typing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.TextChannelHistory.on_typing" title="Link to this definition"></a></dt>
-<dd><p>Handle a typing event.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.get_debug_info">
-<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">get_debug_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#get_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.get_debug_info" title="Link to this definition"></a></dt>
-<dd><p>Get the bot’s debug info.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.get_logger">
-<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Formatter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Logger</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#get_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.get_logger" title="Link to this definition"></a></dt>
-<dd><p>Get a logger with the specified name and logging level.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – The name of the logger.</p></li>
-<li><p><strong>level</strong> – The logging level. Defaults to logging.INFO.</p></li>
-<li><p><strong>formatter</strong> – The log formatter to use. Defaults to a color formatter.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The logger.</p>
-</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Here is some info.&#39;</span><span class="p">)</span>
-<span class="go">2024-01-31 06:42:00 INFO     package.module Here is some info.</span>
+<p>hi i am bob :D</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>Use <strong>Python 3.12</strong> in a virtual environment! Install <code class="docutils literal notranslate"><span class="pre">make</span></code> if on Windows.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make sure you are in a Python 3.12 virtual environment first</span>
+pip<span class="w"> </span>install<span class="w"> </span>pip-tools
+pip-sync<span class="w"> </span>requirements.txt
+playwright<span class="w"> </span>install
+make<span class="w"> </span>run
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.lazy_send_message">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">lazy_send_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TextChannel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#lazy_send_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.lazy_send_message" title="Link to this definition"></a></dt>
-<dd><p>Send a message to a channel with typing time. Cancels the send on new messages or others typing.</p>
-<p>If the message is too long, it will be split into chunks before sending.
-If instant is True, the message will be sent instantly (regardless of the bot’s mode).
-If force is True, the message will not be cancelled. Note that empty messages still won’t be sent.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>channel</strong> – The channel to send the message to.</p></li>
-<li><p><strong>message_str</strong> – The message to send.</p></li>
-<li><p><strong>instant</strong> – Whether to try to send the message instantly. May still be cancelled.</p></li>
-<li><p><strong>force</strong> – Whether to force the message to be sent.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Whether the message was sent in full.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.log_debug_info">
-<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">log_debug_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#log_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.log_debug_info" title="Link to this definition"></a></dt>
-<dd><p>Append to the bot’s debug info and log it.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.reset_debug_info">
-<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">reset_debug_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/utils.html#reset_debug_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.reset_debug_info" title="Link to this definition"></a></dt>
-<dd><p>Clear the bot’s debug info.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bobbot.run_bot">
-<span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">run_bot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/main_bot.html#run_bot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.run_bot" title="Link to this definition"></a></dt>
-<dd><p>Run the bot. Blocks until the bot is stopped.</p>
-</dd></dl>
-
+<p>Environment variables (some required, some optional):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>DISCORD_TOKEN = Discord bot token.
+DISCORD_CHANNELS = A list of channel ID strings to talk in. Ex: [&#39;123&#39;, &#39;456&#39;]
+OPENAI_KEY = OpenAI API key.
+ACTIVITIES_USERNAME = (Optional) Username for logging into all activities.
+ACTIVITIES_PWD = (Optional) Password for logging into all activities.
+CHESS_STATE_JSON = (Optional) Playwright state.json file, logged in as the activities user, to use for chess (copy-pasted here). Without this,
+OPENROUTER_KEY = (Unused) OpenRouter API key.
+DEEPGRAM_KEY = (Unused) Deepgram API key.
+SUPABASE_KEY = (Unused) Supabase vector store API key.
+SUPABASE_URL = (Unused) Supabase vector store URL.
+SUPABASE_PROJECT_PWD = (Unused) Supabase vector store password.
+LANGCHAIN_API_KEY = (Optional) LangChain API key for LangSmith tracing.
+LANGCHAIN_TRACING_V2 = (Optional) Boolean for enabling LangSmith tracing.
+</pre></div>
+</div>
+</section>
+<section id="development">
+<h2>Development<a class="headerlink" href="#development" title="Link to this heading"></a></h2>
+<p>Use <strong>Python 3.12</strong> in a virtual environment! Install <code class="docutils literal notranslate"><span class="pre">make</span></code> if on Windows.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make sure you are in a Python 3.12 virtual environment first</span>
+pip<span class="w"> </span>install<span class="w"> </span>pip-tools
+pip-sync<span class="w"> </span>dev-requirements.txt
+playwright<span class="w"> </span>install
+pre-commit<span class="w"> </span>install
+make<span class="w"> </span>build
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+<section id="issues">
+<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading"></a></h2>
+<p><strong>Chess.com doesn’t work, the locator keeps timing out.</strong></p>
+<ol class="arabic simple">
+<li><p>Login to chess.com locally using Playwright.</p></li>
+<li><p>Save storage to <code class="docutils literal notranslate"><span class="pre">state.json</span></code>.</p></li>
+<li><p>Set the environment variable <code class="docutils literal notranslate"><span class="pre">CHESS_STATE_JSON</span></code> to the copy-pasted content of <code class="docutils literal notranslate"><span class="pre">state.json</span></code>.</p></li>
+<li><p>Profit</p></li>
+</ol>
+</section>
 </section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
@@ -408,7 +152,9 @@ If force is True, the message will not be cancelled. Note that empty messages st
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bobbot.html" class="btn btn-neutral float-right" title="Bob Bot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

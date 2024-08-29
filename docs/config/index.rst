@@ -7,13 +7,18 @@ Bob Bot
 =====================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Contents
 
-.. automodule:: bobbot
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   bobbot
+   activities
+   chess
+   agents
+   discord_helpers
+
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- index.rst content start -->
 
 Indices and tables
 ==================

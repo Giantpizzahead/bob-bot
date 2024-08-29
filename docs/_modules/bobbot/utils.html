@@ -41,8 +41,15 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -81,8 +88,6 @@
 <span class="n">debug_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="get_logger">
-<a class="viewcode-back" href="../../index.html#bobbot.get_logger">[docs]</a>
 <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">formatter</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a logger with the specified name and logging level.</span>
 
@@ -109,33 +114,26 @@
         <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
         <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logger</span></div>
+    <span class="k">return</span> <span class="n">logger</span>
 
 
-
-<div class="viewcode-block" id="reset_debug_info">
-<a class="viewcode-back" href="../../index.html#bobbot.reset_debug_info">[docs]</a>
 <span class="k">def</span> <span class="nf">reset_debug_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear the bot&#39;s debug info.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">debug_info</span>
-    <span class="n">debug_info</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
+    <span class="n">debug_info</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
 
-
-<div class="viewcode-block" id="log_debug_info">
-<a class="viewcode-back" href="../../index.html#bobbot.log_debug_info">[docs]</a>
 <span class="k">def</span> <span class="nf">log_debug_info</span><span class="p">(</span><span class="n">info</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Append to the bot&#39;s debug info and log it.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">debug_info</span>
     <span class="k">if</span> <span class="n">debug_info</span><span class="p">:</span>
         <span class="n">debug_info</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
     <span class="n">debug_info</span> <span class="o">+=</span> <span class="n">info</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">info</span><span class="p">)</span></div>
-
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_debug_info">
-<a class="viewcode-back" href="../../index.html#bobbot.get_debug_info">[docs]</a>
+<a class="viewcode-back" href="../../bobbot.html#bobbot.get_debug_info">[docs]</a>
 <span class="k">def</span> <span class="nf">get_debug_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the bot&#39;s debug info.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">debug_info</span></div>

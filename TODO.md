@@ -94,7 +94,7 @@ hi
 - [x] Implement an overall status message that can be fed into Bob
 - [x] Allow Bob to comment on current activities through the status message
 - [x] Improve spectate command by editing image repeatedly, allowing a very low frame rate video
-- [x] Fix the Chess.com player in some way to avoid bot detection (manually give it saved cookies)
+- [x] Fix the Chess.com player in some way to avoid bot detection (manually give it saved cookies, either through Heroku's exec SSH tool or with the new environment variable)
 
 ### Multi-agent
 

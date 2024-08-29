@@ -1,5 +1,7 @@
 # Bob Bot
 
+<!-- index.rst content start -->
+
 hi i am bob :D
 
 ## Setup

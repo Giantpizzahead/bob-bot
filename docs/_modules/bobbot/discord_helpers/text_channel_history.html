@@ -41,8 +41,15 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -103,13 +110,16 @@
     <span class="k">return</span> <span class="n">image_urls</span>
 
 
+<div class="viewcode-block" id="get_users_in_channel">
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.get_users_in_channel">[docs]</a>
 <span class="k">def</span> <span class="nf">get_users_in_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">DMChannel</span> <span class="o">|</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a list of all users in a Discord channel.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">discord</span><span class="o">.</span><span class="n">DMChannel</span><span class="p">):</span>
         <span class="n">users</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">recipients</span> <span class="o">+</span> <span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">me</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">users</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">members</span>
-    <span class="k">return</span> <span class="n">users</span>
+    <span class="k">return</span> <span class="n">users</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">pings_to_usernames</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -144,7 +154,7 @@
 
 
 <div class="viewcode-block" id="ParsedMessage">
-<a class="viewcode-back" href="../../../index.html#bobbot.ParsedMessage">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.ParsedMessage">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">ParsedMessage</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a parsed Discord message.&quot;&quot;&quot;</span>
@@ -210,7 +220,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">is_deleted</span> <span class="o">=</span> <span class="n">is_deleted</span>
 
 <div class="viewcode-block" id="ParsedMessage.as_string">
-<a class="viewcode-back" href="../../../index.html#bobbot.ParsedMessage.as_string">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.ParsedMessage.as_string">[docs]</a>
     <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">with_author</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -252,7 +262,7 @@
 
 
 <div class="viewcode-block" id="TextChannelHistory">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory">[docs]</a>
 <span class="k">class</span> <span class="nc">TextChannelHistory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tracks the history of a text channel, providing concise representations of messages and other events.&quot;&quot;&quot;</span>
 
@@ -283,21 +293,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">message_count</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="TextChannelHistory.on_typing">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.on_typing">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.on_typing">[docs]</a>
     <span class="k">def</span> <span class="nf">on_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">when</span><span class="p">:</span> <span class="n">datetime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle a typing event.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="n">when</span></div>
 
 
 <div class="viewcode-block" id="TextChannelHistory.clear_users_typing">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.clear_users_typing">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.clear_users_typing">[docs]</a>
     <span class="k">def</span> <span class="nf">clear_users_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all currently typing users.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_typing</span> <span class="o">=</span> <span class="p">{}</span></div>
 
 
 <div class="viewcode-block" id="TextChannelHistory.get_users_typing">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.get_users_typing">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.get_users_typing">[docs]</a>
     <span class="k">def</span> <span class="nf">get_users_typing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of users currently typing.&quot;&quot;&quot;</span>
         <span class="c1"># Update typing status, removing entries that are &gt;= 10 seconds old</span>
@@ -307,7 +317,7 @@
 
 
 <div class="viewcode-block" id="TextChannelHistory.aupdate">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.aupdate">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.aupdate">[docs]</a>
     <span class="k">async</span> <span class="k">def</span> <span class="nf">aupdate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the history with the latest messages and events.</span>
 
@@ -345,7 +355,7 @@
 
 
 <div class="viewcode-block" id="TextChannelHistory.history_to_strings">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.history_to_strings">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.history_to_strings">[docs]</a>
     <span class="k">def</span> <span class="nf">history_to_strings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">ParsedMessage</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a list of truncated strings representing the history, up to the last limit messages.</span>
 
@@ -366,14 +376,14 @@
 
 
 <div class="viewcode-block" id="TextChannelHistory.as_parsed_messages">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_parsed_messages">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.as_parsed_messages">[docs]</a>
     <span class="k">def</span> <span class="nf">as_parsed_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParsedMessage</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the channel&#39;s message history, up to the last limit messages.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="n">limit</span><span class="p">:]</span></div>
 
 
 <div class="viewcode-block" id="TextChannelHistory.as_string">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_string">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.as_string">[docs]</a>
     <span class="k">def</span> <span class="nf">as_string</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">,</span>
@@ -410,7 +420,7 @@
 
 
 <div class="viewcode-block" id="TextChannelHistory.as_langchain_msgs">
-<a class="viewcode-back" href="../../../index.html#bobbot.TextChannelHistory.as_langchain_msgs">[docs]</a>
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.TextChannelHistory.as_langchain_msgs">[docs]</a>
     <span class="k">def</span> <span class="nf">as_langchain_msgs</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bot_user</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">User</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_MSGS</span><span class="p">,</span> <span class="n">get_image</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">]:</span>
@@ -461,11 +471,14 @@
 <span class="n">channel_history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">TextChannelHistory</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
 
+<div class="viewcode-block" id="get_channel_history">
+<a class="viewcode-back" href="../../../discord_helpers.html#bobbot.discord_helpers.get_channel_history">[docs]</a>
 <span class="k">def</span> <span class="nf">get_channel_history</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">discord</span><span class="o">.</span><span class="n">TextChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextChannelHistory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the history for a channel, creating it if it doesn&#39;t exist.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_history</span><span class="p">:</span>
         <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">TextChannelHistory</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">channel_history</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
+
 </pre></div>
 
            </div>

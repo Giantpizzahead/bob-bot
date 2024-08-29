@@ -8,5 +8,6 @@ isort
 black
 sphinx
 sphinx-rtd-theme
+myst-parser
 pre-commit
 mypy

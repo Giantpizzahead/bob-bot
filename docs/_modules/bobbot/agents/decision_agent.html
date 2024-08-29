@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.agents.decision_agent &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.agents.decision_agent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.agents.decision_agent</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Agent that decides whether to send a message in Discord, given the recent chat history.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">langchain.schema</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini_factual</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">log_debug_info</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">DECISION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:</span>
+
+<span class="s2">Example chat history 1:</span>
+<span class="s2">[2 minutes ago] AlexiKeys: yooo @bob</span>
+<span class="s2">[Recent] bob: yo wuts up</span>
+<span class="s2">[Recent, deleted] Donahue4: bob whats 9+10</span>
+<span class="s2">[Recent] bob: 21</span>
+<span class="s2">[Recent] bob: ur so original</span>
+<span class="s2">[Now] Donahue4: who u talking to? :p</span>
+
+<span class="s2">Example response format 1:</span>
+<span class="s2">Thoughts: Donahue4 is asking me a question, so respond.</span>
+<span class="s2">Answer: RESPOND</span>
+
+<span class="s2">Example chat history 2:</span>
+<span class="s2">[Recent] AlexiKeys: cute</span>
+<span class="s2">[Recent] AlexiKeys: very cute</span>
+<span class="s2">[Recent] Donahue4: ikr</span>
+<span class="s2">[Now] AlexiKeys: wait do u have a ps5?</span>
+
+<span class="s2">Example response format 2:</span>
+<span class="s2">Thoughts: AlexiKeys and Donahue4 are chatting. Nothing relevant to add, so wait.</span>
+<span class="s2">Answer: WAIT</span>
+
+<span class="s2">Example chat history 3:</span>
+<span class="s2">[Recent] Donahue4: hey bob wut games u play?</span>
+<span class="s2">[Now] bob: league and val</span>
+
+<span class="s2">Example response format 3:</span>
+<span class="s2">Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.</span>
+<span class="s2">Answer: WAIT</span>
+
+<span class="s2">Here is the message history of the server, including the most recent message. You may also be given info about what you are currently doing, take this status into account (ex: If you&#39;re asleep, then you should never respond). Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they&#39;re heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.</span>
+
+<span class="s2">You MUST follow the example response formats!&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<div class="viewcode-block" id="decide_to_respond">
+<a class="viewcode-back" href="../../../agents.html#bobbot.agents.decide_to_respond">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">decide_to_respond</span><span class="p">(</span><span class="n">msg_history</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decide whether to send a response message, given the current message history.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg_history: The message history.</span>
+<span class="sd">        status: Bob&#39;s current activity status.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple containing a boolean indicating whether to respond and the decision agent&#39;s thoughts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">DECISION_PROMPT</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">msg_history</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Your status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Chat history:</span><span class="se">\n</span><span class="si">{</span><span class="n">msg_history</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+
+    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Decision agent status/history =====</span><span class="se">\n</span><span class="si">{</span><span class="n">messages</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini_factual</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Decision agent response =====</span><span class="se">\n</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Get the LLM&#39;s thoughts only</span>
+    <span class="n">first_index</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Thoughts:&quot;</span><span class="p">)</span>
+    <span class="n">last_index</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;Answer:&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">first_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">last_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">thoughts</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">first_index</span> <span class="o">+</span> <span class="mi">10</span> <span class="p">:</span> <span class="n">last_index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Decision agent did not output thoughts/answer in the requested format.&quot;</span><span class="p">)</span>
+        <span class="n">thoughts</span> <span class="o">=</span> <span class="n">content</span>
+    <span class="c1"># Get the decision</span>
+    <span class="k">if</span> <span class="s2">&quot;RESPOND&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">thoughts</span>
+    <span class="k">elif</span> <span class="s2">&quot;WAIT&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">thoughts</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Decision agent did not output a valid response - defaulting to True.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">thoughts</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
