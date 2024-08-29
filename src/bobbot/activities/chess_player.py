@@ -5,11 +5,12 @@ import io
 import os
 import random
 import re
+from math import tanh
 from pathlib import Path
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
-import aiohttp
 import chess
+import chess.engine
 from chess import Board
 from PIL import Image
 from playwright.async_api import (
@@ -25,14 +26,15 @@ from bobbot.utils import get_logger
 STATE_FILE = "local/pw/state.json"
 logger = get_logger(__name__)
 status = "idle"
-more_info = ""
+match_result = None
 curr_win_chance: int = 50
 last_screenshot: Optional[Image.Image] = None
 
-elo = 800  # Should be in [200, 2400]
+elo = 800  # Should be in [200, 1600]
 against_computer = False
 
 chess_page: Optional[Page] = None
+engine: Optional[chess.engine.UciProtocol] = None
 
 
 async def login(page: Page, context: BrowserContext) -> None:
@@ -170,6 +172,17 @@ async def check_game_over(page: Page) -> tuple[str, str] | None:
         return "Unknown", description
 
 
+async def close_ending_dialog(page: Page) -> None:
+    """Close the game over dialog (if it's open)."""
+    game_over_locator_1 = page.locator("button.game-over-header-close")
+    game_over_locator_2 = page.locator("button.modal-game-over-header-close")
+    if await game_over_locator_1.is_visible():
+        await page.locator("button.game-over-header-close").click()
+    elif await game_over_locator_2.is_visible():
+        await page.locator("button.modal-game-over-header-close").click()
+    await page.wait_for_timeout(500)  # Wait for dialog to close
+
+
 async def play_move(page: Page) -> None:
     """Play a move as Black."""
     # Locate all chess pieces within the board
@@ -226,7 +239,6 @@ async def get_time_left(page: Page) -> Optional[int]:
     if not await page.locator(".clock-bottom").is_visible():
         return None
     time_left = (await page.locator(".clock-bottom").text_content()).strip()
-    print(time_left)
     return int(time_left.split(":")[0]) * 60 + int(time_left.split(":")[1])
 
 
@@ -261,91 +273,98 @@ def parse_board(classes: list[str]) -> Board:
     return board
 
 
-async def query_chess_api(board: Board, search_moves: Optional[list[chess.Move]]) -> dict:
-    """Query the chess API at https://chess-api.com/ and return the response.
+async def start_sunfish_engine() -> None:
+    """Start the Sunfish engine."""
+    global engine
+
+    async def load_engine_from_cmd(cmd, debug=True):
+        _, engine = await chess.engine.popen_uci(cmd.split())
+        if hasattr(engine, "debug"):
+            engine.debug(debug)
+        return engine
+
+    engine_path = Path(__file__).parent / "chess_engine" / "dev_sunfish.py"
+    engine_path
+    engine = await load_engine_from_cmd(f"python {str(engine_path)}")
+
+
+async def stop_sunfish_engine() -> None:
+    """Stop the Sunfish engine."""
+    if engine:
+        await engine.quit()
+
+
+async def get_move_sunfish(board: Board, elo: int) -> tuple[chess.Move, float]:
+    """Get a move using Sunfish for the target elo.
 
     Args:
         board: The current board state.
-        search_moves: A subset of moves to consider. If None, all legal moves are considered.
-
-    Returns:
-        The response from the API. See https://chess-api.com/ for the format.
-    """
-    data = {
-        "fen": board.fen(),
-        "depth": 1,
-        "variants": 1,
-        "maxThinkingTime": 1,
-    }
-    if search_moves:
-        data["searchMoves"] = " ".join([move.uci() for move in search_moves])
-    print(data)
-    async with aiohttp.ClientSession() as session:
-        async with session.post("https://chess-api.com/v1", json=data) as response:
-            return await response.json()
-
-
-async def _get_move_stockfish(
-    board: Board, obvious_chance: float, other_chance: float, min_choices: int
-) -> tuple[chess.Move, float]:
-    """Get a move using Stockfish, with different chances to check obvious and non-obvious moves.
-
-    Obvious moves are captures/promotions/checkmates. The rest are non-obvious moves.
-    A random subset of moves are considered based on the chances given.
-    If not enough random choices are made, moves are randomly added until the minimum is reached.
-
-    Args:
-        board: The current board state.
-        obvious_chance: The chance to consider an obvious move (0 to 1).
-        other_chance: The chance to consider a non-obvious move (0 to 1).
-        min_choices: The minimum number of choices to consider in total.
+        elo: The target elo.
 
     Returns:
         A tuple of the suggested move and the estimated win chance (0-100).
     """
-    obvious_chance = 0
-    other_chance = 0
-    legal_moves = list(board.legal_moves)
-    # Shuffle moves for randomness
-    random.shuffle(legal_moves)
-    # Split moves into obvious and non-obvious
-    obvious_moves = []
-    non_obvious_moves = []
-    for move in legal_moves:
-        board.push(move)
-        if board.is_capture(move) or board.is_checkmate() or move.promotion:
-            obvious_moves.append(move)
-        else:
-            non_obvious_moves.append(move)
-        board.pop()
-    # Decide what moves to consider
-    search_moves = []
-    for move in obvious_moves:
-        if random.random() < obvious_chance:
-            search_moves.append(move)
-    for move in non_obvious_moves:
-        if random.random() < other_chance:
-            search_moves.append(move)
-    # Add more moves if needed
-    while len(search_moves) < min_choices and legal_moves:
-        move = legal_moves[-1]
-        if move not in search_moves:
-            search_moves.append(move)
-        legal_moves.pop()
-    # Get suggested move
-    logger.info(f"Considering {len(search_moves)} moves: {search_moves}")
-    stockfish_res = await query_chess_api(board, search_moves)
-    return chess.Move.from_uci(stockfish_res["move"]), 100 - stockfish_res["winChance"]
+    if not engine:
+        raise ValueError("Engine not initialized")
+
+    # Parameters:
+    # QS = 40  # Lower leads to less base depth for all positions beyond depth 0
+    # QS_A = 140  # Higher leads to less depth for not-amazing positions beyond depth 0
+    # EVAL_ROUGHNESS = 15  # Higher leads to faster termination at each depth (less precision)
+    # MAX_DEPTH = 8  # Max search depth
+    # RAND_SCORE = 0  # All position scores are randomized by +- this amount
+    # QS=(0, 300),
+    # QS_A=(0, 300),
+    # EVAL_ROUGHNESS=(0, 50),
+    # MAX_DEPTH=(1, 16),
+    # RAND_SCORE=(0, 1000),
+
+    # Get move using weaker search
+    limit = chess.engine.Limit(time=0.2)  # Don't limit time, unfair for weaker systems
+
+    # At 600 Elo, QS_A = 240, EVAL_ROUGHNESS = 35, MAX_DEPTH = 3, and bad move chance = 0.55
+    # At 1600 Elo, QS_A = 140, EVAL_ROUGHNESS = 15, MAX_DEPTH = 9, and bad move chance = 0
+    nerf_qs_a = min(140 + (1600 - elo) / 10, 300)
+    nerf_eval_roughness = min(15 + (1600 - elo) / 50, 50)
+    nerf_max_depth = max(elo // 200, 2)
+    bad_move_chance = min(((1600 - elo) / 1400) ** 1.75, 1)
+    if random.random() < bad_move_chance:
+        nerf_rand_score = min(((1700 - elo) / 160) ** 2.5, 1000)
+    else:
+        nerf_rand_score = 0
+    nerf_options = {
+        "QS_A": nerf_qs_a,
+        "EVAL_ROUGHNESS": nerf_eval_roughness,
+        "MAX_DEPTH": nerf_max_depth,
+        "RAND_SCORE": nerf_rand_score,
+    }
+    logger.info(f"Making a {'bad' if nerf_rand_score else 'good'} move (bad chance was {bad_move_chance*100:.1f}%)")
+    # print(f"Bad move chance: {bad_move_chance}")
+    with await engine.analysis(board, limit, info=chess.engine.INFO_ALL, options=nerf_options) as analysis:
+        async for _ in analysis:  # Partial results
+            pass
+        try:
+            move = analysis.info["pv"][0]
+        except IndexError:
+            # Use a random move
+            logger.warning(f"No chess move found: {analysis.info}")
+            move = random.choice(list(board.legal_moves))
+
+    # Get resulting score using stronger search
+    board.push(move)
+    good_limit = chess.engine.Limit(time=0.2)
+    with await engine.analysis(board, good_limit, info=chess.engine.INFO_ALL) as analysis:
+        async for _ in analysis:  # Partial results
+            pass
+        score = analysis.info["score"].relative
+        score = tanh(score.score() / 600) if score.score() is not None else score.mate()
+        score = 100 - 50 * (1 + score)
+    board.pop()
+    return move, score
 
 
 async def get_move(page: Page, board: Board) -> tuple[chess.Move, float]:
     """Get a move for the given board. Quality varies based on elo and time left. Simulates thinking time.
-
-    First, we split moves into obvious (captures/promotions/checkmates) and non-obvious moves.
-    Then, we decide what move to make (all fractions are chances, left-to-right to fill):
-    Noob (~600?): Stockfish query with 1/3 obvious and 1/12 of the non-obvious moves, with at least 1 choice
-    Amateur (~1000?): Stockfish query with 3/4 obvious and 1/4 of the non-obvious moves, with at least 2 choices
-    Pro (~1600?): Stockfish query with all obvious and 2/3 of the non-obvious moves, with at least 4 choices
 
     Args:
         page: The current page.
@@ -355,18 +374,22 @@ async def get_move(page: Page, board: Board) -> tuple[chess.Move, float]:
         A tuple of the suggested move and the estimated win chance (0-100).
     """
     time_left: Optional[int] = await get_time_left(page)
-    # Adjust elo based on time pressure (3 minute game)
+    # Adjust elo based on time pressure (3 minute game) and good opening moves
     adjusted_elo: int = elo
+    sleep_mult = 1.0
     if time_left is not None and time_left < 90:
         adjusted_elo -= (90 - time_left) * 10
+        sleep_mult = max((60 - time_left) / 60, 0)
+    elif time_left is not None and time_left > 165:
+        adjusted_elo += (time_left - 165) * 20
+        sleep_mult = min((180 - time_left) / 15, 1)
+    adjusted_elo = min(max(adjusted_elo, 200), 1600)
     # Get move based on elo
-    obvious_chance = 1 / (1 + 10 ** ((750 - adjusted_elo) / 500))
-    other_chance = 1 / (1 + 10 ** ((1400 - adjusted_elo) / 750))
-    min_choices = max((adjusted_elo - 700) // 300 + 1, 1)
-    move, win_chance = await _get_move_stockfish(board, obvious_chance, other_chance, min_choices)
-    logger.info(
-        f"Adjusted elo: {adjusted_elo}, {obvious_chance:.2f}/{other_chance:.2f}/{min_choices}, Win: {win_chance:.2f}%"
-    )
+    move, win_chance = await get_move_sunfish(board, adjusted_elo)
+    # Emulate thinking time
+    wait_time = (random.uniform(0.7, 2.5) ** 2) * sleep_mult
+    await asyncio.sleep(wait_time)
+    logger.info(f"Adjusted elo: {adjusted_elo}, Wait time: {wait_time:.2f}s, Bob's win chance: {win_chance:.1f}%")
     return move, win_chance
 
 
@@ -379,23 +402,27 @@ async def screenshot_chess_activity() -> Optional[Image.Image]:
     return last_screenshot
 
 
-async def play_chess_activity(callback) -> str:
+async def play_chess_activity(cmd_handler: Callable[[str], Awaitable[str]]) -> None:
     """Play chess against the user (or the computer).
 
-    The callback should be an async function that accepts exactly one string argument.
-    Awaits the callback with messages representing an invite link or info about the game.
+    Args:
+        cmd_handler: The callback to send commands directed at Bob.
+        The callback should be an async function that accepts exactly one string argument.
+        If the activity fails to start, it will be called with the reason.
+        Otherwise, it will be called the activity goes on and important things happen.
     """
-    global status, chess_page, curr_win_chance, more_info, last_screenshot
+    global status, chess_page, curr_win_chance, last_screenshot, match_result
     if status != "idle":
-        await callback("Error: Already in a match.")
-        return "Error: Already in a match."
+        await cmd_handler("Failed to start: You are already in a chess match.")
+        return
     status = "starting"
-    more_info = f"You are starting a chess match against {'a bot' if against_computer else 'a user'}."
     curr_win_chance = 50
     last_screenshot = None
+    match_result = None
     try:
+        await start_sunfish_engine()
         async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=False, slow_mo=500)
+            browser = await playwright.chromium.launch(headless=True, slow_mo=500)
             # Create context and page
             if Path(STATE_FILE).exists():
                 logger.info("Restoring state...")
@@ -410,14 +437,13 @@ async def play_chess_activity(callback) -> str:
             await login(page, context)
             if against_computer:
                 await start_match_computer(page)
-                await callback("im in, spectate me!")
+                await cmd_handler("Tell the user that you are now in a chess game against a bot.")
             else:
                 challenge_link = await get_challenge_link(page)
-                await callback(f"join up {challenge_link}")
+                await cmd_handler(f"Send the user this link so they can join your chess match: {challenge_link}")
                 await wait_for_accepted_match(page)
             status = "playing"
             while True:
-                more_info = f"You are playing a chess match as the Black pieces against {'a bot' if against_computer else 'a user'}. Your current win chance is {curr_win_chance:.1f}%."  # noqa: E501
                 await wait_for_move(page)
                 match_result = await check_game_over(page)
                 if match_result:
@@ -425,24 +451,23 @@ async def play_chess_activity(callback) -> str:
                 await play_move(page)  # Might dry move, but that's ok
 
             # Close ending dialog
+            status = "finished"
             await page.wait_for_timeout(700)
-            await page.locator("button.game-over-header-close").click()
-            await page.wait_for_timeout(500)
+            await close_ending_dialog(page)
             last_screenshot = await screenshot_chess_activity()
-            more_info = (
-                f"You have finished the chess match. Winner: {match_result[0]}. Full result: {match_result[1].strip()}."
+            await cmd_handler(
+                f"Comment on your chess match against the user. Winner: {match_result[0]}. ({match_result[1].strip()})"
             )
-            logger.info(f"Finished. {more_info}")
-            await callback(f"chess: game over! winner: {match_result[0]}. ({match_result[1].strip()})")
-            await page.wait_for_timeout(1000)
+            logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
+            await page.wait_for_timeout(3000)
             await context.close()
             await browser.close()
     except Exception as e:
         logger.exception(e)
-        await callback(f"Error: {e}")
-    status = "idle"
+        await cmd_handler(f"Tell the user there was an unexpected error while playing chess: {e}")
+    await stop_sunfish_engine()
     chess_page = None
-    return "Finished playing chess."
+    status = "idle"
 
 
 def configure_chess(elo: int, against_computer: bool) -> None:
@@ -458,4 +483,13 @@ def configure_chess(elo: int, against_computer: bool) -> None:
 
 def get_chess_info() -> str:
     """Get the current chess activity status."""
-    return more_info
+    if status == "idle":
+        return "You are not currently playing chess."
+    elif status == "starting":
+        return f"You are starting a chess match against {'a bot' if against_computer else 'a user'}."
+    elif status == "playing":
+        return f"You are playing a chess match as the Black pieces against {'a bot' if against_computer else 'a user'}. Your elo is {elo}. Your current win chance is {curr_win_chance:.1f}%."  # noqa: E501
+    elif status == "finished":
+        return f"You have finished the chess match against {'a bot' if against_computer else 'a user'}. Winner: {match_result[0]}. Full result: {match_result[1].strip()}."  # noqa: E501
+    else:
+        raise ValueError(f"Invalid chess status: {status}")

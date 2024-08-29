@@ -139,6 +139,9 @@ async def help(ctx: commands.Context) -> None:
         """! hi i am bob 2nd edition v1.1
 command prefix is `!`, slash commands work too
 
+activities:
+`chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
+
 config:
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
 `speed [default/instant]` - Set the typing speed of the bot.
@@ -189,20 +192,23 @@ async def debug(ctx: commands.Context) -> None:
         app_commands.Choice(name="Chess.com Bot", value="bot"),
     ]
 )
-async def chess(ctx: commands.Context, against: str | None) -> None:
+async def chess(ctx: commands.Context, against: str | None, elo: int) -> None:
     """Start a chess game with Bob."""
+    if elo < 200 or elo > 1600:
+        await ctx.send("! invalid elo, must be between 200 and 1600")
+        return
     against_computer: bool = against is not None and against.lower() == "bot"
-    configure_chess(800, against_computer)
-    await ctx.send("! ok lets go")
-    await start_activity(Activity.CHESS, chess_callback)
+    configure_chess(elo, against_computer)
+    await ctx.send(f"! ok, playing at {elo} elo, lets go")
+    await start_activity(Activity.CHESS, cmd_handler)
 
 
-async def chess_callback(msg: str) -> None:
-    """Send a message to the active channel."""
-    if "game over" in msg:
-        # Also send screenshot
+async def cmd_handler(command: str) -> None:
+    """Handle a command from the current activity."""
+    if "Comment on your chess match" in command:
+        # Send screenshot first
         await spectate(active_channel)
-    await send_discord_message(msg, instant=True)
+    await send_discord_message(command, instant=True)
 
 
 @bot.hybrid_command(name="spectate")

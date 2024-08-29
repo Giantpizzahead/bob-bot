@@ -1,7 +1,11 @@
-"""Combines all activities into a single API."""
+"""Combines all activities into a single API.
+
+Directed at Bob means the message is a readable string meant to be given as context to Bob.
+Ex: "You are at work right now."
+"""
 
 from enum import Enum
-from typing import Optional
+from typing import Awaitable, Callable, Optional
 
 from PIL import Image
 
@@ -26,15 +30,27 @@ class Activity(Enum):
 current_activity: Optional[Activity] = None
 
 
-async def start_activity(activity: Activity, *args, **kwargs) -> str:
-    """Starts the given activity. Returns a readable response message explaining if the activity was started."""
+async def start_activity(activity: Activity, cmd_handler: Callable[[str], Awaitable[str]]) -> bool:
+    """Starts the given activity.
+
+    Args:
+        activity: The activity to start.
+        cmd_handler: The callback to send commands directed at Bob.
+        The callback should be an async function that accepts exactly one string argument.
+        If the activity fails to start, it will be called with the reason.
+        Otherwise, it will be called the activity goes on and important things happen.
+
+    Returns:
+        Whether the activity successfully ran to completion (no errors or early stopping).
+    """
     global current_activity
     if current_activity is not None:
-        return "You're already doing something!"
+        await cmd_handler(f"Failed to start: You are already doing something - {await get_activity_status()}")
+        return False
     current_activity = activity
-    result: str
+    result: bool
     if activity == Activity.CHESS:
-        result = await play_chess_activity(*args, **kwargs)
+        result = await play_chess_activity(cmd_handler)
     else:
         raise NotImplementedError
     current_activity = None
@@ -47,7 +63,7 @@ async def stop_activity() -> None:
 
 
 async def get_activity_status() -> str:
-    """Returns a readable version of the current activity status, in the 2nd person."""
+    """Returns a readable version of the current activity status directed at Bob."""
     if current_activity is None:
         return "You're free right now."
     elif current_activity == Activity.CHESS:

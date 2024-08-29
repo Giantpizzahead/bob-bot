@@ -11,13 +11,12 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Allow Bob to comment on current activities
 - [ ] Allow Bob to auto-start activities based on context
 - [ ] Add new commands to help text
-- [ ] Chess polishing: Send result message first and close game over prompt before taking final screenshot
 
 ### Todo
 
 #### Activities
 
-- [ ] Get bob to play chess at a rating of ~800 (intentionally low) by fixing the dumb broken chess API system
+hi
 
 #### Memory
 
@@ -79,6 +78,8 @@ hi
 - [x] Learn how to use Playwright
 - [x] Implement a basic auto-chess player using Playwright that can go to a pre-generated invite link and play a full game
 - [x] Incorporate activities into Bob through direct commands
+- [x] Get bob to play chess at a rating of ~800 (intentionally low) by fixing the dumb broken chess API system
+- [x] Chess polishing: Send result message first and close game over prompt before taking final screenshot
 
 ### Multi-agent
 
@@ -114,7 +115,7 @@ hi
 
 ### Gaming
 
-- [ ] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept
+- [x] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept
 - [ ] Play Skribbl.io, a medium difficulty game involving images
 - [ ] **Capstone:** Play League, a comprehensive, tough game with an anticheat
 
