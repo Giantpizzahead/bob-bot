@@ -5,8 +5,8 @@ discord.py
 python-dotenv
 pyautogen
 playwright
+playwright-stealth
 chess
 pillow
 pytz
 aiohttp
-playwright-stealth

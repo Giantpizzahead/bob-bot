@@ -20,6 +20,9 @@ Environment variables (some required, some optional):
 DISCORD_TOKEN = Discord bot token.
 DISCORD_CHANNELS = A list of channel ID strings to talk in. Ex: ['123', '456']
 OPENAI_KEY = OpenAI API key.
+ACTIVITIES_USERNAME = (Optional) Username for logging into all activities.
+ACTIVITIES_PWD = (Optional) Password for logging into all activities.
+CHESS_STATE_JSON = (Optional) Playwright state.json file, logged in as the activities user, to use for chess (copy-pasted here). Without this,
 OPENROUTER_KEY = (Unused) OpenRouter API key.
 DEEPGRAM_KEY = (Unused) Deepgram API key.
 SUPABASE_KEY = (Unused) Supabase vector store API key.
@@ -42,3 +45,12 @@ pre-commit install
 make build
 make test
 ```
+
+## Issues
+
+**Chess.com doesn't work, the locator keeps timing out.**
+
+1. Login to chess.com locally using Playwright.
+2. Save storage to `state.json`.
+3. Set the environment variable `CHESS_STATE_JSON` to the copy-pasted content of `state.json`.
+4. Profit

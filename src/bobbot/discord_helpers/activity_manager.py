@@ -28,6 +28,7 @@ from bobbot.utils import get_logger
 logger = get_logger(__name__)
 waiting_cmd_events: dict[str, asyncio.Event] = {}
 waiting_responses: dict[str, str] = {}
+spectate_status: str = "idle"
 
 
 async def command_handler(channel: discord.TextChannel, command: str, expect_response: bool = False) -> Optional[str]:
@@ -42,9 +43,9 @@ async def command_handler(channel: discord.TextChannel, command: str, expect_res
         expect_response: Whether to wait for the user's response.
     """
     # Command-specific handlers
-    if "Comment on your chess match" in command:
-        # Send screenshot first
+    if "start_spectating" in command:
         await spectate(channel)
+        return
 
     # Update history
     history: TextChannelHistory = get_channel_history(channel)
@@ -138,22 +139,56 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
 
 
 @bot.hybrid_command(name="spectate")
-async def spectate(ctx: commands.Context) -> None:
-    """Spectate the current activity."""
-    image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
-    if isinstance(image_or_msg, Image.Image):
-        with io.BytesIO() as image_binary:
-            image_or_msg.save(image_binary, "JPEG")
-            image_binary.seek(0)
-            await ctx.send(file=discord.File(fp=image_binary, filename="current_chess_match.jpeg"))
-        image_or_msg.close()
-    elif isinstance(image_or_msg, list):
-        await ctx.send(image_or_msg[0])
-        for msg in image_or_msg[1:]:
+async def spectate(ctx: commands.Context, video: bool = True) -> None:
+    """Spectate the current activity.
+
+    Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.
+    """
+    global spectate_status
+    if spectate_status in ["stopping"]:
+        await ctx.send("! too fast, try again in a bit")
+        return
+    elif spectate_status == "spectating":
+        spectate_status = "stopping"
+        # Wait for previous spectate to stop
+        while spectate_status == "stopping":
             await asyncio.sleep(1)
-            await lazy_send_message(ctx.channel, msg, instant=True, force=True)
+    spectate_status = "spectating"
+    curr_message: Optional[discord.Message] = None
+    while spectate_status == "spectating":
+        image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
+        if isinstance(image_or_msg, Image.Image):
+            with io.BytesIO() as image_binary:
+                # Downscale image
+                image_or_msg = image_or_msg.reduce(2)
+                image_or_msg.save(image_binary, "JPEG")
+                image_binary.seek(0)
+                if curr_message is not None:
+                    # Edit previous message
+                    await curr_message.edit(
+                        content="Spectating:", attachments=[discord.File(fp=image_binary, filename="spectate.jpeg")]
+                    )
+                else:
+                    curr_message = await ctx.send(
+                        content="Spectating:", file=discord.File(fp=image_binary, filename="spectate.jpeg")
+                    )
+            image_or_msg.close()
+            await asyncio.sleep(0.5)  # Slow down editing rate
+        elif isinstance(image_or_msg, list):
+            await ctx.send(image_or_msg[0])
+            for msg in image_or_msg[1:]:
+                await asyncio.sleep(1)
+                await lazy_send_message(ctx.channel, msg, instant=True, force=True)
+            break
+        else:
+            await ctx.send("! no activity D:")
+            break
+        if not video:
+            break
+    if spectate_status == "stopping":
+        spectate_status = "spectating"  # Let the next spectate start
     else:
-        await ctx.send("! no activity D:")
+        spectate_status = "idle"
 
 
 @bot.hybrid_command(name="stop")

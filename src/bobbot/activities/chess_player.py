@@ -58,7 +58,7 @@ async def login(page: Page, context: BrowserContext) -> None:
     await page.get_by_role("button", name="Log In").click()
     # Save state, making folders if they don't exist
     logger.info("Saving state...")
-    Path("local/pw").mkdir(parents=True, exist_ok=True)
+    Path(STATE_FILE).parent.mkdir(parents=True, exist_ok=True)
     await context.storage_state(path=STATE_FILE)
 
 
@@ -431,6 +431,11 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(headless=True, slow_mo=500)
             # Create context and page
+            if not Path(STATE_FILE).exists() and os.getenv("CHESS_STATE_JSON") is not None:
+                logger.info("Loading initial state from environment variable...")
+                Path(STATE_FILE).parent.mkdir(parents=True, exist_ok=True)
+                with open(STATE_FILE, "w") as f:
+                    f.write(os.getenv("CHESS_STATE_JSON"))
             if Path(STATE_FILE).exists():
                 logger.info("Restoring state...")
                 context = await browser.new_context(storage_state=STATE_FILE)
@@ -449,7 +454,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             else:
                 challenge_link = await get_challenge_link(page)
                 await cmd_handler(
-                    f"Send the user this link (don't use Markdown) so they can join your chess match: {challenge_link}"
+                    f"Send the user this link (don't use Markdown) so they can join your chess match, note that the link is different each time! {challenge_link}"  # noqa: E501
                 )
                 await wait_for_accepted_match(page)  # Might return early if stopping, but that's ok
             if status == "stopping":
@@ -461,6 +466,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
                 status = "idle"
                 return
             status = "playing"
+            asyncio.create_task(cmd_handler("start_spectating"))  # Start spectating
             while True:
                 await wait_for_move(page)
                 match_result = await check_game_over(page)
@@ -482,7 +488,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             await close_ending_dialog(page)
             last_screenshot = await screenshot_chess_activity()
             await cmd_handler(
-                f"Comment on your chess match against the user. Winner: {match_result[0]}. ({match_result[1].strip()})"
+                f"Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: {match_result[0]}. (Reason: {match_result[1].strip()})"  # noqa: E501
             )
             logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
             await page.wait_for_timeout(3000)

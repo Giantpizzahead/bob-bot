@@ -4,7 +4,12 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-hi
+#### Smarts
+
+- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+- [ ] Integrate web search into Bob's overall pipeline, with a problem solving agent that decides if tool calls are needed, returning any additional factual context to Bob
+- [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). Initially, just do a single pass.
+- [ ] Make the verifier interact with the problem solving agent in a single back-and-forth. If it fails verification once, send back to the problem solving agent with feedback. If it fails verification twice, send context to Bob saying that the problem solving agent couldn't figure out the answer, and to echo that uncertainty to the user (making clear that it's guessing).
 
 ### Todo
 
@@ -25,13 +30,17 @@ hi
 #### Smarts
 
 - [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
-- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+
+#### Voice
+
+hi
 
 #### Quality of Life
 
 - [ ] Add URLs property to ParsedMessage that contains a list of all URLs present in a message (valid or not)
 - [ ] Add a delayed second check on whether to send a message or not, to be ran when no one is typing and Bob decided not to respond before (due to not being sure if the other person was done). In this delayed check, emphasize to the decision agent that all users are done typing.
 - [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work). Switching Bob's prompt to allow for multiple messages as a response doesn't work well. The best way likely involves a small LLM at the end deciding how to split up a long message into smaller messages, since this won't be influenced by history.
+- [ ] Make a GIF creator on the server-side to improve the spectate command's frame rate
 - [ ] Make a Discord status message based on current activity
 
 ### Future
@@ -84,6 +93,8 @@ hi
 - [x] Implement a way to force stop activities
 - [x] Implement an overall status message that can be fed into Bob
 - [x] Allow Bob to comment on current activities through the status message
+- [x] Improve spectate command by editing image repeatedly, allowing a very low frame rate video
+- [x] Fix the Chess.com player in some way to avoid bot detection (manually give it saved cookies)
 
 ### Multi-agent
 
