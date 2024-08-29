@@ -429,7 +429,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
     try:
         await start_sunfish_engine()
         async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=False, slow_mo=500)
+            browser = await playwright.chromium.launch(headless=True, slow_mo=500)
             # Create context and page
             if Path(STATE_FILE).exists():
                 logger.info("Restoring state...")
