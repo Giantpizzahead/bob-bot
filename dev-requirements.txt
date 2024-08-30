@@ -43,6 +43,8 @@ click==8.1.7
     # via black
 dataclasses-json==0.6.7
     # via langchain-community
+dateparser==1.2.0
+    # via youtube-comment-downloader
 discord-py==2.4.0
     # via -r requirements.in
 diskcache==5.6.3
@@ -55,6 +57,7 @@ docker==7.1.0
     # via pyautogen
 docutils==0.20.1
     # via
+    #   myst-parser
     #   sphinx
     #   sphinx-rtd-theme
 filelock==3.15.4
@@ -99,7 +102,9 @@ iniconfig==2.0.0
 isort==5.13.2
     # via -r dev-requirements.in
 jinja2==3.1.4
-    # via sphinx
+    # via
+    #   myst-parser
+    #   sphinx
 jiter==0.4.2
     # via openai
 jsonpatch==1.33
@@ -127,12 +132,20 @@ langsmith==0.1.104
     #   langchain
     #   langchain-community
     #   langchain-core
+markdown-it-py==3.0.0
+    # via
+    #   mdit-py-plugins
+    #   myst-parser
 markupsafe==2.1.5
     # via jinja2
 marshmallow==3.22.0
     # via dataclasses-json
 mccabe==0.7.0
     # via flake8
+mdit-py-plugins==0.4.1
+    # via myst-parser
+mdurl==0.1.2
+    # via markdown-it-py
 multidict==6.0.5
     # via
     #   aiohttp
@@ -144,6 +157,8 @@ mypy-extensions==1.0.0
     #   black
     #   mypy
     #   typing-inspect
+myst-parser==4.0.0
+    # via -r dev-requirements.in
 nodeenv==1.9.1
     # via pre-commit
 numpy==1.26.4
@@ -207,20 +222,29 @@ pygments==2.18.0
     # via sphinx
 pytest==8.3.2
     # via -r dev-requirements.in
+python-dateutil==2.9.0.post0
+    # via dateparser
 python-dotenv==1.0.1
     # via
     #   -r requirements.in
     #   pyautogen
-pytz==2024.1
+pytube==15.0.0
     # via -r requirements.in
+pytz==2024.1
+    # via
+    #   -r requirements.in
+    #   dateparser
 pyyaml==6.0.2
     # via
     #   langchain
     #   langchain-community
     #   langchain-core
+    #   myst-parser
     #   pre-commit
 regex==2023.12.25
-    # via tiktoken
+    # via
+    #   dateparser
+    #   tiktoken
 requests==2.32.3
     # via
     #   docker
@@ -229,6 +253,10 @@ requests==2.32.3
     #   langsmith
     #   sphinx
     #   tiktoken
+    #   youtube-comment-downloader
+    #   youtube-transcript-api
+six==1.16.0
+    # via python-dateutil
 sniffio==1.3.1
     # via
     #   anyio
@@ -241,6 +269,7 @@ snowballstemmer==2.2.0
 sphinx==7.4.7
     # via
     #   -r dev-requirements.in
+    #   myst-parser
     #   sphinx-rtd-theme
     #   sphinxcontrib-jquery
 sphinx-rtd-theme==2.0.0
@@ -288,6 +317,8 @@ typing-extensions==4.12.2
     #   typing-inspect
 typing-inspect==0.9.0
     # via dataclasses-json
+tzlocal==5.2
+    # via dateparser
 urllib3==2.2.2
     # via
     #   docker
@@ -296,3 +327,7 @@ virtualenv==20.26.3
     # via pre-commit
 yarl==1.9.4
     # via aiohttp
+youtube-comment-downloader==0.1.76
+    # via -r requirements.in
+youtube-transcript-api==0.6.2
+    # via -r requirements.in

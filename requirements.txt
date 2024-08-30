@@ -33,6 +33,8 @@ chess==1.10.0
     # via -r requirements.in
 dataclasses-json==0.6.7
     # via langchain-community
+dateparser==1.2.0
+    # via youtube-comment-downloader
 discord-py==2.4.0
     # via -r requirements.in
 diskcache==5.6.3
@@ -136,19 +138,27 @@ pydantic-core==2.20.1
     # via pydantic
 pyee==11.1.0
     # via playwright
+python-dateutil==2.9.0.post0
+    # via dateparser
 python-dotenv==1.0.1
     # via
     #   -r requirements.in
     #   pyautogen
-pytz==2024.1
+pytube==15.0.0
     # via -r requirements.in
+pytz==2024.1
+    # via
+    #   -r requirements.in
+    #   dateparser
 pyyaml==6.0.2
     # via
     #   langchain
     #   langchain-community
     #   langchain-core
 regex==2023.12.25
-    # via tiktoken
+    # via
+    #   dateparser
+    #   tiktoken
 requests==2.32.3
     # via
     #   docker
@@ -156,6 +166,10 @@ requests==2.32.3
     #   langchain-community
     #   langsmith
     #   tiktoken
+    #   youtube-comment-downloader
+    #   youtube-transcript-api
+six==1.16.0
+    # via python-dateutil
 sniffio==1.3.1
     # via
     #   anyio
@@ -189,9 +203,15 @@ typing-extensions==4.12.2
     #   typing-inspect
 typing-inspect==0.9.0
     # via dataclasses-json
+tzlocal==5.2
+    # via dateparser
 urllib3==2.2.2
     # via
     #   docker
     #   requests
 yarl==1.9.4
     # via aiohttp
+youtube-comment-downloader==0.1.76
+    # via -r requirements.in
+youtube-transcript-api==0.6.2
+    # via -r requirements.in

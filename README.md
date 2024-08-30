@@ -19,17 +19,21 @@ make run
 Environment variables (some required, some optional):
 
 ```text
-DISCORD_TOKEN = Discord bot token.
-DISCORD_CHANNELS = A list of channel ID strings to talk in. Ex: ['123', '456']
-OPENAI_KEY = OpenAI API key.
-ACTIVITIES_USERNAME = (Optional) Username for logging into all activities.
-ACTIVITIES_PWD = (Optional) Password for logging into all activities.
-CHESS_STATE_JSON = (Optional) Playwright state.json file, logged in as the activities user, to use for chess (copy-pasted here). Without this,
+DISCORD_TOKEN = [Discord bot token](https://www.writebots.com/discord-bot-token/).
+DISCORD_CHANNELS = A list of channel ID strings to talk in. It's best to have at most one channel per server. Use Discord's developer mode to get these IDs. Ex: ['123...', '456...']
+OPENAI_KEY = [OpenAI API key](https://platform.openai.com/api-keys).
+SERPER_API_KEY = [Serper API key](https://serper.dev/api-key) (for Google search).
+
+ACTIVITIES_USERNAME = (Optional) Username for logging into all activities. Needed to use activities.
+ACTIVITIES_PWD = (Optional) Password for logging into all activities. Needed to use activities.
+CHESS_STATE_JSON = (Optional) Playwright state.json file, logged in as the activities user, to use for chess (copy-pasted here). Without this, the chess activity *might* fail due to a "locator timeout exceeded" error.
+
 OPENROUTER_KEY = (Unused) OpenRouter API key.
 DEEPGRAM_KEY = (Unused) Deepgram API key.
 SUPABASE_KEY = (Unused) Supabase vector store API key.
 SUPABASE_URL = (Unused) Supabase vector store URL.
 SUPABASE_PROJECT_PWD = (Unused) Supabase vector store password.
+
 LANGCHAIN_API_KEY = (Optional) LangChain API key for LangSmith tracing.
 LANGCHAIN_TRACING_V2 = (Optional) Boolean for enabling LangSmith tracing.
 ```
