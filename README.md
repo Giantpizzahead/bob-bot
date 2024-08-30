@@ -18,11 +18,15 @@ make run
 
 Environment variables (some required, some optional):
 
+- Discord token: See https://www.writebots.com/discord-bot-token/.
+- OpenAI API key: See https://platform.openai.com/api-keys. Costs a bit of money, probably less than a quarter if you're just playing around.
+- Serper API key: See https://serper.dev/api-key. They have a good free plan.
+
 ```text
-DISCORD_TOKEN = [Discord bot token](https://www.writebots.com/discord-bot-token/).
+DISCORD_TOKEN = Discord bot token.
 DISCORD_CHANNELS = A list of channel ID strings to talk in. It's best to have at most one channel per server. Use Discord's developer mode to get these IDs. Ex: ['123...', '456...']
-OPENAI_KEY = [OpenAI API key](https://platform.openai.com/api-keys).
-SERPER_API_KEY = [Serper API key](https://serper.dev/api-key) (for Google search).
+OPENAI_KEY = OpenAI API key.
+SERPER_API_KEY = Serper API key (for Google search).
 
 ACTIVITIES_USERNAME = (Optional) Username for logging into all activities. Needed to use activities.
 ACTIVITIES_PWD = (Optional) Password for logging into all activities. Needed to use activities.

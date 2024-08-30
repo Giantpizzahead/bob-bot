@@ -100,10 +100,15 @@ make<span class="w"> </span>run
 </pre></div>
 </div>
 <p>Environment variables (some required, some optional):</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>DISCORD_TOKEN = [Discord bot token](https://www.writebots.com/discord-bot-token/).
+<ul class="simple">
+<li><p>Discord token: See https://www.writebots.com/discord-bot-token/.</p></li>
+<li><p>OpenAI API key: See https://platform.openai.com/api-keys. Costs a bit of money, probably less than a quarter if you’re just playing around.</p></li>
+<li><p>Serper API key: See https://serper.dev/api-key. They have a good free plan.</p></li>
+</ul>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>DISCORD_TOKEN = Discord bot token.
 DISCORD_CHANNELS = A list of channel ID strings to talk in. It&#39;s best to have at most one channel per server. Use Discord&#39;s developer mode to get these IDs. Ex: [&#39;123...&#39;, &#39;456...&#39;]
-OPENAI_KEY = [OpenAI API key](https://platform.openai.com/api-keys).
-SERPER_API_KEY = [Serper API key](https://serper.dev/api-key) (for Google search).
+OPENAI_KEY = OpenAI API key.
+SERPER_API_KEY = Serper API key (for Google search).
 
 ACTIVITIES_USERNAME = (Optional) Username for logging into all activities. Needed to use activities.
 ACTIVITIES_PWD = (Optional) Password for logging into all activities. Needed to use activities.

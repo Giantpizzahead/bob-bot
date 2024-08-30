@@ -61,7 +61,7 @@ async def perform_image_search(query: str) -> dict:
                 "url": raw_image["imageUrl"],
                 # "width": raw_image["imageWidth"],
                 # "height": raw_image["imageHeight"],
-                "caption": raw_image["caption"],
+                "caption": raw_image["title"],
                 "source": raw_image["source"],
             }
             images.append(image)

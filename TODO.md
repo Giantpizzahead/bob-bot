@@ -6,6 +6,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Smarts
 
+- [ ] Let Bob know what the date is somehow, maybe through a tool, without him trying to search the exact date every time
+- [ ] Think about what to do when Bob is fed an image - probably shouldn't go through all the tools, right?
 - [ ] Give Bob a website scraping tool (ideally with something like Playwright for JS sites), see [here](https://python.langchain.com/v0.2/docs/integrations/tools/playwright/) and [here](https://python.langchain.com/v0.2/api_reference/_modules/langchain_community/tools/playwright/extract_text.html#ExtractTextTool)
 - [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detected using OpenAI's moderation API
 
@@ -21,9 +23,12 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Activities
 
+- [ ] Fix YouTube video search on Heroku (unknown PyTube error), potentially needing [this](https://github.com/JuanBindez/pytubefix) since the pytube repo hasn't been updated in about a year now
+- [ ] Make a command to stop spectating, and a command to check the program's RAM usage
+- [ ] Fix memory leak and/or memory inefficiency issue with spectate (maybe save/load screenshots from a file instead, to avoid any possibility of leaking RAM)
 - [ ] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
 
-### Todo
+### Future
 
 #### Voice
 
