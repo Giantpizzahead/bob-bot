@@ -79,14 +79,32 @@
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">langchain.schema</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+<span class="kn">from</span> <span class="nn">langchain_core.messages</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini_factual</span>
 <span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">log_debug_info</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">DECISION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:</span>
+
+<div class="viewcode-block" id="decide_to_respond">
+<a class="viewcode-back" href="../../../agents.html#bobbot.agents.decide_to_respond">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">decide_to_respond</span><span class="p">(</span><span class="n">msg_history</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decide whether to send a response message, given the current message history.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg_history: The message history.</span>
+<span class="sd">        status: Bob&#39;s current activity status.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A tuple containing a boolean indicating whether to respond and the decision agent&#39;s thoughts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">status_addendum</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot; You may also be given info about what you are currently doing, take this status into account (ex: If you&#39;re asleep, then you should never respond). &quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="k">if</span> <span class="n">status</span>
+        <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="n">DECISION_PROMPT</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:</span>
 
 <span class="s2">Example chat history 1:</span>
 <span class="s2">[2 minutes ago] AlexiKeys: yooo @bob</span>
@@ -118,30 +136,16 @@
 <span class="s2">Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.</span>
 <span class="s2">Answer: WAIT</span>
 
-<span class="s2">Here is the message history of the server, including the most recent message. You may also be given info about what you are currently doing, take this status into account (ex: If you&#39;re asleep, then you should never respond). Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they&#39;re heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.</span>
+<span class="s2">Here is the message history of the server, including the most recent message. </span><span class="si">{</span><span class="n">status_addendum</span><span class="si">}</span><span class="s2">Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they&#39;re heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.</span>
 
 <span class="s2">You MUST follow the example response formats!&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-
-
-<div class="viewcode-block" id="decide_to_respond">
-<a class="viewcode-back" href="../../../agents.html#bobbot.agents.decide_to_respond">[docs]</a>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">decide_to_respond</span><span class="p">(</span><span class="n">msg_history</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decide whether to send a response message, given the current message history.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        msg_history: The message history.</span>
-<span class="sd">        status: Bob&#39;s current activity status.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        A tuple containing a boolean indicating whether to respond and the decision agent&#39;s thoughts.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">DECISION_PROMPT</span><span class="p">)]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
         <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">msg_history</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Your status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Chat history:</span><span class="se">\n</span><span class="si">{</span><span class="n">msg_history</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
 
-    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Decision agent status/history =====</span><span class="se">\n</span><span class="si">{</span><span class="n">messages</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># log_debug_info(f&quot;===== Decision agent status/history =====\n{messages[1].content}&quot;)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini_factual</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
     <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
     <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Decision agent response =====</span><span class="se">\n</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

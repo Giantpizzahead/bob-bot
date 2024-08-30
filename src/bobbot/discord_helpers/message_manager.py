@@ -3,7 +3,7 @@
 import discord
 
 from bobbot.activities import get_activity_status
-from bobbot.agents import decide_to_respond, get_response
+from bobbot.agents import decide_to_respond, get_response_with_tools
 from bobbot.discord_helpers.activity_manager import check_waiting_responses
 from bobbot.discord_helpers.main_bot import Mode, bot, lazy_send_message
 from bobbot.discord_helpers.text_channel_history import (
@@ -47,7 +47,11 @@ async def on_message(message: discord.Message):
             context = f"Context that may be helpful:\nYour status: {await get_activity_status()}"
             if "You're free right now." in context:
                 context = None
-            response: str = await get_response(
+            # response: str = await get_response(
+            #     history.as_langchain_msgs(bot.user),
+            #     context=context,
+            # )
+            response: str = await get_response_with_tools(
                 history.as_langchain_msgs(bot.user),
                 context=context,
             )

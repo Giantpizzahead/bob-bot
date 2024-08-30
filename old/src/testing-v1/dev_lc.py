@@ -3,7 +3,7 @@ import os
 
 import discord
 from discord.ext import commands
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from .utils import get_logger

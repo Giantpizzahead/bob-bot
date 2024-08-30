@@ -1,0 +1,149 @@
+{'answerBox': {'link': 'https://mobalytics.gg/lol/champions',
+               'snippet': 'All League of Legends champions, builds and stats '
+                          'at your fingertips. There are 168 champions in LoL '
+                          "and it's been 64 day(s) since the last new champion "
+                          'was released.',
+               'snippetHighlighted': ['168'],
+               'title': 'All 168 LoL Champions: Builds, Guides, Counters & '
+                        'More - Mobalytics'},
+ 'credits': 1,
+ 'organic': [{'date': 'Feb 27, 2024',
+              'link': 'https://www.reddit.com/r/leagueoflegends/comments/1b1e3ew/if_you_google_how_many_champions_in_league_of/',
+              'position': 1,
+              'sitelinks': [{'link': 'https://www.reddit.com/r/leagueoflegends/comments/18ko4fs/how_many_more_champions_are_they_gonna_keep_making/',
+                             'title': 'How many more champions are they gonna '
+                                      'keep making? - Reddit'},
+                            {'link': 'https://www.reddit.com/r/leagueoflegends/comments/whqeyd/there_is_now_161_champions_in_league_can_you_list/',
+                             'title': 'There is now 161 champions in League, '
+                                      'can you list them all? - Reddit'},
+                            {'link': 'https://www.reddit.com/r/LegendsOfRuneterra/comments/10cey9r/there_are_currently_101162_league_champions/',
+                             'title': 'There are currently 101*/162 league '
+                                      'champions released in LoR ...'},
+                            {'link': 'https://www.reddit.com/r/leagueoflegends/comments/aoqxqa/math_behind_getting_all_the_champs_in_league/',
+                             'title': 'Math behind getting all the champs in '
+                                      'League : r/leagueoflegends'}],
+              'snippet': 'If you google " how many champions in league of '
+                         'legends", the top answer is 168 but the 168th '
+                         "champion still hasn't released.",
+              'title': 'If you google " how many champions in league of '
+                       'legends", the top ...'},
+             {'link': 'https://leagueoflegends.com/en-us/champions',
+              'position': 2,
+              'snippet': "With more than 140 champions, you'll find the "
+                         'perfect match for your playstyle. Master one, or '
+                         'master them all.',
+              'title': 'Champions - League of Legends'},
+             {'link': 'https://leagueoflegends.fandom.com/wiki/List_of_champions',
+              'position': 3,
+              'snippet': 'As of 17 July 2024 there are currently 168 released '
+                         "champions, with the ... Don't have an account? "
+                         'Register · Sign In. Advertisement. League of Legends '
+                         'Wiki.',
+              'title': 'List of champions - League of Legends Wiki'},
+             {'date': 'Mar 7, 2024',
+              'link': 'https://www.esports.net/news/lol/how-many-champions-are-in-league-of-legends/',
+              'position': 4,
+              'snippet': 'There are currently 168 unique champions in League '
+                         'of Legends. The latest addition is Smolder, the '
+                         'Fiery Fledgling, which hit the live servers ...',
+              'title': 'How many Champions are in League of Legends? - '
+                       'Esports.net'},
+             {'date': 'Jan 16, 2024',
+              'link': 'https://egamersworld.com/blog/how-many-champions-are-in-lol-ntDWAYuC2',
+              'position': 5,
+              'snippet': 'You may be wondering just how many champions there '
+                         'are in League of Legends as of January 2024, the '
+                         'short answer is 168! In this article ...',
+              'title': 'How Many Champions are in LoL? - LoL, Gaming Blog'},
+             {'date': 'Jul 22, 2024',
+              'link': 'https://www.rivalry.com/news/all-league-of-legends-champions-by-release-date',
+              'position': 6,
+              'snippet': "There's over 160 champions now in League of Legends, "
+                         'but have you ever wondered what year certain '
+                         'champions were released?',
+              'title': 'All League of Legends Champions By Release Date - '
+                       'Rivalry'},
+             {'date': 'Apr 10, 2024',
+              'link': 'https://turbosmurfs.gg/article/how-many-lol-champions',
+              'position': 7,
+              'snippet': "Here's the quick answer: As of January 31, 2024, "
+                         'there are 167 Champions in League of Legends with '
+                         'the latest release being Smolder.',
+              'title': 'How many Champions are in League of Legends | '
+                       'Turbosmurfs'},
+             {'date': 'Jul 3, 2024',
+              'link': 'https://dotesports.com/league-of-legends/news/how-many-champions-are-there-in-league-of-legends',
+              'position': 8,
+              'snippet': 'There are now 168 different champions on the League '
+                         'roster, despite the Riot team gradually slowing its '
+                         'character release schedule to around ...',
+              'title': 'How many champions are there in League of Legends? - '
+                       'Dot Esports'},
+             {'date': 'Mar 17, 2024',
+              'link': 'https://1v9.gg/blog/how-many-champions-does-lol-have',
+              'position': 9,
+              'snippet': 'The League of Legends universe currently features an '
+                         'impressive lineup of 168 distinct champions. The '
+                         'newest champion to enter the fray is Smolder, the '
+                         'Fiery ...',
+              'title': 'How many Champions are in League of Legends? 2024 - '
+                       '1v9.GG'}],
+ 'peopleAlsoAsk': [{'link': 'https://en.wikipedia.org/wiki/List_of_European_Cup_and_UEFA_Champions_League_finals',
+                    'question': 'How many Champions League are there?',
+                    'snippet': 'A total of 23 clubs have won the Champions '
+                               'League/European Cup. Real Madrid holds the '
+                               'record for the most victories, having won the '
+                               'competition 15 times, including the inaugural '
+                               'edition.',
+                    'title': 'List of European Cup and UEFA Champions League '
+                             'finals - Wikipedia'},
+                   {'link': 'https://egamersworld.com/blog/how-many-champions-are-in-lol-ntDWAYuC2',
+                    'question': 'How many champions are in LoL 2024?',
+                    'snippet': 'You may be wondering just how many champions '
+                               'there are in League of Legends as of January '
+                               '2024, the short answer is 168! In this '
+                               "article, we'll take a quick look at the League "
+                               'of Legends champions and their count! League '
+                               'has added new champions almost every year '
+                               'since it launched in 2009.\n'
+                               'Jan 16, 2024',
+                    'title': 'How Many Champions are in LoL? - LoL, Gaming '
+                             'Blog'},
+                   {'link': 'https://leagueoflegends.fandom.com/wiki/Champion',
+                    'question': 'How many league champs are launched?',
+                    'snippet': 'Some champions use brute strength and power, '
+                               'others use deadly and cunning precision, while '
+                               'others use supernatural vision and magic, etc. '
+                               'There were 40 champions released at launch, '
+                               'with one released approximately every two '
+                               'weeks for some time. About 8-10 champions are '
+                               'in development at any moment.',
+                    'title': 'Champion | League of Legends Wiki - Fandom'},
+                   {'link': 'https://www.bbc.com/sport/football/articles/cwy381g3qdqo',
+                    'question': 'How many Champions League games are there?',
+                    'snippet': 'Each team plays a minimum of eight matches and '
+                               'a maximum of 17, should they reach the final. '
+                               'In standard weeks, matches will continue on '
+                               'Tuesdays and Wednesdays. In the Champions '
+                               'League exclusive week - the opening round of '
+                               'games when no other European competitions are '
+                               'played - matches will also be played on '
+                               'Thursday.',
+                    'title': 'What does new-look Champions League have in '
+                             'store for Celtic?'}],
+ 'relatedSearches': [{'query': 'Steam'},
+                     {'query': 'League of Legends Champions'},
+                     {'query': 'League of Legends Champions Wiki'},
+                     {'query': 'LoL champions by release date'},
+                     {'query': 'How many champions in LoL Wild Rift'},
+                     {'query': 'League of Legends new champion'},
+                     {'query': 'How many champions did League of Legends start '
+                               'with'},
+                     {'query': 'Legend Champions league table'},
+                     {'query': 'LoL Champions Tier List'}],
+ 'searchParameters': {'engine': 'google',
+                      'gl': 'us',
+                      'hl': 'en',
+                      'num': 10,
+                      'q': 'How many league champs are there?',
+                      'type': 'search'}}

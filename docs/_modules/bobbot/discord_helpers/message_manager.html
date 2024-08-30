@@ -80,7 +80,7 @@
 <span class="kn">import</span> <span class="nn">discord</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="n">get_activity_status</span>
-<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="n">decide_to_respond</span><span class="p">,</span> <span class="n">get_response</span>
+<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="n">decide_to_respond</span><span class="p">,</span> <span class="n">get_response_with_tools</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.activity_manager</span> <span class="kn">import</span> <span class="n">check_waiting_responses</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.main_bot</span> <span class="kn">import</span> <span class="n">Mode</span><span class="p">,</span> <span class="n">bot</span><span class="p">,</span> <span class="n">lazy_send_message</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.text_channel_history</span> <span class="kn">import</span> <span class="p">(</span>
@@ -126,7 +126,11 @@
             <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Context that may be helpful:</span><span class="se">\n</span><span class="s2">Your status: </span><span class="si">{</span><span class="k">await</span><span class="w"> </span><span class="n">get_activity_status</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">if</span> <span class="s2">&quot;You&#39;re free right now.&quot;</span> <span class="ow">in</span> <span class="n">context</span><span class="p">:</span>
                 <span class="n">context</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response</span><span class="p">(</span>
+            <span class="c1"># response: str = await get_response(</span>
+            <span class="c1">#     history.as_langchain_msgs(bot.user),</span>
+            <span class="c1">#     context=context,</span>
+            <span class="c1"># )</span>
+            <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response_with_tools</span><span class="p">(</span>
                 <span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
                 <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
             <span class="p">)</span>

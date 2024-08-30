@@ -2,14 +2,30 @@
 
 from typing import Optional
 
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from bobbot.agents.llms import llm_gpt4omini_factual
 from bobbot.utils import get_logger, log_debug_info
 
 logger = get_logger(__name__)
 
-DECISION_PROMPT = """You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
+
+async def decide_to_respond(msg_history: str, status: Optional[str] = None) -> tuple[bool, str]:
+    """Decide whether to send a response message, given the current message history.
+
+    Args:
+        msg_history: The message history.
+        status: Bob's current activity status.
+
+    Returns:
+        A tuple containing a boolean indicating whether to respond and the decision agent's thoughts.
+    """
+    status_addendum = (
+        " You may also be given info about what you are currently doing, take this status into account (ex: If you're asleep, then you should never respond). "  # noqa: E501
+        if status
+        else ""
+    )
+    DECISION_PROMPT = f"""You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
 
 Example chat history 1:
 [2 minutes ago] AlexiKeys: yooo @bob
@@ -41,28 +57,16 @@ Example response format 3:
 Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.
 Answer: WAIT
 
-Here is the message history of the server, including the most recent message. You may also be given info about what you are currently doing, take this status into account (ex: If you're asleep, then you should never respond). Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
+Here is the message history of the server, including the most recent message. {status_addendum}Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
 
 You MUST follow the example response formats!"""  # noqa: E501
-
-
-async def decide_to_respond(msg_history: str, status: Optional[str] = None) -> tuple[bool, str]:
-    """Decide whether to send a response message, given the current message history.
-
-    Args:
-        msg_history: The message history.
-        status: Bob's current activity status.
-
-    Returns:
-        A tuple containing a boolean indicating whether to respond and the decision agent's thoughts.
-    """
     messages = [SystemMessage(content=DECISION_PROMPT)]
     if not status:
         messages.append(HumanMessage(content=msg_history))
     else:
         messages.append(HumanMessage(content=f"Your status: {status}\n\nChat history:\n{msg_history}"))
 
-    log_debug_info(f"===== Decision agent status/history =====\n{messages[1].content}")
+    # log_debug_info(f"===== Decision agent status/history =====\n{messages[1].content}")
     response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
     log_debug_info(f"===== Decision agent response =====\n{content}")

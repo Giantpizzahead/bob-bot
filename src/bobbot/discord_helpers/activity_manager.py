@@ -113,7 +113,9 @@ async def chess(ctx: commands.Context, elo: int, against: str | None) -> None:
         return
     against_computer: bool = against is not None and against.lower() == "bot"
     configure_chess(elo, against_computer)
-    await ctx.send(f"! ok, playing at {elo} elo vs {'a bot' if against_computer else 'u'}, lets go")
+    await ctx.send(
+        f"ok, ill play chess at {elo} elo vs {'a bot' if against_computer else f'u <@{ctx.author.id}>'}, lets go!"
+    )
     await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
 
 
@@ -132,7 +134,7 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
     """Start an activity (without configuring parameters)."""
     try:
         act = Activity(activity)
-        await ctx.send(f"! ok i {activity}")
+        await ctx.send(f" ok i {activity} now")
         await start_activity(act, gen_command_handler(ctx.channel))
     except ValueError:
         await ctx.send("! invalid activity, try school, eat, shower, sleep, chess, or league")
@@ -155,22 +157,27 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
             await asyncio.sleep(1)
     spectate_status = "spectating"
     curr_message: Optional[discord.Message] = None
+    image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
+    if image_or_msg is None:
+        await ctx.send("! no activity D:")
+        spectate_status = "idle"
+        return
     while spectate_status == "spectating":
-        image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
         if isinstance(image_or_msg, Image.Image):
             with io.BytesIO() as image_binary:
                 # Downscale image
                 image_or_msg = image_or_msg.reduce(2)
                 image_or_msg.save(image_binary, "JPEG")
                 image_binary.seek(0)
+                content = "Spectating:" if video else None
                 if curr_message is not None:
                     # Edit previous message
                     await curr_message.edit(
-                        content="Spectating:", attachments=[discord.File(fp=image_binary, filename="spectate.jpeg")]
+                        content=content, attachments=[discord.File(fp=image_binary, filename="spectate.jpeg")]
                     )
                 else:
                     curr_message = await ctx.send(
-                        content="Spectating:", file=discord.File(fp=image_binary, filename="spectate.jpeg")
+                        content=content, file=discord.File(fp=image_binary, filename="spectate.jpeg")
                     )
             image_or_msg.close()
             await asyncio.sleep(0.5)  # Slow down editing rate
@@ -181,10 +188,14 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
                 await lazy_send_message(ctx.channel, msg, instant=True, force=True)
             break
         else:
-            await ctx.send("! no activity D:")
+            if curr_message is not None:
+                await curr_message.edit(content="Done spectating.")
+            else:
+                await ctx.send("Done spectating.")
             break
         if not video:
             break
+        image_or_msg = await spectate_activity()
     if spectate_status == "stopping":
         spectate_status = "spectating"  # Let the next spectate start
     else:

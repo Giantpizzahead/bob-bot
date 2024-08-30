@@ -3,7 +3,7 @@
 import os
 from typing import Optional
 
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 

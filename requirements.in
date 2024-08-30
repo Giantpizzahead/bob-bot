@@ -10,3 +10,6 @@ chess
 pillow
 pytz
 aiohttp
+youtube-transcript-api
+pytube
+youtube-comment-downloader

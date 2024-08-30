@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.2.1
+        """! hi i am bob 2nd edition v1.3
 command prefix is `!`, slash commands work too
 
 activities:
@@ -34,6 +34,7 @@ config:
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
 `speed [default/instant]` - Set the typing speed of the bot.
 `reset` - Reset the bot's conversation history.
+`reboot` - Reboot the bot.
 
 info:
 `help` - Show this help message.

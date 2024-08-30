@@ -54,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.decide_to_respond"><code class="docutils literal notranslate"><span class="pre">decide_to_respond()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.extract_answers"><code class="docutils literal notranslate"><span class="pre">extract_answers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.get_response"><code class="docutils literal notranslate"><span class="pre">get_response()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.get_response_with_tools"><code class="docutils literal notranslate"><span class="pre">get_response_with_tools()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
@@ -142,6 +143,21 @@ question was answered (True) or needs clarification (False), and the answer or c
 <dt class="sig sig-object py" id="bobbot.agents.get_response">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.agents.</span></span><span class="sig-name descname"><span class="pre">get_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseMessage</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/agents/responses.html#get_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.agents.get_response" title="Link to this definition"></a></dt>
 <dd><p>Get a response from Bob given the server’s messages, with optional system context right before the last message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>msg_history</strong> – The message history.</p></li>
+<li><p><strong>context</strong> – The system context to provide right before the last message.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.agents.get_response_with_tools">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.agents.</span></span><span class="sig-name descname"><span class="pre">get_response_with_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseMessage</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/agents/responses.html#get_response_with_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.agents.get_response_with_tools" title="Link to this definition"></a></dt>
+<dd><p>Get a response from Bob given the server’s messages, with optional system context right before the last message.</p>
+<p>Can use tools as well.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

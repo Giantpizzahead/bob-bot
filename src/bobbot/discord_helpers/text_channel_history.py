@@ -9,7 +9,7 @@ from typing import Callable
 
 import discord
 import requests
-from langchain.schema import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
 from bobbot.utils import get_logger, time_elapsed_str, truncate_length
 

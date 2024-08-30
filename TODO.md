@@ -6,16 +6,41 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Smarts
 
-- [ ] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
-- [ ] Integrate web search into Bob's overall pipeline, with a problem solving agent that decides if tool calls are needed, returning any additional factual context to Bob
-- [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). Initially, just do a single pass.
-- [ ] Make the verifier interact with the problem solving agent in a single back-and-forth. If it fails verification once, send back to the problem solving agent with feedback. If it fails verification twice, send context to Bob saying that the problem solving agent couldn't figure out the answer, and to echo that uncertainty to the user (making clear that it's guessing).
+- [ ] Give Bob a website scraping tool (ideally with something like Playwright for JS sites), see [here](https://python.langchain.com/v0.2/docs/integrations/tools/playwright/) and [here](https://python.langchain.com/v0.2/api_reference/_modules/langchain_community/tools/playwright/extract_text.html#ExtractTextTool)
+- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detected using OpenAI's moderation API
+
+#### Memory
+
+- [ ] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
+
+#### Voice
+
+- [ ] Implement a simple, robotic-sounding TTS system
+- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
+- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+
+#### Activities
+
+- [ ] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
 
 ### Todo
+
+#### Voice
+
+- [ ] Implement a more complete prompt that takes STT results, VC message history, and the channel's recent message history, integrating with tools if possible, to talk semi-well in voice chat
 
 #### Activities
 
 - [ ] Allow Bob to auto-start activities based on context
+- [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
+
+#### Smarts
+
+- [ ] Give Bob a code execution tool (as an advanced calculator or code debugging helper), see [here](https://rapidapi.com/onecompiler-onecompiler-default/api/onecompiler-apis)
+- [ ] Give Bob a reverse image search tool (to look up where locations are, what show an image is from, etc), see [here](https://rapidapi.com/letscrape-6bRBa3QguO5/api/reverse-image-search1)
+- [ ] Give Bob a reasoning tool (as an agent + verifier combo with access to tools that reasons through a complex problem, step by step)
+- [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). Initially, just do a single pass.
+- [ ] Make the verifier interact with the problem solving agent in a single back-and-forth. If it fails verification once, send back to the problem solving agent with feedback. If it fails verification twice, send context to Bob saying that the problem solving agent couldn't figure out the answer, and to echo that uncertainty to the user (making clear that it's guessing).
 
 #### Memory
 
@@ -27,13 +52,10 @@ This list will evolve as the bot progresses. We'll start getting features workin
   - We could potentially use [LlamaIndex](https://medium.com/llamaindex-blog/data-agents-eed797d7972f) to process the memories once we've created them. I'm not sure how this would fit together yet.
 - [ ] Implement a memory pruning system that just prunes the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
 
-#### Smarts
+#### Text
 
-- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detecting using OpenAI's moderation API
-
-#### Voice
-
-hi
+- [ ] Optimize TextChannelHistory token usage by truncating messages
+- [ ] Add medium-term memory to TextChannelHistory by summarizing long messages and those that go out of the window
 
 #### Quality of Life
 
@@ -42,13 +64,8 @@ hi
 - [ ] Think of a way to fix sending multiple messages at once that does not involve the decision maker running again when Bob sent the last message (that doesn't work). Switching Bob's prompt to allow for multiple messages as a response doesn't work well. The best way likely involves a small LLM at the end deciding how to split up a long message into smaller messages, since this won't be influenced by history.
 - [ ] Make a GIF creator on the server-side to improve the spectate command's frame rate
 - [ ] Make a Discord status message based on current activity
-
-### Future
-
-- [ ] Optimize TextChannelHistory token usage by truncating messages
-- [ ] Add medium-term memory to TextChannelHistory by summarizing long messages and those that go out of the window
-- [ ] Implement simulated work, sleep, eat, and shower activities
-- [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
+- [ ] Make the chess bot better at checkmating and avoiding stalemates
+- [ ] Make the chess prompt track the name of the user Bob is playing against (for better comments)
 - [ ] Add tests for stable functions (that likely won't change)
 
 ## Completed Tasks
@@ -63,6 +80,7 @@ hi
 - [x] Reorganize by moving the bot and the agent into classes (for easier abstraction/usage) (decided not to do for now, instead put them in separate functions)
 - [x] Make Bob easier to debug by allowing debug info to be printed on demand in Discord
 - [x] Split big files (modules) into smaller, manageable modules while avoiding cyclic dependencies for ease of development
+- [x] Make a command that reboots the bot on Heroku (just make the worker terminate)
 
 ### Text
 
@@ -95,11 +113,19 @@ hi
 - [x] Allow Bob to comment on current activities through the status message
 - [x] Improve spectate command by editing image repeatedly, allowing a very low frame rate video
 - [x] Fix the Chess.com player in some way to avoid bot detection (manually give it saved cookies, either through Heroku's exec SSH tool or with the new environment variable)
+- [x] Add a "Done spectating" text of some sort when spectating is finished
+- [x] Implement simulated work, sleep, eat, and shower activities
 
 ### Multi-agent
 
 - [x] Implement a basic chain: Response decision -> Message sender
 - [x] Refine message quality and handle content filtering by testing different models
+- [x] Basically the whole project is multi-agent so yeah
+
+### Smarts
+
+- [x] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+- [x] Integrate web search into Bob's overall pipeline, with a problem solving agent that decides if tool calls are needed, returning any additional factual context to Bob (simplified by just putting the tools direclty into Bob's main agent)
 
 ## Milestones and Capstones
 
@@ -110,11 +136,11 @@ hi
 - [x] Demonstrate flexibility by playing 20 questions (7/14/24)
 - [x] Demonstrate emerging reasoning skills by identifying League champs (7/15/24)
 - [x] Recognize and be able to vaguely discuss images (8/18/24)
-- [ ] Demonstrate improved reasoning skills by playing Jeopardy decently
 - [x] Send multiple messages at once, or send no messages when appropriate in a non-hacky way (8/26/24)
-- [ ] Initiate a DM or group chat conversation after being inactive for a while
+- [x] Demonstrate improved knowledge by answering questions requiring real time (online) info (8/29/24)
+- ~~[ ] Initiate a DM or group chat conversation after being inactive for a while~~
 - [ ] Remember details about people from a long time ago, say >50 messages
-- [ ] Have a persistent mood and/or life story through simulated emotions and events
+- ~~[ ] Have a persistent mood and/or life story through simulated emotions and events~~
 - [ ] Understand the difference between DMs and servers, and participate in both of them
 - [ ] **Capstone:** Hold an emotional and long (requiring memory) chat conversation in DMs while acting similar to a human
 - [ ] **Capstone:** Act like a normal, active Discord user in a medium sized server, replying to or initiating messages
@@ -123,9 +149,9 @@ hi
 
 - [x] Join voice chat and play some music (7/15/24)
 - [x] Be able to respond intelligbly to someone talking in voice chat (7/18/24)
-- [ ] Respond in a more human-like voice
+- ~~[ ] Respond in a more human-like voice~~
 - [ ] Generate a response in near real-time, quick enough to not be awkward
-- [ ] Integrate text chat capabilities (memory, emotions, reasoning) into voice chat
+- [ ] Integrate text chat capabilities (memory and reasoning) into voice chat
 - [ ] **Capstone:** Participate decently in a group voice chat, in real-time!
 
 ### Gaming
@@ -135,7 +161,7 @@ hi
 
 ### All Together
 
-- [ ] **Capstone:** Have a user ask Bob to join voice chat, then ask to play a game on Discord, then have him actually join and play that video game!
+- [ ] **Capstone:** Ask Bob to join Discord voice chat, then ask in VC to play a game, then have him actually join and play that video game!
 
 From [the initial Node.js version](https://github.com/Giantpizzahead/bob-bot-ts):
 

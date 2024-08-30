@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+import sys
 from enum import Enum
 from typing import Optional
 
@@ -81,6 +82,13 @@ async def on_ready() -> None:
     except Exception:
         logger.exception("Error syncing commands")
     logger.info("Bob is online!")
+
+
+@bot.hybrid_command(name="reboot")
+async def reboot(ctx: commands.Context):
+    """Reboot the bot."""
+    await ctx.send("! ok, rebooting...")
+    sys.exit(0)  # Exit the process, triggering a reboot on Heroku
 
 
 async def lazy_send_message(

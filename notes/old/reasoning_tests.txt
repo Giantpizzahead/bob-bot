@@ -1,0 +1,91 @@
+Harder ones pulled from https://www.sporcle.com/games/Bulke/guess-the-female-champions
+
+Easy difficulty
+
+Q. theme: league of legends champion. seed: 98347239847. your hint is: while she may not be very flashy, her global healing ult can change the course of a teamfight, especially during late game. the enemy team will need tons of grievous wounds to offset her healing. seriously, she has tons of healing. who is she?
+A. soraka
+
+Q. theme: pokemon. seed: 235235235. your hint is: it is blindingly fast. its blazing speed enhances the effectiveness of the twin scythes on its forearms. This Pokémon’s scythes are so effective, they can slice through thick logs in one wicked stroke.
+A: scyther
+
+Medium difficulty
+
+Q. theme: league of legends champion. seed: 2342423. your hint is: this champ likes to ride people, she is like totally addicted to books and its so sad. honestly the person behind her is prob just afk while ur playing, like no skill come on, just press r and everyone dies. who is it?
+A. yuumi
+
+Q. theme: league of legends champion. seed: 18191. your hint is: this champ is the most charming champ out there, she loves dashing around the rift with ease, and her e-q-w burst combo is simply magical. one of the most versatile mid laners out there, who is she?
+A. ahri
+
+Q. theme: league of legends champion. seed: 2394. your hint is: well it's simple. ult. nearsighted. dead. who am i?
+A. nocturne
+
+Q. theme: league of legends champion. seed: 98765432. your hint is: this guy really knows how to count. or at least the ones not stuck in iron know how. often stands still to deal damage, and still misses everything. except that last shot bc of course it hits D: who is it?
+A. jhin
+
+Q. theme: league of legends champion. seed: 92838472934. hint: this champion is known for their ability to manipulate the ground and create zones of control on the map. They are a mage who excels at controlling teamfights and setting up plays for their team with well-placed abilities. Despite not being a common pick in the current meta, they can be a powerful asset in the right hands. Who am I?
+A. taliyah
+
+Q. theme: league of legends champion. seed: 398474. hint: tibbers!
+A. annie
+
+Q. theme: valorant agent. seed: 928342. hint: the most hated agent in all of val. you see her eye, you better pray she's in iron bc ur about to get empressed onnnn
+A. reyna
+
+Q. theme: logic puzzle. seed: 23984. hint: we know alice is faster than bob, and bob is faster than carol. please rank the 3 from fastest to slowest, or say that it is impossible.
+A. alice, bob, carol
+
+Q. theme: math problem. seed: 192894127. hint: what are the two roots of the quadratic equation x^2 + 7x + 10 = 0?
+A. -2 and -5
+
+Q. theme: common type of soup. seed: 29384734. your hint is: it's the age old classic, the one that campbell loves to package in their metal cups, the one your mom probably made as a kid. its common to drink it when you're sick, as a comfort food, or just as a light and hearty dish. with the main ingredients of one type of meat and one type of starch, what is it?
+A. chicken noodle soup
+
+Q. theme: league of legends champion. seed: 843203480. hint: oh look at me im just farming in mid lane i wonder when she'll be ba- *drowsy* oh shit- *asleep* *dead*
+A. zoe
+
+Q. theme: roblox games. seed: 9238734. your hint is: i love tycoons, i love bees, i love repetitive music and sitting around clicking on bees all day every day
+A. bee swarm simulator
+
+Q. theme: one piece characters. seed: 23948. your hint is: "Kage Kage no Mi"
+A. gecko moria
+
+Q. theme: female league champs. seed: 293482. hint: taken, but maybe you can come to an agreement with her partner with a good mating dance
+A. xayah
+
+Q. theme: female league champs. seed: 293482. hint: there's no chance on beating her 1v1. she can handle a baguette like a champ.
+A. fiora
+
+Hard difficulty
+
+Q. theme: league of legends support champion. seed: 823838. hint: she thinks she's an adc, but she's really just a support. until late game, when she does insane damage with her autos. stealing souls is kinda her whole thing. and dont forget to ping assistance when her ult's up! who is she?
+A. senna
+
+Q. theme: league of legends champion. seed: 398472. your hint is: 🐑 🌋 🔨
+A. ornn
+
+Q. theme: league champs, seed: 893342, hint: I've seen enough hentai to see where this is going
+A. illaoi
+
+Q. theme: league champs, seed: 893342, hint: being an idol is her dream, so i bet she's into some oral exercises
+A. seraphine
+
+Q. theme: female league champs. seed: 293482. hint: even if you don't want it, she will make you love her
+A. ahri
+
+Q. theme: female league champs. seed: 293482. hint: the moon is not the only thing that is rising
+A. diana
+
+Q. theme: theme: computer science concept. seed: 92834234.
+hint: Welcome to today's lecture on [TERM] in computer science. [TERM] is a fundamental concept that helps manage complexity in software development. It allows programmers to focus on high-level functionality without worrying about low-level details. Think of [TERM] as a way to create a simplified model of a complex system. We use [TERM] in everyday life. For example, driving a car without needing to understand how the engine works. In programming, [TERM] can be applied in various forms, such as functions, classes, and interfaces. Let's start with functions. A function [TERMS] a specific task, allowing us to use it without knowing its inner workings. For instance, consider a function that sorts a list. We use the function without needing to know the sorting algorithm. Next, we have classes, which provide a blueprint for creating objects. Classes [TERM] the properties and behaviors of real-world entities. For example, a class Car can [TERM] the characteristics of a car, such as its make, model, and functions like drive() and brake(). Interfaces, on the other hand, define a contract for what a class should do, without specifying how it should do it. An interface might specify that a class must have a save() method, but the implementation details are left to the class itself. [TERM] not only helps in code readability but also in maintainability and scalability of software. By hiding unnecessary details, [TERM] allows developers to work more efficiently and collaboratively. Let's dive deeper into each type of [TERM], starting with functional [TERM]. We'll look at how functions can simplify complex operations and make code more reusable. Next, we'll explore object-oriented [TERM] and how classes and objects can model real-world scenarios. Finally, we'll discuss abstract data types and interfaces, and their role in defining clear and consistent APIs.
+A. abstraction
+
+Extreme difficulty
+
+Q. theme: smash ultimate characters. seed: 23948723. your hint is: 🔵 🤖
+A. mega man
+
+Q. theme: league of legends champion. seed: 32524453. your hint is: you got this guy in your game? first of all, is he top? if not, you better get ready for a clusterfuck. even if he is top, good luck damaging him. either he tanks 50 deaths by smashing into turrets nonstop and still wins the game (legitimate strat that works in challenger btw), or he charges away like a coward only to tp to the opposite side of the map. who is he?
+A. sion
+
+Q. theme: female league champs. seed: 293482. hint: her special skill is making her v-neck disappear
+A. kai'sa

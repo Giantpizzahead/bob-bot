@@ -1,7 +1,7 @@
 """Agent that extracts answers to questions from a message history."""
 
-from langchain.schema import HumanMessage, SystemMessage
 from langchain.tools import tool
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from bobbot.agents.llms import llm_gpt4omini_factual
 from bobbot.utils import get_logger, log_debug_info
@@ -107,8 +107,7 @@ async def extract_answers(msg_history: str, questions: list[str]) -> dict[int, t
 
     # Process tool call(s)
     results = {}
-    for raw_tool_call in response.tool_calls:
-        tool_call = raw_tool_call
+    for tool_call in response.tool_calls:
         if tool_call["name"] == "save_answer":
             question_num = tool_call["args"]["question_num"]
             answer = tool_call["args"]["answer"]

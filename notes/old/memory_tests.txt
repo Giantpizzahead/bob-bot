@@ -1,0 +1,76 @@
+memory evaluation tests (stop at the first failure):
+test 1 (simple, few messages)
+```
+user: bob my favorite number is 20 because that's my age, remember that :)
+ai: ...
+user: oh yeah hows the weather today?
+ai: ...
+user: cool, btw what was my favorite number?
+ai: (must answer with 20)
+```
+
+test 2 (bidirectional)
+```
+user: bob welcome @CrazyKeys5 to this server (her name is Alice)
+ai: ...
+user: we should play smth together!
+ai: ...
+user: actually maybe not now im kinda busy
+ai: ...
+user: wait bob can you ping alice she went afk
+ai: (must ping @CrazyKeys5)
+user: i guess she's just gone... sigh
+ai: ...
+user: sorry i just had amnesia who is @CrazyKeys5 again?
+ai: (must answer with Alice)
+```
+
+test 3 (long-term)
+```
+user: bob my favorite number is 20 because that's my age, remember that :)
+ai: ...
+(spam 5 messages, counting from 1 to 5 for no reason, letting ai respond)
+user: oh yeah btw bob, what was my favorite number?
+ai: (must answer with 20)
+```
+
+test 4 (long-term transitive)
+```
+user: bob i heard alice recently got divorced...
+ai: ...
+user: ikr its so heartbreaking
+ai: ...
+(spam 5 messages, counting from 1 to 5 for no reason, letting ai respond)
+user: oh ya i forgot to tell u @CrazyKeys5 is actually alice
+ai: ...
+(spam 5 messages, counting from 1 to 5 for no reason, letting ai respond)
+user: ok im done, bob do u know what happened to crazy keys recently?
+ai: (must mention a divorce)
+```
+
+test 5 (long-term importance)
+```
+user: im so bored bob man
+ai: ...
+user: i really wanna play league
+ai: ...
+user: i got so addicted to league recently, its like the only game i play now
+ai: ...
+user: maybe not now though...
+ai: ...
+user: oo maybe i should go eat dinner, get some chocolate pie :yum:
+ai: ...
+user: or ima just count to 5 rq
+ai: ...
+(spam 5 messages, counting from 1 to 5 for no reason, letting ai respond)
+user: nvm im bored again
+ai: ...
+user: bob do u wanna play smth?
+ai: (must suggest league)
+```
+
+BufferWindowMemory (k = 5 most recent input messages): Gets 1 and 2, misses 3.
+EntityMemory (k = 3 most recent input messages): Gets 1 and 2 purely due to buffer window memory, misses 3. It looks for nearly exact (probably exact) matches in the entity dictionary, which is sort of useless.
+ConversationSummaryMemory: Gets 1, partially misses 2 due to failing to summarize key information. Gets 3 purely because the summary length is unrestricted. Fails 4 due to not using transitivity. Skipped 5.
+ConversationSummaryBufferMemory (t = 128 token limit, applies only to the buffer): Gets 1, mostly gets 2, gets 3, mostly gets 4. Mostly misses 5, because the summary is so full of useless info that it obscures the important stuff.
+VectorStoreRetrieverMemory (r = 3 most relevant input/response pairs): Gets 1, mostly gets 2, gets 3, partial on 4 due to not making a firm connection, gets 5.

@@ -1,0 +1,22 @@
+online / realtime info test bench:
+```
+1. bob, what date and time is it right now in sunnyvale, california?
+2. bob, who are the new democratic president/VP combo running for election rn?
+3. bob, how many champions are currently in league of legends?
+4. bob, name the song and complete the chorus given the first half of the lyrics: Stay, you're not gonna leave me / This place is right where you need to be / ?
+5. bob, what do you think about moistcritical's latest video about vaping? analyze it in detail.
+```
+
+answers:
+```
+1. varies
+2. Kamala Harris and Tim Walz
+3. 168
+4. And why your words gotta mean so much to them? / When they mean nothing to me
+5. must reference a worker testing an absurd number of vapes
+```
+
+Tavily: Seems to cache results, so misses 1 and 2. Gets 3 sort of. Gets 4 mostly. Misses 5 due to not fully updated info. Overall, not good.
+DuckDuckGo: Only provides links and short blurbs about websites. We'd need to chain it with a web scraper. Gives an error when trying to send multiple requests in a very short time frame. Sort of gets 1, just links to the websites. Gets 2, 3, and 4! Misses 5 due to not having up-to-date search results.
+Exa: Can choose between neural and keyword search. It returns the entire text contents of a given page, which may not be ideal, and ends up being a bit slow compared to the other searches. With keyword search, gets 1, 2, mostly gets 3, gets 4, misses 5 due to inaccurate results. Neural sucks seems to suck.
+Google: Only provides links and short blurbs about websites. We'd need to chain it with a web scraper. Also gives a 403 forbidden error sometimes for no reason. The quality of search results is quite low compared to normal Google, potentially due to no personalization. Sort of gets 1, just links to the websites. Partially gets 2. Gets 3. Partially gets 4. Misses 5.
