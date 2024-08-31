@@ -4,7 +4,7 @@ import os
 from typing import Optional
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from openai import OpenAI
 
 from bobbot.utils import get_logger
@@ -16,6 +16,7 @@ openai_key: Optional[str] = os.getenv("OPENAI_KEY")
 if openai_key is None:
     raise ValueError("OPENAI_KEY environment variable is not set.")
 openai_client = OpenAI(api_key=openai_key)
+openai_embeddings = OpenAIEmbeddings(api_key=openai_key)
 llm_gpt35 = ChatOpenAI(
     api_key=openai_key,
     model="gpt-3.5-turbo",

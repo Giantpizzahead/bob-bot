@@ -8,11 +8,9 @@ from bobbot.utils import get_logger, log_debug_info
 
 logger = get_logger(__name__)
 
-ANSWER_EXTRACTION_PROMPT = """You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user's answer. If the user only vaguely addresses a question and doesn't provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time.
+ANSWER_EXTRACTION_PROMPT = """You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user's answer. If the user only vaguely addresses a question and doesn't provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time. Follow these examples:
 
-### Examples
-
-#### Example 1
+### Example 1
 
 Chat history:
 Axoa1: bob let's play league!
@@ -25,7 +23,7 @@ Question list:
 
 Output: request_clarification(2, "Ask the user to confirm they want you to play mid.")
 
-#### Example 2
+### Example 2
 
 Chat history:
 bob: hmm i got a midterm tmrw, when should i sleep? would 3 am work :p
@@ -38,7 +36,7 @@ Question list:
 
 Output: save_answer(1, "around 1 am")
 
-#### Example 3
+### Example 3
 
 Chat history:
 Axoa1: so she asked the math question

@@ -8,6 +8,10 @@ Bob will have a "default" mode, along with persistent long-term storage (stays a
 
 To give some level of control, first, Bob should have some sort of "debug screen" - like a bare bones "website" that shows his current mood, what he is doing/thinking, etc. to quickly diagnose why he's acting certain ways. Second, Bob should have an "obedient" mode, in which he should strive to comply with every human request he's given - that should override his mood / willingness to do so. Finally, Bob should also have an "off" mode, and an option to remove all simulated latency between actions (for debugging).
 
+### Update
+
+A bit of a shift in vision: It doesn't feel right to try to pretend that Bob is human. I don't think that would work well. Instead, we'll make it interactive and feel like a real Discord user, but we won't blur the lines that it's a bot. It won't have simulated life events, make up stories, etc... due to real life concerns and time constraints, I think this is the way to go.
+
 ## Ideal Features
 
 - Discord Text

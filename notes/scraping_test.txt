@@ -1,0 +1,67 @@
+With and without custom cleaning. Note, these were tested during development (with changing parser code), so numbers are likely a bit off.
+
+https://leagueoflegends.fandom.com/wiki/List_of_champions
+===== Cleaned, no links =====
+HTML length 189985.
+Markdown length 16820.
+Eval - Looks great! Tiny bit of header/footer. Still too long to feed directly.
+
+===== Cleaned, links =====
+HTML length 483850.
+Markdown length 96911.
+Eval - Looks great again. Tiny header/footer. Long. Converting to Markdown is actually a good compression tactic!
+
+===== Raw =====
+HTML length 932536.
+Markdown length 119972.
+Eval - Ok, lots of header/footer. Very long. Takes a long time to do Markdown conversion.
+
+
+https://webscraper.io/test-sites/e-commerce/more
+===== Cleaned, no links =====
+HTML length 6293.
+Markdown length 1241.
+Eval - Good, same as the one with links.
+
+===== Cleaned, links =====
+HTML length 9090.
+Markdown length 2433.
+Eval - Good, some footer stuff.
+
+===== Raw =====
+HTML length 12832.
+Markdown length 3213.
+Eval - Decent. Images are broken because of relative links. I can fix that though. I fixed it!
+
+
+https://www.leagueoflegends.com/en-us/champions/
+===== Cleaned, no links =====
+HTML length 13516.
+Markdown length 2246.
+Eval - Looks pretty good without images, has a footer but overall great
+
+===== Cleaned, links =====
+HTML length 129820.
+Markdown length 32983.
+Eval - Looks about what you'd expect, a lot longer cause of images
+
+===== Raw =====
+HTML length 393745.
+Markdown length 35276.
+Eval - Decent, more header/footer though.
+
+https://www.youtube.com/watch?v=Mdnace-jyNg&t=969s
+===== Cleaned, no links =====
+HTML length 256112.
+Markdown length 8048.
+Eval - Not bad, looks the same but with only a few (manually written) links.
+
+===== Cleaned, links =====
+HTML length 440837.
+Markdown length 21459.
+Eval - Not bad either, I'm not sure if it looks better though. The links likely work now though.
+
+===== Raw =====
+HTML length 1686651.
+Markdown length 19780.
+Eval - Honestly not bad. Not good either, lots and lots of fluff.

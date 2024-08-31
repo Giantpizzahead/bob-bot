@@ -1,6 +1,7 @@
 -r requirements.in
 
 pytest
+pytest-asyncio
 flake8
 flake8-docstrings
 Flake8-pyproject

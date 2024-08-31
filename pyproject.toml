@@ -21,7 +21,11 @@ extend-exclude = ["old/*.py", "dev_*.py", "build/*.py", "docs/*.py"]
 docstring-convention = "google"
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["src", "test"]
 cache_dir = "build/.pytest_cache"
+filterwarnings = ["ignore::DeprecationWarning::"]
 
 [tool.mypy]
 exclude = '''

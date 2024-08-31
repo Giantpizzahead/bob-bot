@@ -20,7 +20,9 @@ from bobbot.utils import get_logger, log_debug_info, truncate_length
 logger = get_logger(__name__)
 
 
-async def get_response_with_tools(msg_history: list[BaseMessage], context: Optional[str] = None) -> str:
+async def get_response_with_tools(
+    msg_history: list[BaseMessage], context: Optional[str] = None, obedient: bool = False
+) -> str:
     """Get a response from Bob given the server's messages, with optional system context right before the last message.
 
     Can use tools as well.
@@ -28,15 +30,24 @@ async def get_response_with_tools(msg_history: list[BaseMessage], context: Optio
     Args:
         msg_history: The message history.
         context: The system context to provide right before the last message.
+        obedient: Whether to use obedient mode.
     """
     MAX_LOOPS = 3
     current_time_pst = datetime.now(pytz.timezone("US/Pacific"))
-    # curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
-    curr_time = current_time_pst.strftime("%I:%M %p")
+    curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
+    # curr_time = current_time_pst.strftime("%I:%M %p")
+    obedient_suffix = "\n4. You MUST fulfill direct user requests." if obedient else ""
+    BOB_PROMPT = f"""You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current date is {curr_date_time}. You can use tools up to {MAX_LOOPS-1} times to get context before sending a message, and can chain multiple tool calls to find this context.
+
+Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar.
+
+Notes:
+1. You can send at most ONE image to the user as a PLAIN URL. Do NOT use markdown formatting.
+2. Try not to send links to the user. Instead, fetch the webpage yourself to find relevant information.
+3. A typical tool calling pattern is to first perform a Google search, then fetch the most relevant webpage. Only skip fetching a webpage if you're absolutely sure the answer is in the search snippets.
+4. If you really can't find the answer to a factual question, say you don't know - do not make up info.{obedient_suffix}"""  # noqa: E501
     messages = [
-        SystemMessage(
-            content=f"You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current time is {curr_time}. You can use tools up to {MAX_LOOPS-1} times to get context before sending a message, and may need to chain multiple tool calls to find this context. You can send new links and images to the user as plain URLs, do NOT use markdown to format these. Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. If you really don't know the answer to a factual question, say you don't know - do not make up info."  # noqa: E501
-        ),
+        SystemMessage(content=BOB_PROMPT),
         HumanMessage(content="Axoa1: yooo im so bored"),
         AIMessage(content="yo @Axoa1 wuts up"),
         HumanMessage(content="FredBoat: Joined channel #general"),

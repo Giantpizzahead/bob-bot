@@ -99,7 +99,9 @@
 
 <div class="viewcode-block" id="get_response_with_tools">
 <a class="viewcode-back" href="../../../agents.html#bobbot.agents.get_response_with_tools">[docs]</a>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">get_response_with_tools</span><span class="p">(</span><span class="n">msg_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_response_with_tools</span><span class="p">(</span>
+    <span class="n">msg_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">obedient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a response from Bob given the server&#39;s messages, with optional system context right before the last message.</span>
 
 <span class="sd">    Can use tools as well.</span>
@@ -107,15 +109,24 @@
 <span class="sd">    Args:</span>
 <span class="sd">        msg_history: The message history.</span>
 <span class="sd">        context: The system context to provide right before the last message.</span>
+<span class="sd">        obedient: Whether to use obedient mode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">MAX_LOOPS</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">current_time_pst</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s2">&quot;US/Pacific&quot;</span><span class="p">))</span>
-    <span class="c1"># curr_date_time = current_time_pst.strftime(&quot;%A, %B %d, %Y at %I:%M %p&quot;)</span>
-    <span class="n">curr_time</span> <span class="o">=</span> <span class="n">current_time_pst</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%I:%M %p&quot;</span><span class="p">)</span>
+    <span class="n">curr_date_time</span> <span class="o">=</span> <span class="n">current_time_pst</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%A, %B </span><span class="si">%d</span><span class="s2">, %Y at %I:%M %p&quot;</span><span class="p">)</span>
+    <span class="c1"># curr_time = current_time_pst.strftime(&quot;%I:%M %p&quot;)</span>
+    <span class="n">obedient_suffix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">4. You MUST fulfill direct user requests.&quot;</span> <span class="k">if</span> <span class="n">obedient</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">BOB_PROMPT</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current date is </span><span class="si">{</span><span class="n">curr_date_time</span><span class="si">}</span><span class="s2">. You can use tools up to </span><span class="si">{</span><span class="n">MAX_LOOPS</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2"> times to get context before sending a message, and can chain multiple tool calls to find this context.</span>
+
+<span class="s2">Avoid rambling for too long, split long messages into short ones, and don&#39;t repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar.</span>
+
+<span class="s2">Notes:</span>
+<span class="s2">1. You can send at most ONE image to the user as a PLAIN URL. Do NOT use markdown formatting.</span>
+<span class="s2">2. Try not to send links to the user. Instead, fetch the webpage yourself to find relevant information.</span>
+<span class="s2">3. A typical tool calling pattern is to first perform a Google search, then fetch the most relevant webpage. Only skip fetching a webpage if you&#39;re absolutely sure the answer is in the search snippets.</span>
+<span class="s2">4. If you really can&#39;t find the answer to a factual question, say you don&#39;t know - do not make up info.</span><span class="si">{</span><span class="n">obedient_suffix</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
     <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">SystemMessage</span><span class="p">(</span>
-            <span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current time is </span><span class="si">{</span><span class="n">curr_time</span><span class="si">}</span><span class="s2">. You can use tools up to </span><span class="si">{</span><span class="n">MAX_LOOPS</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2"> times to get context before sending a message, and may need to chain multiple tool calls to find this context. You can send new links and images to the user as plain URLs, do NOT use markdown to format these. Avoid rambling for too long, split long messages into short ones, and don&#39;t repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. If you really don&#39;t know the answer to a factual question, say you don&#39;t know - do not make up info.&quot;</span>  <span class="c1"># noqa: E501</span>
-        <span class="p">),</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">BOB_PROMPT</span><span class="p">),</span>
         <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;Axoa1: yooo im so bored&quot;</span><span class="p">),</span>
         <span class="n">AIMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;yo @Axoa1 wuts up&quot;</span><span class="p">),</span>
         <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;FredBoat: Joined channel #general&quot;</span><span class="p">),</span>

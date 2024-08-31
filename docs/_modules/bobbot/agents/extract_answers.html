@@ -85,11 +85,9 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">ANSWER_EXTRACTION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user&#39;s answer. If the user only vaguely addresses a question and doesn&#39;t provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time.</span>
+<span class="n">ANSWER_EXTRACTION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are an expert investigator named Bob chatting in a Discord server. Given the chat history and a list of waiting questions, determine if another user directly or completely answers any of your questions. If a question is directly answered, call `save_answer(question_num, answer)` with the corresponding question number and the user&#39;s answer. If the user only vaguely addresses a question and doesn&#39;t provide enough information to fully answer it, call `request_clarification(question_num, clarifying_command)` with the appropriate question number and a command in the 2nd person to clarify. If the user does not address any questions, call `do_nothing()` exactly one time. Follow these examples:</span>
 
-<span class="s2">### Examples</span>
-
-<span class="s2">#### Example 1</span>
+<span class="s2">### Example 1</span>
 
 <span class="s2">Chat history:</span>
 <span class="s2">Axoa1: bob let&#39;s play league!</span>
@@ -102,7 +100,7 @@
 
 <span class="s2">Output: request_clarification(2, &quot;Ask the user to confirm they want you to play mid.&quot;)</span>
 
-<span class="s2">#### Example 2</span>
+<span class="s2">### Example 2</span>
 
 <span class="s2">Chat history:</span>
 <span class="s2">bob: hmm i got a midterm tmrw, when should i sleep? would 3 am work :p</span>
@@ -115,7 +113,7 @@
 
 <span class="s2">Output: save_answer(1, &quot;around 1 am&quot;)</span>
 
-<span class="s2">#### Example 3</span>
+<span class="s2">### Example 3</span>
 
 <span class="s2">Chat history:</span>
 <span class="s2">Axoa1: so she asked the math question</span>

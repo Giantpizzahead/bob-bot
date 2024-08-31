@@ -13,3 +13,4 @@ aiohttp
 youtube-transcript-api
 pytube
 youtube-comment-downloader
+beautifulsoup4

@@ -90,16 +90,9 @@
 <span class="kn">import</span> <span class="nn">chess.engine</span>
 <span class="kn">from</span> <span class="nn">chess</span> <span class="kn">import</span> <span class="n">Board</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">BrowserContext</span><span class="p">,</span>
-    <span class="n">Locator</span><span class="p">,</span>
-    <span class="n">Page</span><span class="p">,</span>
-    <span class="ne">TimeoutError</span><span class="p">,</span>
-    <span class="n">async_playwright</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">playwright_stealth</span> <span class="kn">import</span> <span class="n">StealthConfig</span><span class="p">,</span> <span class="n">stealth_async</span>
+<span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="n">BrowserContext</span><span class="p">,</span> <span class="n">Locator</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="ne">TimeoutError</span>
 
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_playwright_browser</span><span class="p">,</span> <span class="n">get_playwright_page</span>
 
 <span class="n">STATE_FILE</span> <span class="o">=</span> <span class="s2">&quot;local/pw/state.json&quot;</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -555,72 +548,69 @@
     <span class="n">match_result</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">start_sunfish_engine</span><span class="p">()</span>
-        <span class="k">async</span> <span class="k">with</span> <span class="n">async_playwright</span><span class="p">()</span> <span class="k">as</span> <span class="n">playwright</span><span class="p">:</span>
-            <span class="n">browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">playwright</span><span class="o">.</span><span class="n">chromium</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slow_mo</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
-            <span class="c1"># Create context and page</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading initial state from environment variable...&quot;</span><span class="p">)</span>
-                <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restoring state...&quot;</span><span class="p">)</span>
-                <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">(</span><span class="n">storage_state</span><span class="o">=</span><span class="n">STATE_FILE</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">()</span>
+        <span class="n">browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_playwright_browser</span><span class="p">()</span>
+        <span class="c1"># Create context and page</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading initial state from environment variable...&quot;</span><span class="p">)</span>
+            <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CHESS_STATE_JSON&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Restoring state...&quot;</span><span class="p">)</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">(</span><span class="n">storage_state</span><span class="o">=</span><span class="n">STATE_FILE</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_context</span><span class="p">()</span>
 
-            <span class="c1"># Play chess</span>
-            <span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">new_page</span><span class="p">()</span>
-            <span class="k">await</span> <span class="n">stealth_async</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">StealthConfig</span><span class="p">(</span><span class="n">navigator_user_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>  <span class="c1"># Already headless!</span>
-            <span class="n">chess_page</span> <span class="o">=</span> <span class="n">page</span>
-            <span class="n">page</span><span class="o">.</span><span class="n">set_default_timeout</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">login</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">against_computer</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">start_match_computer</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-                <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that you are now in a chess game against a bot.&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">challenge_link</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_challenge_link</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-                <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Send the user this link (don&#39;t use Markdown) so they can join your chess match, note that the link is different each time! </span><span class="si">{</span><span class="n">challenge_link</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span>
-                <span class="p">)</span>
-                <span class="k">await</span> <span class="n">wait_for_accepted_match</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might return early if stopping, but that&#39;s ok</span>
+        <span class="c1"># Play chess</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_playwright_page</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">chess_page</span> <span class="o">=</span> <span class="n">page</span>
+        <span class="k">await</span> <span class="n">login</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">against_computer</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">start_match_computer</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that you are now in a chess game against a bot.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">challenge_link</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_challenge_link</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Send the user this link (don&#39;t use Markdown) so they can join your chess match, note that the link is different each time! </span><span class="si">{</span><span class="n">challenge_link</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span>
+            <span class="p">)</span>
+            <span class="k">await</span> <span class="n">wait_for_accepted_match</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might return early if stopping, but that&#39;s ok</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (before starting)...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
+            <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+            <span class="k">return</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;start_spectating&quot;</span><span class="p">))</span>  <span class="c1"># Start spectating</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">wait_for_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+            <span class="n">match_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match_result</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">await</span> <span class="n">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might dry move, but that&#39;s ok</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (before starting)...&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (while playing)...&quot;</span><span class="p">)</span>
                 <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
                 <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                 <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
                 <span class="k">return</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
-            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;start_spectating&quot;</span><span class="p">))</span>  <span class="c1"># Start spectating</span>
-            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="k">await</span> <span class="n">wait_for_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-                <span class="n">match_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">match_result</span><span class="p">:</span>
-                    <span class="k">break</span>
-                <span class="k">await</span> <span class="n">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might dry move, but that&#39;s ok</span>
-                <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (while playing)...&quot;</span><span class="p">)</span>
-                    <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
-                    <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                    <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
-                    <span class="k">return</span>
 
-            <span class="c1"># Close ending dialog</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;finished&quot;</span>
-            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">700</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">close_ending_dialog</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
-            <span class="n">last_screenshot</span> <span class="o">=</span> <span class="k">await</span> <span class="n">screenshot_chess_activity</span><span class="p">()</span>
-            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (Reason: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>  <span class="c1"># noqa: E501</span>
-            <span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished chess match. Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (</span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span>
-            <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1"># Close ending dialog</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;finished&quot;</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">700</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">close_ending_dialog</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+        <span class="n">last_screenshot</span> <span class="o">=</span> <span class="k">await</span> <span class="n">screenshot_chess_activity</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (Reason: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished chess match. Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (</span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tell the user there was an unexpected error while playing chess: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

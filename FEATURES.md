@@ -14,7 +14,7 @@ This is a list of ideal features, along with which are currently implemented.
 - [x] Be able to see image attachments.
 - [x] Let Bob decide whether to look at the message based on whether he was pinged.
 - [x] Let Bob decide whether to send messages as a reply.
-- [ ] Query external tools (web search, image search, reasoning, mood, etc) to determine a good reply.
+- [x] Query external tools (web search, image search, reasoning, mood, etc) to determine a good reply.
 - [x] Give a reply in Discord's writing/humor style.
 - [ ] Be fine and open with NSFW messages and replies.
 - [ ] Still, send all messages with the intention of ensuring everyone has a good time.
@@ -32,8 +32,8 @@ This is a list of ideal features, along with which are currently implemented.
 
 ### Human-like
 
-- [ ] Have a semi-persistent mood.
-- [ ] Know what Bob (himself) is doing at the moment, and factor that in when sending messages.
+- [x] Have a semi-persistent mood. (Side effect of conversation history)
+- [x] Know what Bob (himself) is doing at the moment, and factor that in when sending messages.
 - [ ] Have desires (ex: to make/hang out with friends), and factor that in when making decisions.
 - [ ] Learn about people through their real names, as opposed to Discord handles (only care about handles when immediately relevant).
 - [ ] Be able to store and recall facts and tidbits about people/events through long-term memory.
@@ -56,25 +56,25 @@ This is a list of ideal features, along with which are currently implemented.
 
 ### Gaming
 
-- [ ] Be able to join a Chess.com match (in regular chess, possibly timed) using an invite link.
-- [ ] Play chess at a configurable level of difficulty (anything is fine).
-- [ ] Be able to join a Skribbl.io match using an invite link.
-- [ ] Be able to guess a word sometimes, given someone else's drawing and the guesses so far.
-- [ ] Be able to draw a word well enough such that others can guess it sometimes, given a vector art image of the word. Stop drawing when the round ends.
-- [ ] Extra: Use OCR of some sort to filter out words in the image that may give away the answer. Or, start drawing related text if no one guesses the image.
+- [x] Be able to join a Chess.com match (in regular chess, possibly timed) using an invite link.
+- [x] Play chess at a configurable level of difficulty (anything is fine).
+- ~~[ ] Be able to join a Skribbl.io match using an invite link.~~
+- [ ] ~~Be able to guess a word sometimes, given someone else's drawing and the guesses so far.~~
+- [ ] ~~Be able to draw a word well enough such that others can guess it sometimes, given a vector art image of the word. Stop drawing when the round ends.~~
+- [ ] ~~Extra: Use OCR of some sort to filter out words in the image that may give away the answer. Or, start drawing related text if no one guesses the image.~~
 - [ ] Be able to join a League of Legends lobby when being sent an invite.
 - [ ] Be able to play games of Coop vs. AI as a solo mid laner with one champ, on Beginner difficulty.
 - [ ] Be able to play games of Coop vs. AI as a duo bot lane with one champ, on Beginner difficulty.
 
 ### Ease of Use
 
-- [ ] Have a default mode which incorporates all the above features.
+- [x] Have a default mode which incorporates all the above features.
 - [ ] Have an obedient mode which heavily encourages the bot to honor any request people make of it.
-- [ ] Have an off mode that turns the bot off. No requests of any sort should be made during this time.
-- [ ] Create a simple web interface for debugging and/or tuning core features without needing to reboot.
+- [x] Have an off mode that turns the bot off. No requests of any sort should be made during this time.
+- [ ] ~~Create a simple web interface for debugging and/or tuning core features without needing to reboot.~~
 
 ### Efficiency
 
-- [ ] Almost all LLM requests should be tied to a Discord message. Periodic updates should happen at most once every 1-2 hours.
-- [ ] Prompts and repsonses between agents should try to keep token use low.
-- [ ] Keep the system simple to think about, avoid adding too many agents.
+- Almost all LLM requests should be tied to a Discord message. Periodic updates should happen at most once every 1-2 hours.
+- Prompts and repsonses between agents should try to keep token use low.
+- Keep the system simple to think about, avoid adding too many agents.
