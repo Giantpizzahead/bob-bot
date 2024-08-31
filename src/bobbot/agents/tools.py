@@ -3,7 +3,7 @@
 import logging
 from itertools import islice
 
-import pytube
+# import pytube
 from bs4 import BeautifulSoup
 from langchain.docstore.document import Document
 from langchain.tools import tool
@@ -13,7 +13,9 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from playwright.async_api import TimeoutError
-from pytube import YouTube
+
+# from pytube import YouTube
+from pytubefix import YouTube
 from youtube_comment_downloader import SORT_BY_POPULAR, YoutubeCommentDownloader
 from youtube_transcript_api import Transcript, YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
@@ -252,7 +254,7 @@ async def watch_youtube_video(url: str) -> dict:
             return {"error": "Invalid YouTube URL."}
 
         # Get video info and transcript
-        pytube.innertube._default_clients["ANDROID"] = pytube.innertube._default_clients["WEB"]
+        # pytube.innertube._default_clients["ANDROID"] = pytube.innertube._default_clients["WEB"]
         # loader = YoutubeLoader.from_youtube_url(url, add_video_info=True)
         # raw_results = await loader.aload()
         # if len(raw_results) == 0:

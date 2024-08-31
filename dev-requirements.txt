@@ -236,7 +236,7 @@ python-dotenv==1.0.1
     # via
     #   -r requirements.in
     #   pyautogen
-pytube==15.0.0
+pytubefix==6.13.1
     # via -r requirements.in
 pytz==2024.1
     # via

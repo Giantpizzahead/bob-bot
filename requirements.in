@@ -11,7 +11,7 @@ pillow
 pytz
 aiohttp
 youtube-transcript-api
-pytube
+pytubefix
 youtube-comment-downloader
 beautifulsoup4
 psutil
