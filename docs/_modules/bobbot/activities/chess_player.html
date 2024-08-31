@@ -108,7 +108,7 @@
 
 
 <div class="viewcode-block" id="login">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.login">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.login">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">BrowserContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Login to chess.com.&quot;&quot;&quot;</span>
     <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="s2">&quot;https://www.chess.com/&quot;</span><span class="p">)</span>
@@ -135,7 +135,7 @@
 
 
 <div class="viewcode-block" id="get_challenge_link">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_challenge_link">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_challenge_link">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_challenge_link</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a challenge link to play against the bot.&quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating challenge link...&quot;</span><span class="p">)</span>
@@ -162,7 +162,7 @@
 
 
 <div class="viewcode-block" id="wait_for_accepted_match">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.wait_for_accepted_match">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.wait_for_accepted_match">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_accepted_match</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wait for the challenge link match to be accepted (3 minutes).&quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for match to be accepted...&quot;</span><span class="p">)</span>
@@ -182,7 +182,7 @@
 
 
 <div class="viewcode-block" id="start_match_computer">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.start_match_computer">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.start_match_computer">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">start_match_computer</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a match against the computer.&quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting match...&quot;</span><span class="p">)</span>
@@ -200,7 +200,7 @@
 
 
 <div class="viewcode-block" id="get_moves_locator">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_moves_locator">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_moves_locator">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_moves_locator</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Locator</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the locator for the move list, along with the selector used.&quot;&quot;&quot;</span>
     <span class="n">move_list</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;wc-move-list&quot;</span><span class="p">)</span>
@@ -214,7 +214,7 @@
 
 
 <div class="viewcode-block" id="wait_for_move">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.wait_for_move">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.wait_for_move">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">wait_for_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wait for the opponent to make a move.&quot;&quot;&quot;</span>
     <span class="n">move_list</span><span class="p">,</span> <span class="n">selector</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_moves_locator</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
@@ -244,7 +244,7 @@
 
 
 <div class="viewcode-block" id="check_game_over">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.check_game_over">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.check_game_over">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the game is over. Returns None if ongoing. Else, returns white/black/draw/unknown and a description.&quot;&quot;&quot;</span>
     <span class="c1"># Possible endings: 1-0, 0-1, 1/2-1/2</span>
@@ -270,7 +270,7 @@
 
 
 <div class="viewcode-block" id="close_ending_dialog">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.close_ending_dialog">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.close_ending_dialog">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">close_ending_dialog</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Close the game over dialog (if it&#39;s open).&quot;&quot;&quot;</span>
     <span class="n">game_over_locator_1</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;button.game-over-header-close&quot;</span><span class="p">)</span>
@@ -284,7 +284,7 @@
 
 
 <div class="viewcode-block" id="play_move">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.play_move">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.play_move">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Play a move as Black.&quot;&quot;&quot;</span>
     <span class="c1"># Locate all chess pieces within the board</span>
@@ -338,7 +338,7 @@
 
 
 <div class="viewcode-block" id="get_time_left">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_time_left">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_time_left">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_time_left</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Bob&#39;s clock time left in seconds, if it exists.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">&quot;.clock-bottom&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_visible</span><span class="p">():</span>
@@ -349,7 +349,7 @@
 
 
 <div class="viewcode-block" id="parse_board">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.parse_board">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.parse_board">[docs]</a>
 <span class="k">def</span> <span class="nf">parse_board</span><span class="p">(</span><span class="n">classes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Board</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse the board from a list of classes representing the pieces.&quot;&quot;&quot;</span>
     <span class="n">PIECE_TYPES</span> <span class="o">=</span> <span class="p">{</span>
@@ -383,7 +383,7 @@
 
 
 <div class="viewcode-block" id="start_sunfish_engine">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.start_sunfish_engine">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.start_sunfish_engine">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">start_sunfish_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Start the Sunfish engine.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">engine</span>
@@ -401,7 +401,7 @@
 
 
 <div class="viewcode-block" id="stop_sunfish_engine">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.stop_sunfish_engine">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.stop_sunfish_engine">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">stop_sunfish_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop the Sunfish engine.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">engine</span><span class="p">:</span>
@@ -410,7 +410,7 @@
 
 
 <div class="viewcode-block" id="get_move_sunfish">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_move_sunfish">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_move_sunfish">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_move_sunfish</span><span class="p">(</span><span class="n">board</span><span class="p">:</span> <span class="n">Board</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a move using Sunfish for the target elo.</span>
 
@@ -482,7 +482,7 @@
 
 
 <div class="viewcode-block" id="get_move">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_move">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_move">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_move</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span> <span class="n">board</span><span class="p">:</span> <span class="n">Board</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">chess</span><span class="o">.</span><span class="n">Move</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a move for the given board. Quality varies based on elo and time left. Simulates thinking time.</span>
 
@@ -515,7 +515,7 @@
 
 
 <div class="viewcode-block" id="screenshot_chess_activity">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.screenshot_chess_activity">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.screenshot_chess_activity">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">screenshot_chess_activity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a Path to a screenshot of the whole page (including the board), or None if no screenshot is available.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">last_screenshot</span>
@@ -528,7 +528,7 @@
 
 
 <div class="viewcode-block" id="play_chess_activity">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.play_chess_activity">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.play_chess_activity">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">play_chess_activity</span><span class="p">(</span><span class="n">cmd_handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Play chess against the user (or the computer).</span>
 
@@ -621,7 +621,7 @@
 
 
 <div class="viewcode-block" id="stop_playing_chess">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.stop_playing_chess">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.stop_playing_chess">[docs]</a>
 <span class="k">def</span> <span class="nf">stop_playing_chess</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stops playing chess (when it&#39;s feasible to).&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">status</span>
@@ -630,7 +630,7 @@
 
 
 <div class="viewcode-block" id="configure_chess">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.configure_chess">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.configure_chess">[docs]</a>
 <span class="k">def</span> <span class="nf">configure_chess</span><span class="p">(</span><span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">against_computer</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configures the chess activity.</span>
 
@@ -646,7 +646,7 @@
 
 
 <div class="viewcode-block" id="get_chess_info">
-<a class="viewcode-back" href="../../../chess.html#bobbot.activities.get_chess_info">[docs]</a>
+<a class="viewcode-back" href="../../../chess.html#bobbot.activities.chess_player.get_chess_info">[docs]</a>
 <span class="k">def</span> <span class="nf">get_chess_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current chess activity status.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
