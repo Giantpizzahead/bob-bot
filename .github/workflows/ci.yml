@@ -12,12 +12,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    env:
-      OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
-      SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
-      LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
-      LANGCHAIN_PROJECT: ${{ secrets.LANGCHAIN_PROJECT }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -35,3 +29,8 @@ jobs:
 
       - name: Run tests
         run: make test
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_PROJECT: ${{ secrets.LANGCHAIN_PROJECT }}
