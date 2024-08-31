@@ -11,6 +11,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: bob-bot-discord
 
     steps:
       - name: Checkout code
