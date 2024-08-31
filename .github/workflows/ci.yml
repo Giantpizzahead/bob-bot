@@ -34,4 +34,5 @@ jobs:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
           LANGCHAIN_PROJECT: ${{ secrets.LANGCHAIN_PROJECT }}
