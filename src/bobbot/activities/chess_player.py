@@ -1,7 +1,6 @@
 """Play chess as the black pieces against the computer or a user on chess.com."""
 
 import asyncio
-import io
 import os
 import random
 import re
@@ -13,16 +12,9 @@ import chess
 import chess.engine
 from chess import Board
 from PIL import Image
-from playwright.async_api import (
-    BrowserContext,
-    Locator,
-    Page,
-    TimeoutError,
-    async_playwright,
-)
-from playwright_stealth import StealthConfig, stealth_async
+from playwright.async_api import BrowserContext, Locator, Page, TimeoutError
 
-from bobbot.utils import get_logger
+from bobbot.utils import get_logger, get_playwright_browser, get_playwright_page
 
 STATE_FILE = "local/pw/state.json"
 logger = get_logger(__name__)
@@ -400,13 +392,14 @@ async def get_move(page: Page, board: Board) -> tuple[chess.Move, float]:
     return move, win_chance
 
 
-async def screenshot_chess_activity() -> Optional[Image.Image]:
-    """Get a screenshot of the whole page (including the board), or None if no screenshot is available."""
+async def screenshot_chess_activity() -> Optional[Path]:
+    """Get a Path to a screenshot of the whole page (including the board), or None if no screenshot is available."""
     global last_screenshot
     if not chess_page:
         return last_screenshot
-    last_screenshot = Image.open(io.BytesIO(await chess_page.screenshot()))
-    return last_screenshot
+    SS_PATH = Path("local/pw/chess.jpeg")
+    await chess_page.screenshot(type="jpeg", quality=25, path=SS_PATH)
+    return SS_PATH
 
 
 async def play_chess_activity(cmd_handler: Callable) -> None:
@@ -428,72 +421,69 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
     match_result = None
     try:
         await start_sunfish_engine()
-        async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=True, slow_mo=500)
-            # Create context and page
-            if not Path(STATE_FILE).exists() and os.getenv("CHESS_STATE_JSON") is not None:
-                logger.info("Loading initial state from environment variable...")
-                Path(STATE_FILE).parent.mkdir(parents=True, exist_ok=True)
-                with open(STATE_FILE, "w") as f:
-                    f.write(os.getenv("CHESS_STATE_JSON"))
-            if Path(STATE_FILE).exists():
-                logger.info("Restoring state...")
-                context = await browser.new_context(storage_state=STATE_FILE)
-            else:
-                context = await browser.new_context()
+        browser = await get_playwright_browser()
+        # Create context and page
+        if not Path(STATE_FILE).exists() and os.getenv("CHESS_STATE_JSON") is not None:
+            logger.info("Loading initial state from environment variable...")
+            Path(STATE_FILE).parent.mkdir(parents=True, exist_ok=True)
+            with open(STATE_FILE, "w") as f:
+                f.write(os.getenv("CHESS_STATE_JSON"))
+        if Path(STATE_FILE).exists():
+            logger.info("Restoring state...")
+            context = await browser.new_context(storage_state=STATE_FILE)
+        else:
+            context = await browser.new_context()
 
-            # Play chess
-            page = await context.new_page()
-            await stealth_async(page, StealthConfig(navigator_user_agent=False))  # Already headless!
-            chess_page = page
-            page.set_default_timeout(10000)
-            await login(page, context)
-            if against_computer:
-                await start_match_computer(page)
-                await cmd_handler("Tell the user that you are now in a chess game against a bot.")
-            else:
-                challenge_link = await get_challenge_link(page)
-                await cmd_handler(
-                    f"Send the user this link (don't use Markdown) so they can join your chess match, note that the link is different each time! {challenge_link}"  # noqa: E501
-                )
-                await wait_for_accepted_match(page)  # Might return early if stopping, but that's ok
+        # Play chess
+        page = await get_playwright_page(context)
+        chess_page = page
+        await login(page, context)
+        if against_computer:
+            await start_match_computer(page)
+            await cmd_handler("Tell the user that you are now in a chess game against a bot.")
+        else:
+            challenge_link = await get_challenge_link(page)
+            await cmd_handler(
+                f"Send the user this link (don't use Markdown) so they can join your chess match, note that the link is different each time! {challenge_link}"  # noqa: E501
+            )
+            await wait_for_accepted_match(page)  # Might return early if stopping, but that's ok
+        if status == "stopping":
+            logger.info("Stopping chess match (before starting)...")
+            await stop_sunfish_engine()
+            chess_page = None
+            await context.close()
+            await browser.close()
+            status = "idle"
+            return
+        status = "playing"
+        asyncio.create_task(cmd_handler("start_spectating"))  # Start spectating
+        while True:
+            await wait_for_move(page)
+            match_result = await check_game_over(page)
+            if match_result:
+                break
+            await play_move(page)  # Might dry move, but that's ok
             if status == "stopping":
-                logger.info("Stopping chess match (before starting)...")
+                logger.info("Stopping chess match (while playing)...")
                 await stop_sunfish_engine()
                 chess_page = None
                 await context.close()
                 await browser.close()
                 status = "idle"
                 return
-            status = "playing"
-            asyncio.create_task(cmd_handler("start_spectating"))  # Start spectating
-            while True:
-                await wait_for_move(page)
-                match_result = await check_game_over(page)
-                if match_result:
-                    break
-                await play_move(page)  # Might dry move, but that's ok
-                if status == "stopping":
-                    logger.info("Stopping chess match (while playing)...")
-                    await stop_sunfish_engine()
-                    chess_page = None
-                    await context.close()
-                    await browser.close()
-                    status = "idle"
-                    return
 
-            # Close ending dialog
-            status = "finished"
-            await page.wait_for_timeout(700)
-            await close_ending_dialog(page)
-            last_screenshot = await screenshot_chess_activity()
-            await cmd_handler(
-                f"Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: {match_result[0]}. (Reason: {match_result[1].strip()})"  # noqa: E501
-            )
-            logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
-            await page.wait_for_timeout(3000)
-            await context.close()
-            await browser.close()
+        # Close ending dialog
+        status = "finished"
+        await page.wait_for_timeout(700)
+        await close_ending_dialog(page)
+        last_screenshot = await screenshot_chess_activity()
+        await cmd_handler(
+            f"Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: {match_result[0]}. (Reason: {match_result[1].strip()})"  # noqa: E501
+        )
+        logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
+        await page.wait_for_timeout(3000)
+        await context.close()
+        await browser.close()
     except Exception as e:
         logger.exception(e)
         await cmd_handler(f"Tell the user there was an unexpected error while playing chess: {e}")

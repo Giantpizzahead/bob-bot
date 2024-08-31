@@ -6,9 +6,6 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Smarts
 
-- [ ] Let Bob know what the date is somehow, maybe through a tool, without him trying to search the exact date every time
-- [ ] Think about what to do when Bob is fed an image - probably shouldn't go through all the tools, right?
-- [ ] Give Bob a website scraping tool (ideally with something like Playwright for JS sites), see [here](https://python.langchain.com/v0.2/docs/integrations/tools/playwright/) and [here](https://python.langchain.com/v0.2/api_reference/_modules/langchain_community/tools/playwright/extract_text.html#ExtractTextTool)
 - [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detected using OpenAI's moderation API
 
 #### Memory
@@ -23,9 +20,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Activities
 
-- [ ] Fix YouTube video search on Heroku (unknown PyTube error), potentially needing [this](https://github.com/JuanBindez/pytubefix) since the pytube repo hasn't been updated in about a year now
-- [ ] Make a command to stop spectating, and a command to check the program's RAM usage
 - [ ] Fix memory leak and/or memory inefficiency issue with spectate (maybe save/load screenshots from a file instead, to avoid any possibility of leaking RAM)
+- [ ] Allow Bob to auto-start activities based on context
 - [ ] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
 
 ### Future
@@ -36,7 +32,6 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Activities
 
-- [ ] Allow Bob to auto-start activities based on context
 - [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
 
 #### Smarts
@@ -44,6 +39,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Give Bob a code execution tool (as an advanced calculator or code debugging helper), see [here](https://rapidapi.com/onecompiler-onecompiler-default/api/onecompiler-apis)
 - [ ] Give Bob a reverse image search tool (to look up where locations are, what show an image is from, etc), see [here](https://rapidapi.com/letscrape-6bRBa3QguO5/api/reverse-image-search1)
 - [ ] Give Bob a reasoning tool (as an agent + verifier combo with access to tools that reasons through a complex problem, step by step)
+- [ ] Consider giving Bob a Discord history tool to manually go back and find specific messages
 - [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). Initially, just do a single pass.
 - [ ] Make the verifier interact with the problem solving agent in a single back-and-forth. If it fails verification once, send back to the problem solving agent with feedback. If it fails verification twice, send context to Bob saying that the problem solving agent couldn't figure out the answer, and to echo that uncertainty to the user (making clear that it's guessing).
 
@@ -71,7 +67,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Make a Discord status message based on current activity
 - [ ] Make the chess bot better at checkmating and avoiding stalemates
 - [ ] Make the chess prompt track the name of the user Bob is playing against (for better comments)
-- [ ] Add tests for stable functions (that likely won't change)
+- [ ] Update exports from each module
+- [ ] Make fake typing speed timing wait from when the last message was received, rather than when the final response has been determined
 
 ## Completed Tasks
 
@@ -86,6 +83,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Make Bob easier to debug by allowing debug info to be printed on demand in Discord
 - [x] Split big files (modules) into smaller, manageable modules while avoiding cyclic dependencies for ease of development
 - [x] Make a command that reboots the bot on Heroku (just make the worker terminate)
+- [x] Add tests for stable functions (that likely won't change)
 
 ### Text
 
@@ -98,9 +96,21 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Clean up message history class (OOP kinda sucks ngl)
 - [x] Bring back the original Bob's chatting style, and keep it that way
 
-### Memory
+### Multi-agent
 
-hi
+- [x] Implement a basic chain: Response decision -> Message sender
+- [x] Refine message quality and handle content filtering by testing different models
+- [x] Basically the whole project is multi-agent so yeah
+
+### Smarts
+
+- [x] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
+- [x] Integrate web search into Bob's overall pipeline, with a problem solving agent that decides if tool calls are needed, returning any additional factual context to Bob (simplified by just putting the tools direclty into Bob's main agent)
+- [x] Modify decision agent prompt to respond to things like "ty" or "gn", and modify Bob to only send 1 image/link at a time (except in extenuating circumstances), and only send 1 newline to split messages instead of 2
+- [x] Let Bob know what the date is somehow, maybe through a tool, without him trying to search the exact date every time
+- [x] Think about what to do when Bob is fed an image - probably shouldn't go through all the tools, right?
+- [x] Give Bob a website scraping tool (ideally with something like Playwright for JS sites), see [here](https://python.langchain.com/v0.2/docs/integrations/tools/playwright/) and [here](https://python.langchain.com/v0.2/api_reference/_modules/langchain_community/tools/playwright/extract_text.html#ExtractTextTool).
+  - Turns out this is more complicated than expected, because it also needs retrieval through RAG. I'm using [the JS version](https://github.com/langchain-ai/langchainjs/blob/b85e160b66d8ab09075aee1755efa0448a4aad52/langchain/src/tools/webbrowser.ts#L185) as a reference implementation.
 
 ### Activities
 
@@ -120,17 +130,12 @@ hi
 - [x] Fix the Chess.com player in some way to avoid bot detection (manually give it saved cookies, either through Heroku's exec SSH tool or with the new environment variable)
 - [x] Add a "Done spectating" text of some sort when spectating is finished
 - [x] Implement simulated work, sleep, eat, and shower activities
+- [x] Fix YouTube video search on Heroku (unknown PyTube error), potentially needing [this](https://github.com/JuanBindez/pytubefix) since the pytube repo hasn't been updated in about a year now
+- [x] Make a command to stop spectating, and a command to check the program's RAM usage
 
-### Multi-agent
+### Memory
 
-- [x] Implement a basic chain: Response decision -> Message sender
-- [x] Refine message quality and handle content filtering by testing different models
-- [x] Basically the whole project is multi-agent so yeah
-
-### Smarts
-
-- [x] Implement a web search tool in the agents subpackage, splitting into files (modules) as needed for organization (try to avoid OOP/state)
-- [x] Integrate web search into Bob's overall pipeline, with a problem solving agent that decides if tool calls are needed, returning any additional factual context to Bob (simplified by just putting the tools direclty into Bob's main agent)
+hi
 
 ## Milestones and Capstones
 
@@ -144,8 +149,8 @@ hi
 - [x] Send multiple messages at once, or send no messages when appropriate in a non-hacky way (8/26/24)
 - [x] Demonstrate improved knowledge by answering questions requiring real time (online) info (8/29/24)
 - ~~[ ] Initiate a DM or group chat conversation after being inactive for a while~~
-- [ ] Remember details about people from a long time ago, say >50 messages
 - ~~[ ] Have a persistent mood and/or life story through simulated emotions and events~~
+- [ ] Remember details about people from a long time ago, say >50 messages
 - [ ] Understand the difference between DMs and servers, and participate in both of them
 - [ ] **Capstone:** Hold an emotional and long (requiring memory) chat conversation in DMs while acting similar to a human
 - [ ] **Capstone:** Act like a normal, active Discord user in a medium sized server, replying to or initiating messages

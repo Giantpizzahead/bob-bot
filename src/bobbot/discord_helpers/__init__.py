@@ -4,10 +4,11 @@ from bobbot.discord_helpers.activity_manager import (
     check_waiting_responses,
     chess,
     command_handler,
+    discord_stop_activity,
+    discord_stop_spectating,
     do_basic_activity,
     gen_command_handler,
     spectate,
-    stop,
 )
 from bobbot.discord_helpers.main_bot import (
     BobBot,
@@ -44,7 +45,8 @@ __all__ = [
     "do_basic_activity",
     "gen_command_handler",
     "spectate",
-    "stop",
+    "discord_stop_activity",
+    "discord_stop_spectating",
     "BobBot",
     "Mode",
     "Speed",

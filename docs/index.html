@@ -88,7 +88,9 @@
 <li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
 </ul>
 </div>
-<p>hi i am bob :D</p>
+<p>hi i am bob 2nd edition v1.4 :D</p>
+<p>See <a class="reference external" href="FEATURES.md">FEATURES.md</a> for all currently implemented (and planned) features.</p>
+<p>See <a class="reference external" href="TODO.md">TODO.md</a> for the bot’s todo list.</p>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
 <p>Use <strong>Python 3.12</strong> in a virtual environment! Install <code class="docutils literal notranslate"><span class="pre">make</span></code> if on Windows.</p>
@@ -102,11 +104,12 @@ make<span class="w"> </span>run
 <p>Environment variables (some required, some optional):</p>
 <ul class="simple">
 <li><p>Discord token: See https://www.writebots.com/discord-bot-token/.</p></li>
+<li><p>Discord channels: It’s best to have at most one channel per server. Use Discord’s developer mode to get these IDs. Format it as a Python list of strings, ex: <code class="docutils literal notranslate"><span class="pre">['123...',</span> <span class="pre">'456...']</span></code>.</p></li>
 <li><p>OpenAI API key: See https://platform.openai.com/api-keys. Costs a bit of money, probably less than a quarter if you’re just playing around.</p></li>
 <li><p>Serper API key: See https://serper.dev/api-key. They have a good free plan.</p></li>
 </ul>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>DISCORD_TOKEN = Discord bot token.
-DISCORD_CHANNELS = A list of channel ID strings to talk in. It&#39;s best to have at most one channel per server. Use Discord&#39;s developer mode to get these IDs. Ex: [&#39;123...&#39;, &#39;456...&#39;]
+DISCORD_CHANNELS = A list of channel ID strings to talk in.
 OPENAI_KEY = OpenAI API key.
 SERPER_API_KEY = Serper API key (for Google search).
 

@@ -2,13 +2,52 @@
 
 import logging
 import logging.config
+import re
 from datetime import datetime, timezone
+from typing import Optional
 
+import requests
 from discord.utils import _ColourFormatter as ColourFormatter
 from dotenv import load_dotenv
+from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+from playwright_stealth import StealthConfig, stealth_async
 
 load_dotenv()
 debug_info: str = ""
+browser: Optional[Browser] = None
+playwright_instance = None
+
+
+async def get_playwright_browser() -> Browser:
+    """Get the Playwright browser instance, creating it if it doesn't exist yet."""
+    global browser, playwright_instance
+    if browser is None:
+        if playwright_instance is None:
+            playwright_instance = await async_playwright().start()
+        browser = await playwright_instance.chromium.launch(headless=True, slow_mo=500)
+    return browser
+
+
+async def get_playwright_page(context: BrowserContext) -> Page:
+    """Get a stealthy Playwright page instance for the given context."""
+    page = await context.new_page()
+    # See https://github.com/AtuboDad/playwright_stealth/issues/31 for why navigator_user_agent is disabled
+    await stealth_async(
+        page, StealthConfig(navigator_languages=False, navigator_user_agent=False, navigator_vendor=False)
+    )
+    page.set_default_timeout(10000)
+    return page
+
+
+async def close_playwright_browser():
+    """Close the Playwright browser instance if it exists."""
+    global browser, playwright_instance
+    if browser is not None:
+        await browser.close()
+        browser = None
+    if playwright_instance is not None:
+        await playwright_instance.stop()
+        playwright_instance = None
 
 
 def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatter | None = None) -> logging.Logger:
@@ -107,6 +146,23 @@ def time_elapsed_str(before: datetime, after: datetime | None = None) -> str:
         return f"{int(months)} month{'s' if months != 1 else ''} ago"
     else:
         return f"~{int(years)} year{'s' if years != 1 else ''} ago"
+
+
+def get_images_in(content: str) -> list[str]:
+    """Get a (potentially empty) list of all URLs that lead to valid, static images in the given content."""
+    url_pattern = re.compile(r"(https?://[^\s]+)")
+    urls = url_pattern.findall(content)
+    image_urls = []
+    for url in urls:
+        # Check if the URL is valid and points to an image
+        try:
+            response = requests.head(url, allow_redirects=True)
+            content_type = response.headers.get("Content-Type")
+            if content_type is not None and content_type.startswith("image"):
+                image_urls.append(url)
+        except requests.RequestException:
+            pass
+    return image_urls
 
 
 logger: logging.Logger = get_logger(__name__)

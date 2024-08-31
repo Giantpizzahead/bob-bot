@@ -8,29 +8,11 @@ from logging import Logger
 from typing import Callable
 
 import discord
-import requests
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
-from bobbot.utils import get_logger, time_elapsed_str, truncate_length
+from bobbot.utils import get_images_in, get_logger, time_elapsed_str, truncate_length
 
 logger: Logger = get_logger(__name__)
-
-
-def get_images_in(content: str) -> list[str]:
-    """Get a (potentially empty) list of all URLs that lead to valid, static images in the given content."""
-    url_pattern = re.compile(r"(https?://[^\s]+)")
-    urls = url_pattern.findall(content)
-    image_urls = []
-    for url in urls:
-        # Check if the URL is valid and points to an image
-        try:
-            response = requests.head(url, allow_redirects=True)
-            content_type = response.headers.get("Content-Type")
-            if content_type is not None and content_type.startswith("image"):
-                image_urls.append(url)
-        except requests.RequestException:
-            pass
-    return image_urls
 
 
 def get_users_in_channel(channel: discord.DMChannel | discord.TextChannel) -> list[discord.User]:
@@ -238,7 +220,7 @@ class TextChannelHistory:
                 old_history_index -= 1
                 if prev_msg.id == old_entry.message.id:
                     is_old = True
-                    history.append(old_entry)
+                    history.append(ParsedMessage(prev_msg, is_deleted=old_entry.is_deleted))
                 else:
                     # Message was deleted
                     history.append(ParsedMessage(old_entry.message, is_deleted=True))

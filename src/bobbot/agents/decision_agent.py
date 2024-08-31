@@ -25,39 +25,48 @@ async def decide_to_respond(msg_history: str, status: Optional[str] = None) -> t
         if status
         else ""
     )
-    DECISION_PROMPT = f"""You are an expert decision maker named Bob chatting in a private Discord server. You are a rising junior majoring in CS at MIT and a witty gamer. There are other users too. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
+    DECISION_PROMPT = f"""You are an expert decision maker named Bob chatting in a private Discord server with other users. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
 
 Example chat history 1:
-[2 minutes ago] AlexiKeys: yooo @bob
-[Recent] bob: yo wuts up
-[Recent, deleted] Donahue4: bob whats 9+10
-[Recent] bob: 21
-[Recent] bob: ur so original
-[Now] Donahue4: who u talking to? :p
+AlexiKeys: yooo @bob
+bob: yo wuts up
+Donahue4 (Deleted): bob whats 9+10
+bob: 21
+bob: ur so original
+Donahue4: who u talking to? :p
 
 Example response format 1:
 Thoughts: Donahue4 is asking me a question, so respond.
 Answer: RESPOND
 
 Example chat history 2:
-[Recent] AlexiKeys: cute
-[Recent] AlexiKeys: very cute
-[Recent] Donahue4: ikr
-[Now] AlexiKeys: wait do u have a ps5?
+AlexiKeys: cute
+AlexiKeys: very cute
+Donahue4: ikr
+AlexiKeys: wait do u have a ps5?
 
 Example response format 2:
 Thoughts: AlexiKeys and Donahue4 are chatting. Nothing relevant to add, so wait.
 Answer: WAIT
 
 Example chat history 3:
-[Recent] Donahue4: hey bob wut games u play?
-[Now] bob: league and val
+Donahue4: bob whens class tmrw
+bob: 9 am
+Donahue4: ty, gn
 
 Example response format 3:
+Thoughts: Donahue4 is thanking me and said good night, I should reciprocate and respond.
+Answer: RESPOND
+
+Example chat history 4:
+Donahue4: hey bob wut games u play?
+bob: league and val
+
+Example response format 4:
 Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.
 Answer: WAIT
 
-Here is the message history of the server, including the most recent message. {status_addendum}Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. If you sent the most recent message, only send another to finish a thought or add important info. Keep thoughts concise.
+Here is the message history of the server, including the most recent message. {status_addendum}Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. Keep thoughts concise.
 
 You MUST follow the example response formats!"""  # noqa: E501
     messages = [SystemMessage(content=DECISION_PROMPT)]

@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 
 import discord
+import psutil
 from discord import app_commands
 from discord.ext import commands
 
@@ -21,14 +22,15 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.3
+        """! hi i am bob 2nd edition v1.4
 command prefix is `!`, slash commands work too
 
 activities:
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
 `activity [school/eat/shower/sleep/chess/league]` - Start an activity (without configuring parameters).
 `spectate` - Spectate the current activity.
-`stop` - Stops the current activity.
+`stop_spectating` - Stop spectating the current activity.
+`stop_activity` - Stops the current activity.
 
 config:
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
@@ -90,7 +92,11 @@ async def reset(ctx: commands.Context) -> None:
 @bot.hybrid_command(name="status")
 async def status(ctx: commands.Context) -> None:
     """Show the current mode, speed, and activity of the bot."""
-    await ctx.send(f"! mode: {bot.mode.value}, speed: {bot.speed.value}\nactivity: {await get_activity_status()}")
+    memory_info = psutil.virtual_memory()
+    memory_mb = (memory_info.total - memory_info.available) / (1024**2)
+    await ctx.send(
+        f"! mode: {bot.mode.value}, speed: {bot.speed.value}\nactivity: {await get_activity_status()}\nram usage: {memory_mb:.0f} / {memory_info.total//(1024**2)} MB"  # noqa: E501
+    )
 
 
 @bot.hybrid_command(name="ping")

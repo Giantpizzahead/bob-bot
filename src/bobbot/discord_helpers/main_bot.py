@@ -17,7 +17,7 @@ from bobbot.discord_helpers.text_channel_history import (
     get_channel_history,
     get_users_in_channel,
 )
-from bobbot.utils import get_logger, log_debug_info
+from bobbot.utils import close_playwright_browser, get_logger, log_debug_info
 
 logger = get_logger(__name__)
 
@@ -88,6 +88,7 @@ async def on_ready() -> None:
 async def reboot(ctx: commands.Context):
     """Reboot the bot."""
     await ctx.send("! ok, rebooting...")
+    await close_playwright_browser()
     sys.exit(0)  # Exit the process, triggering a reboot on Heroku
 
 

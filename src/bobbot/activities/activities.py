@@ -5,9 +5,8 @@ Ex: "You are at work right now."
 """
 
 from enum import Enum
+from pathlib import Path
 from typing import Callable, Optional
-
-from PIL import Image
 
 from bobbot.activities.chess_player import (
     get_chess_info,
@@ -111,8 +110,8 @@ async def get_activity_status() -> str:
         raise NotImplementedError
 
 
-async def spectate_activity() -> Optional[list[str] | Image.Image]:
-    """Returns an image or list of messages for the current activity (if available)."""
+async def spectate_activity() -> Optional[list[str] | Path]:
+    """Returns a path to an image or list of messages for the current activity (if available)."""
     if current_activity is None:
         return None
     elif current_activity == Activity.SCHOOL:

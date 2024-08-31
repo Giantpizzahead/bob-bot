@@ -79,15 +79,56 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">logging.config</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">discord.utils</span> <span class="kn">import</span> <span class="n">_ColourFormatter</span> <span class="k">as</span> <span class="n">ColourFormatter</span>
 <span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="n">Browser</span><span class="p">,</span> <span class="n">BrowserContext</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="n">async_playwright</span>
+<span class="kn">from</span> <span class="nn">playwright_stealth</span> <span class="kn">import</span> <span class="n">StealthConfig</span><span class="p">,</span> <span class="n">stealth_async</span>
 
 <span class="n">load_dotenv</span><span class="p">()</span>
 <span class="n">debug_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">browser</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Browser</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">playwright_instance</span> <span class="o">=</span> <span class="kc">None</span>
 
 
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_playwright_browser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Browser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the Playwright browser instance, creating it if it doesn&#39;t exist yet.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">browser</span><span class="p">,</span> <span class="n">playwright_instance</span>
+    <span class="k">if</span> <span class="n">browser</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">playwright_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">playwright_instance</span> <span class="o">=</span> <span class="k">await</span> <span class="n">async_playwright</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">playwright_instance</span><span class="o">.</span><span class="n">chromium</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slow_mo</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">browser</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_playwright_page</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">BrowserContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a stealthy Playwright page instance for the given context.&quot;&quot;&quot;</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">new_page</span><span class="p">()</span>
+    <span class="c1"># See https://github.com/AtuboDad/playwright_stealth/issues/31 for why navigator_user_agent is disabled</span>
+    <span class="k">await</span> <span class="n">stealth_async</span><span class="p">(</span>
+        <span class="n">page</span><span class="p">,</span> <span class="n">StealthConfig</span><span class="p">(</span><span class="n">navigator_languages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">navigator_user_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">navigator_vendor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">page</span><span class="o">.</span><span class="n">set_default_timeout</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">page</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">close_playwright_browser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Close the Playwright browser instance if it exists.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">browser</span><span class="p">,</span> <span class="n">playwright_instance</span>
+    <span class="k">if</span> <span class="n">browser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">browser</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">playwright_instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">playwright_instance</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="n">playwright_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="get_logger">
+<a class="viewcode-back" href="../../bobbot.html#bobbot.get_logger">[docs]</a>
 <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">formatter</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a logger with the specified name and logging level.</span>
 
@@ -114,7 +155,8 @@
         <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
         <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logger</span>
+    <span class="k">return</span> <span class="n">logger</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">reset_debug_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -187,6 +229,23 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">months</span><span class="p">)</span><span class="si">}</span><span class="s2"> month</span><span class="si">{</span><span class="s1">&#39;s&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">months</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2"> ago&quot;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;~</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">years</span><span class="p">)</span><span class="si">}</span><span class="s2"> year</span><span class="si">{</span><span class="s1">&#39;s&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">years</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2"> ago&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">get_images_in</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a (potentially empty) list of all URLs that lead to valid, static images in the given content.&quot;&quot;&quot;</span>
+    <span class="n">url_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(https?://[^\s]+)&quot;</span><span class="p">)</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="n">url_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">image_urls</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="c1"># Check if the URL is valid and points to an image</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">content_type</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">content_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">):</span>
+                <span class="n">image_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">image_urls</span>
 
 
 <span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>

@@ -1,14 +1,14 @@
 """Manages the bot's activity status."""
 
 import asyncio
-import io
 import uuid
+from pathlib import Path
 from typing import Callable, Optional
 
 import discord
+import psutil
 from discord import app_commands
 from discord.ext import commands
-from PIL import Image
 
 from bobbot.activities import (  # stop_activity,
     Activity,
@@ -157,30 +157,28 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
             await asyncio.sleep(1)
     spectate_status = "spectating"
     curr_message: Optional[discord.Message] = None
-    image_or_msg: Optional[list[str] | Image.Image] = await spectate_activity()  # Image or list of messages
+    image_or_msg: Optional[list[str] | Path] = await spectate_activity()  # Image or list of messages
     if image_or_msg is None:
         await ctx.send("! no activity D:")
         spectate_status = "idle"
         return
     while spectate_status == "spectating":
-        if isinstance(image_or_msg, Image.Image):
-            with io.BytesIO() as image_binary:
-                # Downscale image
-                image_or_msg = image_or_msg.reduce(2)
-                image_or_msg.save(image_binary, "JPEG")
-                image_binary.seek(0)
-                content = "Spectating:" if video else None
-                if curr_message is not None:
-                    # Edit previous message
-                    await curr_message.edit(
-                        content=content, attachments=[discord.File(fp=image_binary, filename="spectate.jpeg")]
-                    )
-                else:
-                    curr_message = await ctx.send(
-                        content=content, file=discord.File(fp=image_binary, filename="spectate.jpeg")
-                    )
-            image_or_msg.close()
-            await asyncio.sleep(0.5)  # Slow down editing rate
+        if isinstance(image_or_msg, Path):
+            memory_info = psutil.virtual_memory()
+            memory_mb = (memory_info.total - memory_info.available) / (1024**2)
+            content = (
+                f"Spectating: (Using {memory_mb:.0f} / {memory_info.total//(1024**2)} MB of RAM)" if video else None
+            )
+            if curr_message is not None:
+                # Edit previous message
+                await curr_message.edit(
+                    content=content, attachments=[discord.File(fp=image_or_msg, filename="spectate.jpeg")]
+                )
+            else:
+                curr_message = await ctx.send(
+                    content=content, file=discord.File(fp=image_or_msg, filename="spectate.jpeg")
+                )
+            await asyncio.sleep(1)  # Slow down editing rate
         elif isinstance(image_or_msg, list):
             await ctx.send(image_or_msg[0])
             for msg in image_or_msg[1:]:
@@ -202,8 +200,16 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
         spectate_status = "idle"
 
 
-@bot.hybrid_command(name="stop")
-async def stop(ctx: commands.Context) -> None:
-    """Stop the current activity."""
+@bot.hybrid_command(name="stop_spectating")
+async def discord_stop_spectating(ctx: commands.Context) -> None:
+    """Stop spectating the current activity."""
+    global spectate_status
+    spectate_status = "stopping"
+    await ctx.send("! ok D:")
+
+
+@bot.hybrid_command(name="stop_activity")
+async def discord_stop_activity(ctx: commands.Context) -> None:
+    """Stops the current activity."""
     await stop_activity()
     await ctx.send("! stopped activity")

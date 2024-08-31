@@ -82,9 +82,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
-
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.activities.chess_player</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_chess_info</span><span class="p">,</span>
@@ -202,8 +201,8 @@
 
 <div class="viewcode-block" id="spectate_activity">
 <a class="viewcode-back" href="../../../activities.html#bobbot.activities.spectate_activity">[docs]</a>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate_activity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns an image or list of messages for the current activity (if available).&quot;&quot;&quot;</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate_activity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a path to an image or list of messages for the current activity (if available).&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">current_activity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">elif</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">SCHOOL</span><span class="p">:</span>

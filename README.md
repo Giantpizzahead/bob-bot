@@ -2,7 +2,11 @@
 
 <!-- index.rst content start -->
 
-hi i am bob :D
+hi i am bob 2nd edition v1.4 :D
+
+See [FEATURES.md](FEATURES.md) for all currently implemented (and planned) features.
+
+See [TODO.md](TODO.md) for the bot's todo list.
 
 ## Setup
 
@@ -19,12 +23,13 @@ make run
 Environment variables (some required, some optional):
 
 - Discord token: See https://www.writebots.com/discord-bot-token/.
+- Discord channels: It's best to have at most one channel per server. Use Discord's developer mode to get these IDs. Format it as a Python list of strings, ex: `['123...', '456...']`.
 - OpenAI API key: See https://platform.openai.com/api-keys. Costs a bit of money, probably less than a quarter if you're just playing around.
 - Serper API key: See https://serper.dev/api-key. They have a good free plan.
 
 ```text
 DISCORD_TOKEN = Discord bot token.
-DISCORD_CHANNELS = A list of channel ID strings to talk in. It's best to have at most one channel per server. Use Discord's developer mode to get these IDs. Ex: ['123...', '456...']
+DISCORD_CHANNELS = A list of channel ID strings to talk in.
 OPENAI_KEY = OpenAI API key.
 SERPER_API_KEY = Serper API key (for Google search).
 
