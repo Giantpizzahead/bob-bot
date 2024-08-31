@@ -13,9 +13,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from playwright.async_api import TimeoutError
-
-# from pytube import YouTube
-from pytubefix import YouTube
+from pytube import YouTube
 from youtube_comment_downloader import SORT_BY_POPULAR, YoutubeCommentDownloader
 from youtube_transcript_api import Transcript, YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
@@ -252,6 +250,7 @@ async def watch_youtube_video(url: str) -> dict:
         video_id = _parse_video_id(url)
         if not video_id:
             return {"error": "Invalid YouTube URL."}
+        results = {}
 
         # Get video info and transcript
         # pytube.innertube._default_clients["ANDROID"] = pytube.innertube._default_clients["WEB"]
@@ -263,51 +262,70 @@ async def watch_youtube_video(url: str) -> dict:
         # del result["id"]
         # del result["type"]
 
-        # Get description manually (see https://github.com/pytube/pytube/issues/1626)
-        yt = YouTube.from_id(video_id)
-        description = "Unknown"
-        for n in range(6):
-            try:
-                description = yt.initial_data["engagementPanels"][n]["engagementPanelSectionListRenderer"]["content"][
-                    "structuredDescriptionContentRenderer"
-                ]["items"][1]["expandableVideoDescriptionBodyRenderer"]["attributedDescriptionBodyText"]["content"]
-                break
-            except Exception:
-                pass
+        try:
+            # Get description manually (see https://github.com/pytube/pytube/issues/1626)
+            yt = YouTube.from_id(video_id)
+            description = "Unknown"
+            for n in range(6):
+                try:
+                    description = yt.initial_data["engagementPanels"][n]["engagementPanelSectionListRenderer"][
+                        "content"
+                    ][  # noqa: E501
+                        "structuredDescriptionContentRenderer"
+                    ][
+                        "items"
+                    ][
+                        1
+                    ][
+                        "expandableVideoDescriptionBodyRenderer"
+                    ][
+                        "attributedDescriptionBodyText"
+                    ][
+                        "content"
+                    ]
+                    break
+                except Exception:
+                    pass
+
+            results |= {
+                "title": yt.title or "Unknown",
+                "description": truncate_length(description, MAX_TEXT_LENGTH),
+                "viewCount": yt.views or 0,
+                "thumbnailUrl": yt.thumbnail_url or "Unknown",
+                "publishDate": yt.publish_date.strftime("%Y-%m-%d %H:%M:%S") if yt.publish_date else "Unknown",
+                "lengthSeconds": yt.length or 0,
+                "author": yt.author or "Unknown",
+            }
+        except Exception:
+            logger.exception("Failed to use PyTube")
 
         # Get transcript
         try:
             transcript: Transcript = YouTubeTranscriptApi.get_transcript(video_id)
             transcript_text = TextFormatter().format_transcript(transcript)
         except Exception as e:
-            logger.warning(f"Failed to get transcript: {type(e)}")
+            logger.exception(f"Failed to get transcript: {type(e)}")
+            # logger.warning(f"Failed to get transcript: {type(e)}")
             transcript_text = "Unknown"
-
-        results = {
-            "title": yt.title or "Unknown",
-            "description": truncate_length(description, MAX_TEXT_LENGTH),
-            "viewCount": yt.views or 0,
-            "thumbnailUrl": yt.thumbnail_url or "Unknown",
-            "publishDate": yt.publish_date.strftime("%Y-%m-%d %H:%M:%S") if yt.publish_date else "Unknown",
-            "lengthSeconds": yt.length or 0,
-            "author": yt.author or "Unknown",
-            "transcript": truncate_length(transcript_text, MAX_TEXT_LENGTH),
-        }
+        results["transcript"] = transcript_text
 
         # Get top comments
-        comment_iter = YoutubeCommentDownloader().get_comments_from_url(yt.watch_url, sort_by=SORT_BY_POPULAR)
-        raw_comments = list(islice(comment_iter, NUM_COMMENTS))
-        comments = []
-        for raw_comment in raw_comments:
-            comment = {
-                "text": raw_comment["text"],
-                "author": raw_comment["author"],
-                "votes": raw_comment["votes"],
-                "replies": raw_comment["replies"],
-                "time": raw_comment["time"],
-            }
-            comments.append(comment)
-        results["comments"] = comments
+        try:
+            comment_iter = YoutubeCommentDownloader().get_comments_from_url(yt.watch_url, sort_by=SORT_BY_POPULAR)
+            raw_comments = list(islice(comment_iter, NUM_COMMENTS))
+            comments = []
+            for raw_comment in raw_comments:
+                comment = {
+                    "text": raw_comment["text"],
+                    "author": raw_comment["author"],
+                    "votes": raw_comment["votes"],
+                    "replies": raw_comment["replies"],
+                    "time": raw_comment["time"],
+                }
+                comments.append(comment)
+            results["comments"] = comments
+        except Exception:
+            logger.exception("Failed to get comments")
         print(results)
         return results
     except Exception as e:

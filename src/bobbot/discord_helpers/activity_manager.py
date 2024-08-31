@@ -162,38 +162,40 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
         await ctx.send("! no activity D:")
         spectate_status = "idle"
         return
-    while spectate_status == "spectating":
-        if isinstance(image_or_msg, Path):
-            memory_info = psutil.virtual_memory()
-            memory_mb = (memory_info.total - memory_info.available) / (1024**2)
-            content = (
-                f"Spectating: (Using {memory_mb:.0f} / {memory_info.total//(1024**2)} MB of RAM)" if video else None
-            )
-            if curr_message is not None:
-                # Edit previous message
-                await curr_message.edit(
-                    content=content, attachments=[discord.File(fp=image_or_msg, filename="spectate.jpeg")]
-                )
+    try:
+        while spectate_status == "spectating":
+            if isinstance(image_or_msg, Path):
+                memory_info = psutil.Process().memory_info()
+                memory_mb = memory_info.rss / (1024**2)
+                content = f"Spectating: (Using {memory_mb:.0f} MB of RAM)" if video else None
+                if curr_message is not None:
+                    # Edit previous message
+                    await curr_message.edit(
+                        content=content, attachments=[discord.File(fp=image_or_msg, filename="spectate.jpeg")]
+                    )
+                else:
+                    curr_message = await ctx.send(
+                        content=content, file=discord.File(fp=image_or_msg, filename="spectate.jpeg")
+                    )
+                await asyncio.sleep(1)  # Slow down editing rate
+            elif isinstance(image_or_msg, list):
+                await ctx.send(image_or_msg[0])
+                for msg in image_or_msg[1:]:
+                    await asyncio.sleep(1)
+                    await lazy_send_message(ctx.channel, msg, instant=True, force=True)
+                break
             else:
-                curr_message = await ctx.send(
-                    content=content, file=discord.File(fp=image_or_msg, filename="spectate.jpeg")
-                )
-            await asyncio.sleep(1)  # Slow down editing rate
-        elif isinstance(image_or_msg, list):
-            await ctx.send(image_or_msg[0])
-            for msg in image_or_msg[1:]:
-                await asyncio.sleep(1)
-                await lazy_send_message(ctx.channel, msg, instant=True, force=True)
-            break
-        else:
-            if curr_message is not None:
-                await curr_message.edit(content="Done spectating.")
-            else:
-                await ctx.send("Done spectating.")
-            break
-        if not video:
-            break
-        image_or_msg = await spectate_activity()
+                if curr_message is not None:
+                    await curr_message.edit(content="Done spectating.")
+                else:
+                    await ctx.send("Done spectating.")
+                break
+            if not video:
+                break
+            image_or_msg = await spectate_activity()
+    except Exception:
+        logger.exception("Error during spectating")
+        await ctx.send("! error during spectating")
     if spectate_status == "stopping":
         spectate_status = "spectating"  # Let the next spectate start
     else:
@@ -204,7 +206,8 @@ async def spectate(ctx: commands.Context, video: bool = True) -> None:
 async def discord_stop_spectating(ctx: commands.Context) -> None:
     """Stop spectating the current activity."""
     global spectate_status
-    spectate_status = "stopping"
+    if spectate_status == "spectating":
+        spectate_status = "stopping"
     await ctx.send("! ok D:")
 
 

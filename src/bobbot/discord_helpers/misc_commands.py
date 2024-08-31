@@ -92,10 +92,10 @@ async def reset(ctx: commands.Context) -> None:
 @bot.hybrid_command(name="status")
 async def status(ctx: commands.Context) -> None:
     """Show the current mode, speed, and activity of the bot."""
-    memory_info = psutil.virtual_memory()
-    memory_mb = (memory_info.total - memory_info.available) / (1024**2)
+    memory_info = psutil.Process().memory_info()
+    memory_mb = memory_info.rss / (1024**2)
     await ctx.send(
-        f"! mode: {bot.mode.value}, speed: {bot.speed.value}\nactivity: {await get_activity_status()}\nram usage: {memory_mb:.0f} / {memory_info.total//(1024**2)} MB"  # noqa: E501
+        f"! mode: {bot.mode.value}, speed: {bot.speed.value}\nactivity: {await get_activity_status()}\nram usage: {memory_mb:.0f} MB"  # noqa: E501
     )
 
 
