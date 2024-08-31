@@ -43,8 +43,8 @@ SUPABASE_KEY = (Unused) Supabase vector store API key.
 SUPABASE_URL = (Unused) Supabase vector store URL.
 SUPABASE_PROJECT_PWD = (Unused) Supabase vector store password.
 
-LANGCHAIN_API_KEY = (Optional) LangChain API key for LangSmith tracing.
-LANGCHAIN_TRACING_V2 = (Optional) Boolean for enabling LangSmith tracing.
+LANGCHAIN_API_KEY = (Development) LangChain API key for LangSmith tracing.
+LANGCHAIN_PROJECT = (Development) LangChain project name for LangSmith tracing.
 ```
 
 ## Development
