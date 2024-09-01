@@ -4,13 +4,11 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-#### Memory
-
-- [ ] Check overall token usage from test suite, to get a sense of how much this overall system costs (we optimized a decent amount, so it shouldn't be too bad... right?)
-
 #### Voice
 
 - [ ] Implement a simple, robotic-sounding TTS system (Neurosama?)
+- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
+- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
 
 #### Activities
 
@@ -47,11 +45,6 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Use the memory agent to create candidate long-term memories. Then, before putting them in the vector store, retrieve similar memories that already exist, and combine them into a "knowledge base article" or similar.
   - We could potentially use [LlamaIndex](https://medium.com/llamaindex-blog/data-agents-eed797d7972f) to process the memories once we've created them. I'm not sure how this would fit together yet.
 - [ ] Implement a memory pruning system that just prunes the Pinecone database, removing the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
-
-#### Voice
-
-- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
-- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
 
 #### Text
 
@@ -145,6 +138,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Make a command to look up stored long term memories with a query, potentially choosing to filter with only tools
 - [x] Make a command to delete a stored memory by ID, for manual cleanup if sensitive info gets leaked
 - [x] Make an "incognito mode" where all attempts to save new memories are turned off (can still access and use old memories), also consider making !off and !on commands, does /mode make sense?
+- [x] Check overall token usage from test suite, to get a sense of how much this overall system costs (we optimized a decent amount, so it shouldn't be too bad... right?)
 
 ## Milestones and Capstones
 

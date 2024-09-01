@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import nltk
 from langchain.docstore.document import Document
 from langchain_community.retrievers import PineconeHybridSearchRetriever
 from pinecone import Pinecone, ServerlessSpec
@@ -15,6 +16,7 @@ from bobbot.agents.llms import openai_embeddings
 from bobbot.utils import get_logger
 
 logger = get_logger(__name__)
+nltk.download("punkt_tab")
 
 # Create index if it doesn't exist
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
