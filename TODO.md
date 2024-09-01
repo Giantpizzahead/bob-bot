@@ -6,15 +6,11 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Memory
 
-- [ ] Make a command to look up stored long term memories with a query, potentially choosing to filter with only tools
-- [ ] Make a command to delete a stored memory by ID, for manual cleanup if sensitive info gets leaked
-- [ ] Make an "incognito mode" where all attempts to save new memories are turned off (can still access and use old memories)
+- [ ] Check overall token usage from test suite, to get a sense of how much this overall system costs (we optimized a decent amount, so it shouldn't be too bad... right?)
 
 #### Voice
 
-- [ ] Implement a simple, robotic-sounding TTS system
-- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
-- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+- [ ] Implement a simple, robotic-sounding TTS system (Neurosama?)
 
 #### Activities
 
@@ -52,6 +48,11 @@ This list will evolve as the bot progresses. We'll start getting features workin
   - We could potentially use [LlamaIndex](https://medium.com/llamaindex-blog/data-agents-eed797d7972f) to process the memories once we've created them. I'm not sure how this would fit together yet.
 - [ ] Implement a memory pruning system that just prunes the Pinecone database, removing the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
 
+#### Voice
+
+- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
+- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+
 #### Text
 
 - [ ] Optimize TextChannelHistory token usage by truncating messages
@@ -66,7 +67,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Make a Discord status message based on current activity
 - [ ] Make the chess bot better at checkmating and avoiding stalemates
 - [ ] Make the chess prompt track the name of the user Bob is playing against (for better comments)
-- [ ] Update exports from each module
+- [ ] Update exports from each module to generate better docs
 - [ ] Make fake typing speed timing wait from when the last message was received, rather than when the final response has been determined
 - [ ] Send image link, if a single one is present in AI's response, in a separate message (to hide the link)
 - [ ] Allow for a custom Bob normal prompt using an environment variable
@@ -141,6 +142,9 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 - [x] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a Pinecone vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
 - [x] Improve the memory system by filtering based on either tool calls or chat history, having queries with different time ranges to weight recent messages more, and combining query variations to produce diverse memory results
+- [x] Make a command to look up stored long term memories with a query, potentially choosing to filter with only tools
+- [x] Make a command to delete a stored memory by ID, for manual cleanup if sensitive info gets leaked
+- [x] Make an "incognito mode" where all attempts to save new memories are turned off (can still access and use old memories), also consider making !off and !on commands, does /mode make sense?
 
 ## Milestones and Capstones
 

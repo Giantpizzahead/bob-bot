@@ -77,6 +77,29 @@ async def add_chat_memory(text: str, message_ids: list[int]) -> None:
     logger.info("Saved chat memory.")
 
 
+async def delete_memory(id: str) -> bool:
+    """Delete a memory from Bob's long term memory.
+
+    Args:
+        id: The ID of the memory to delete.
+
+    Returns:
+        True if the memory was deleted, False otherwise.
+    """
+    try:
+        result = index.fetch(ids=[id])
+        print(result)
+        if len(result["vectors"]) == 0:
+            logger.info(f"Memory with ID {id} does not exist.")
+            return False
+        index.delete(ids=[id])
+    except Exception:
+        logger.exception(f"Error deleting memory with ID {id}.")
+        return False
+    logger.info(f"Deleted memory with ID {id}.")
+    return True
+
+
 async def get_relevant_documents(query: str, query_filter: Optional[dict] = None) -> list[Document]:
     """Get relevant documents from Bob's long term memory using hybrid search.
 
@@ -147,7 +170,6 @@ async def query_memories(
     # Empty filter
     if not query_filter:
         query_filter = None
-    logger.info(f"Long term memory query with filter {query_filter}:\n{query}")
 
     # Retrieve relevant documents
     retriever.top_k = limit
@@ -156,7 +178,9 @@ async def query_memories(
     except Exception:
         logger.exception("Error querying long term memory")
         return []
-    logger.info(f"-> {[doc.metadata["id"][:16] for doc in results]}")
+    logger.info(
+        f"Long term memory query with query={query}, limit={limit}, age_limit={age_limit}, ignore_recent={ignore_recent}, only_tools={only_tools} -> {[f'{doc.metadata["id"][:16]}...' for doc in results]}"  # noqa: E501
+    )
 
     # Update last retrieval times concurrently
     curr_time = datetime.now(timezone.utc).timestamp()

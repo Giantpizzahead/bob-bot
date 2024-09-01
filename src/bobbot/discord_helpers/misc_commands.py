@@ -1,98 +1,59 @@
 """Contains miscellaneous commands for the bot."""
 
+import sys
 from datetime import datetime, timezone
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bobbot.activities import get_activity_status
-from bobbot.discord_helpers.main_bot import Mode, Speed, bot
+from bobbot.discord_helpers.main_bot import Speed, bot
 from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_channel_history,
 )
-from bobbot.utils import get_debug_info, get_logger, truncate_length
+from bobbot.utils import (
+    close_playwright_browser,
+    get_debug_info,
+    get_logger,
+    truncate_length,
+)
 
 logger = get_logger(__name__)
+
+
+# ===== Info Commands =====
 
 
 @bot.hybrid_command(name="help")
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.5
+        """! hi i am bob 2nd edition v1.6
 command prefix is `!`, slash commands work too
 
-activities:
+`activity status` - Check Bob's current activity status.
+`activity [school/eat/shower/sleep/chess/league]` - Start an activity with default parameters.
+`activity stop` - Stops the current activity.
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
-`activity [school/eat/shower/sleep/chess/league]` - Start an activity (without configuring parameters).
-`spectate` - Spectate the current activity.
-`stop_spectating` - Stop spectating the current activity.
-`stop_activity` - Stops the current activity.
+`spectate start` - Spectate the current activity.\t\t`spectate stop` - Stop spectating the current activity.
 
-config:
-`mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
-`speed [default/instant]` - Set the typing speed of the bot.
-`reset` - Reset the bot's conversation history.
-`delete_last [count]` - Delete up to count messages sent by the bot in recent history.
-`reboot` - Reboot the bot. May take a while.
+`memory reset` - Wipes the bot's short term conversation history. No effect on long term memories.
+`memory query [query]` - Query Bob's long term memory. Must provide a search query.
+`memory delete [id]` - Delete a long term memory by ID. Use to remove private/unwanted info.
 
-info:
-`help` - Show this help message.
-`status` - Show the current mode, speed, and activity of the bot.
-`debug` - Show debug info for the last message Bob processed.
-`ping` - Ping the bot."""
+`config on` - Turn the bot on.\t\t`config off` - Turn the bot off.
+`config get` - Show the bot's current configuration.
+`config speed [default/instant]` - Set the typing speed of the bot.
+`config obedient [true/false]` - Force the bot to try to fulfill all requests.
+`config incognito [true/false]` - Prevent the bot from accessing or storing long term memories.
+
+`admin debug` - Show debug info for the last message Bob processed.
+`admin prune [count]` - Delete up to count messages sent by the bot in recent history.
+`admin reboot` - Reboot the bot. May take a while.
+
+`help` - Show this help message.\t\t`ping` - Ping the bot."""
     )
-
-
-@bot.hybrid_command(name="mode")
-@app_commands.choices(
-    mode=[
-        app_commands.Choice(name="default", value="default"),
-        app_commands.Choice(name="obedient", value="obedient"),
-        app_commands.Choice(name="off", value="off"),
-    ]
-)
-async def set_mode(ctx: commands.Context, mode: str) -> None:
-    """Set the mode of the bot, clearing the conversation history."""
-    try:
-        selected_mode = Mode(mode.lower())
-        bot.mode = selected_mode
-        await ctx.send(f"! mode set to {selected_mode.value}")
-    except ValueError:
-        valid_modes = ", ".join([m.value for m in Mode])
-        await ctx.send(f"! invalid mode. valid modes: {valid_modes}")
-
-
-@bot.hybrid_command(name="speed")
-@app_commands.choices(
-    speed=[
-        app_commands.Choice(name="default", value="default"),
-        app_commands.Choice(name="instant", value="instant"),
-    ]
-)
-async def set_speed(ctx: commands.Context, speed: str) -> None:
-    """Set the typing speed of the bot."""
-    try:
-        selected_speed = Speed(speed.lower())
-        bot.speed = selected_speed
-        await ctx.send(f"! speed set to {selected_speed.value}")
-    except ValueError:
-        valid_speeds = ", ".join([s.value for s in Speed])
-        await ctx.send(f"! invalid speed. valid speeds: {valid_speeds}")
-
-
-@bot.hybrid_command(name="reset")
-async def reset(ctx: commands.Context) -> None:
-    """Reset the bot's conversation history."""
-    await ctx.send("! reset conversation history")
-
-
-@bot.hybrid_command(name="status")
-async def status(ctx: commands.Context) -> None:
-    """Show the current mode, speed, and activity of the bot."""
-    await ctx.send(f"! mode: {bot.mode.value}, speed: {bot.speed.value}\nactivity: {await get_activity_status()}")
 
 
 @bot.hybrid_command(name="ping")
@@ -109,7 +70,73 @@ async def ping(ctx: commands.Context) -> None:
         await ctx.send(msg)
 
 
-@bot.hybrid_command(name="debug")
+# ===== Config Commands =====
+
+
+@bot.hybrid_group(name="config", fallback="get")
+async def config(ctx: commands.Context):
+    """Show the bot's current configuration."""
+    await ctx.send(
+        f"! on: {bot.is_on}, speed: {bot.speed.value}, obedient: {bot.is_obedient}, incognito: {bot.is_incognito}"  # noqa: E501
+    )
+
+
+@config.command("on")
+async def config_on(ctx: commands.Context) -> None:
+    """Turn the bot on or off."""
+    bot.is_on = True
+    await ctx.send("! bot turned on")
+
+
+@config.command("off")
+async def config_off(ctx: commands.Context) -> None:
+    """Turn the bot off."""
+    bot.is_on = False
+    await ctx.send("! bot turned off")
+
+
+@config.command("speed")
+@app_commands.choices(
+    speed=[
+        app_commands.Choice(name="Default", value="default"),
+        app_commands.Choice(name="Instant", value="instant"),
+    ]
+)
+async def config_speed(ctx: commands.Context, speed: str) -> None:
+    """Set the typing speed of the bot."""
+    try:
+        selected_speed = Speed(speed.lower())
+        bot.speed = selected_speed
+        await ctx.send(f"! typing speed set to {selected_speed.value}")
+    except ValueError:
+        valid_speeds = ", ".join([s.value for s in Speed])
+        await ctx.send(f"! invalid typing speed. valid speeds: {valid_speeds}")
+
+
+@config.command("obedient")
+async def config_obedient(ctx: commands.Context, obedient: bool) -> None:
+    """Force the bot to try to fulfill all requests."""
+    bot.is_obedient = obedient
+    if obedient:
+        await ctx.send("! bot is now obedient and will try to fulfill all requests")
+    else:
+        await ctx.send("! bot is now normal")
+
+
+@config.command("incognito")
+async def config_incognito(ctx: commands.Context, incognito: bool) -> None:
+    """Prevent the bot from accessing or storing long term memories."""
+    bot.is_incognito = incognito
+    if incognito:
+        await ctx.send("! bot is now incognito and will not use or make new long term memories")
+    else:
+        await ctx.send("! bot is now normal and will use and make new long term memories")
+
+
+# ===== Admin Commands =====
+
+
+@bot.hybrid_group(name="admin", fallback="debug")
 async def debug(ctx: commands.Context) -> None:
     """Show debug info for the last message Bob processed."""
     debug_info = get_debug_info()
@@ -119,8 +146,16 @@ async def debug(ctx: commands.Context) -> None:
         await ctx.send(truncate_length("!```Trace:\n" + debug_info + "```", 2000))
 
 
-@bot.hybrid_command(name="delete_last")
-async def delete_last(ctx, count: int):
+@debug.command(name="reboot")
+async def reboot(ctx: commands.Context):
+    """Reboot the bot. May take a while."""
+    await ctx.send("! ok, rebooting...")
+    await close_playwright_browser()
+    sys.exit(0)  # Exit the process, triggering a reboot on Heroku
+
+
+@debug.command(name="prune")
+async def prune(ctx, count: int):
     """Delete up to count messages sent by the bot in recent history."""
     if count > 5:
         await ctx.send("! can only delete up to 5 msgs at a time")
@@ -137,6 +172,9 @@ async def delete_last(ctx, count: int):
     else:
         await ctx.send(f"! {ctx.author.mention} deleted last {num_deleted} bot msgs")
     await ctx.message.delete()
+
+
+# ===== Misc =====
 
 
 @bot.event

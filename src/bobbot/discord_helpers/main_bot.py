@@ -5,7 +5,6 @@ import json
 import os
 import random
 import re
-import sys
 from enum import Enum
 from typing import Optional
 
@@ -18,17 +17,9 @@ from bobbot.discord_helpers.text_channel_history import (
     get_users_in_channel,
 )
 from bobbot.memory import add_chat_memory
-from bobbot.utils import close_playwright_browser, get_logger, log_debug_info
+from bobbot.utils import get_logger, log_debug_info
 
 logger = get_logger(__name__)
-
-
-class Mode(Enum):
-    """Valid modes of the bot."""
-
-    DEFAULT = "default"
-    OBEDIENT = "obedient"
-    OFF = "off"
 
 
 class Speed(Enum):
@@ -43,10 +34,14 @@ class BobBot(commands.Bot):
 
     CHANNELS: list[int] = list(map(int, json.loads(os.getenv("DISCORD_CHANNELS", "[]"))))
     """The channels the bot is active in."""
-    mode: Mode = Mode.DEFAULT
-    """The mode of the bot."""
+    is_on: bool = True
+    """Whether the bot is on (will send messages)."""
     speed: Speed = Speed.INSTANT
     """The typing speed of the bot."""
+    is_obedient: bool = False
+    """Whether the bot is obedient (encouraged to fulfill all requests)."""
+    is_incognito: bool = False
+    """Whether the bot is incognito (will not store memories)."""
     active_channel: Optional[discord.TextChannel] = None
     """The active channel for the bot."""
 
@@ -60,6 +55,7 @@ def init_bot() -> BobBot:
     intents: discord.Intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True
+    # return BobBot(command_prefix="!", intents=intents)
     return BobBot(command_prefix="!", help_command=None, intents=intents)
 
 
@@ -83,14 +79,6 @@ async def on_ready() -> None:
     except Exception:
         logger.exception("Error syncing commands")
     logger.info("Bob is online!")
-
-
-@bot.hybrid_command(name="reboot")
-async def reboot(ctx: commands.Context):
-    """Reboot the bot."""
-    await ctx.send("! ok, rebooting...")
-    await close_playwright_browser()
-    sys.exit(0)  # Exit the process, triggering a reboot on Heroku
 
 
 async def lazy_send_message(
@@ -160,12 +148,13 @@ async def lazy_send_message(
                 logger.exception("Error sending message")
                 return False
 
-    # Wait for Bob's last message to be sent
-    await asyncio.sleep(0.5)
-    # Save current history to memory
-    await history.aupdate()
-    parsed_msgs = history.as_parsed_messages(5)
-    text = history.as_string(5)
-    message_ids = [msg.id for msg in parsed_msgs]
-    await add_chat_memory(text, message_ids)
+    if not bot.is_incognito and not message_str.startswith("!"):
+        # Wait for Bob's last message to be sent
+        await asyncio.sleep(0.5)
+        # Save current history to memory
+        await history.aupdate()
+        parsed_msgs = history.as_parsed_messages(5)
+        text = history.as_string(5)
+        message_ids = [msg.id for msg in parsed_msgs]
+        await add_chat_memory(text, message_ids)
     return True

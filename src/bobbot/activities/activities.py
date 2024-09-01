@@ -92,6 +92,11 @@ async def stop_activity() -> None:
         raise NotImplementedError
 
 
+def get_activity() -> Optional[Activity]:
+    """Returns the current activity."""
+    return current_activity
+
+
 async def get_activity_status() -> str:
     """Returns a readable version of the current activity status directed at Bob."""
     if current_activity is None:

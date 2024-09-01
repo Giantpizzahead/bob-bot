@@ -90,7 +90,7 @@
     <span class="n">get_response_with_tools</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.activity_manager</span> <span class="kn">import</span> <span class="n">check_waiting_responses</span>
-<span class="kn">from</span> <span class="nn">bobbot.discord_helpers.main_bot</span> <span class="kn">import</span> <span class="n">Mode</span><span class="p">,</span> <span class="n">bot</span><span class="p">,</span> <span class="n">lazy_send_message</span>
+<span class="kn">from</span> <span class="nn">bobbot.discord_helpers.main_bot</span> <span class="kn">import</span> <span class="n">bot</span><span class="p">,</span> <span class="n">lazy_send_message</span>
 <span class="kn">from</span> <span class="nn">bobbot.discord_helpers.text_channel_history</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TextChannelHistory</span><span class="p">,</span>
     <span class="n">get_channel_history</span><span class="p">,</span>
@@ -120,7 +120,7 @@
     <span class="n">bot</span><span class="o">.</span><span class="n">active_channel</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">channel</span>
     <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">process_commands</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c1"># Don&#39;t respond if the bot is off, or if it&#39;s a command message</span>
-    <span class="k">if</span> <span class="n">bot</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Mode</span><span class="o">.</span><span class="n">OFF</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">command_prefix</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_on</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">command_prefix</span><span class="p">):</span>
         <span class="k">return</span>
     <span class="c1"># For now, don&#39;t respond to self messages</span>
     <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">author</span> <span class="o">==</span> <span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
@@ -142,64 +142,71 @@
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">check_waiting_responses</span><span class="p">(</span><span class="n">curr_channel</span><span class="p">))</span>
             <span class="n">is_safe</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_openai_safety</span><span class="p">(</span><span class="n">short_history</span><span class="p">)</span>
 
-            <span class="c1"># Find relevant memories using varying methods</span>
-            <span class="n">EACH_LIMIT</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="n">MAX_MEMORIES</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span><span class="p">:</span>
+                <span class="c1"># Find relevant memories using varying methods</span>
+                <span class="n">EACH_LIMIT</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="n">MAX_MEMORIES</span> <span class="o">=</span> <span class="mi">4</span>
 
-            <span class="c1"># Run all memory queries in parallel</span>
-            <span class="n">tiny_history</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-            <span class="n">only_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_author</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_context</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="p">(</span>
-                <span class="n">memories_0</span><span class="p">,</span>
-                <span class="n">memories_1</span><span class="p">,</span>
-                <span class="n">memories_2</span><span class="p">,</span>
-                <span class="n">memories_3</span><span class="p">,</span>
-                <span class="n">memories_4</span><span class="p">,</span>
-                <span class="n">memories_5</span><span class="p">,</span>
-                <span class="n">memories_6</span><span class="p">,</span>
-            <span class="p">)</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
-                <span class="n">query_memories</span><span class="p">(</span><span class="n">short_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># More context</span>
-                <span class="n">query_memories</span><span class="p">(</span><span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># Some context</span>
-                <span class="n">query_memories</span><span class="p">(</span>
-                    <span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="p">),</span>  <span class="c1"># Some context, recent only</span>
-                <span class="n">query_memories</span><span class="p">(</span><span class="n">only_message</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># Last message with no author</span>
-                <span class="n">query_memories</span><span class="p">(</span>
-                    <span class="n">only_message</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="p">),</span>  <span class="c1"># Last message with no author, recent only</span>
-                <span class="n">query_memories</span><span class="p">(</span>
-                    <span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">ignore_recent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_tools</span><span class="o">=</span><span class="kc">True</span>
-                <span class="p">),</span>  <span class="c1"># Relevant tool calls, some context</span>
-                <span class="n">query_memories</span><span class="p">(</span>
-                    <span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">ignore_recent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_tools</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="p">),</span>  <span class="c1"># Relevant tool calls, some context, recent only</span>
-            <span class="p">)</span>
-
-            <span class="c1"># Fetch up to MAX_MEMORIES memories using a rough heuristic order, removing duplicates</span>
-            <span class="n">memory_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">memories_6</span><span class="p">,</span> <span class="n">memories_1</span><span class="p">,</span> <span class="n">memories_4</span><span class="p">,</span> <span class="n">memories_3</span><span class="p">,</span> <span class="n">memories_5</span><span class="p">,</span> <span class="n">memories_0</span><span class="p">,</span> <span class="n">memories_2</span><span class="p">]</span>
-            <span class="n">memories</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Document</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EACH_LIMIT</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">memory_list</span> <span class="ow">in</span> <span class="n">memory_lists</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">memory_list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">memories</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">MAX_MEMORIES</span><span class="p">:</span>
-                        <span class="n">memory</span> <span class="o">=</span> <span class="n">memory_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="n">memory</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">memories</span><span class="p">]:</span>
-                            <span class="n">memories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-
-            <span class="c1"># Format memories as strings</span>
-            <span class="n">formatted_memories</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">memory</span> <span class="ow">in</span> <span class="n">memories</span><span class="p">:</span>
-                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;creation_time&quot;</span><span class="p">]</span>
-                <span class="n">time_str</span> <span class="o">=</span> <span class="n">time_elapsed_str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
-                <span class="n">mem_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">time_str</span><span class="si">}</span><span class="s2">)&quot;</span>
-                <span class="n">mem_content</span> <span class="o">=</span> <span class="n">truncate_length</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">page_content</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
-                <span class="n">formatted_memories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mem_title</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">mem_content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">formatted_memories</span><span class="p">:</span>
-                <span class="n">log_debug_info</span><span class="p">(</span>
-                    <span class="n">truncate_length</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;===== Bob memories =====</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">truncate_length</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="mi">192</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">formatted_memories</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                        <span class="mi">1000</span><span class="p">,</span>
-                    <span class="p">)</span>
+                <span class="c1"># Run all memory queries in parallel</span>
+                <span class="n">tiny_history</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">only_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_author</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_context</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">with_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="p">(</span>
+                    <span class="n">memories_0</span><span class="p">,</span>
+                    <span class="n">memories_1</span><span class="p">,</span>
+                    <span class="n">memories_2</span><span class="p">,</span>
+                    <span class="n">memories_3</span><span class="p">,</span>
+                    <span class="n">memories_4</span><span class="p">,</span>
+                    <span class="n">memories_5</span><span class="p">,</span>
+                    <span class="n">memories_6</span><span class="p">,</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+                    <span class="n">query_memories</span><span class="p">(</span><span class="n">short_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># More context</span>
+                    <span class="n">query_memories</span><span class="p">(</span><span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># Some context</span>
+                    <span class="n">query_memories</span><span class="p">(</span>
+                        <span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="p">),</span>  <span class="c1"># Some context, recent only</span>
+                    <span class="n">query_memories</span><span class="p">(</span><span class="n">only_message</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">),</span>  <span class="c1"># Last message with no author</span>
+                    <span class="n">query_memories</span><span class="p">(</span>
+                        <span class="n">only_message</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="p">),</span>  <span class="c1"># Last message with no author, recent only</span>
+                    <span class="n">query_memories</span><span class="p">(</span>
+                        <span class="n">tiny_history</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span> <span class="n">ignore_recent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">only_tools</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">),</span>  <span class="c1"># Relevant tool calls, some context</span>
+                    <span class="n">query_memories</span><span class="p">(</span>
+                        <span class="n">tiny_history</span><span class="p">,</span>
+                        <span class="n">limit</span><span class="o">=</span><span class="n">EACH_LIMIT</span><span class="p">,</span>
+                        <span class="n">ignore_recent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">only_tools</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">age_limit</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                    <span class="p">),</span>  <span class="c1"># Relevant tool calls, some context, recent only</span>
                 <span class="p">)</span>
+
+                <span class="c1"># Fetch up to MAX_MEMORIES memories using a rough heuristic order, removing duplicates</span>
+                <span class="n">memory_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">memories_6</span><span class="p">,</span> <span class="n">memories_1</span><span class="p">,</span> <span class="n">memories_4</span><span class="p">,</span> <span class="n">memories_3</span><span class="p">,</span> <span class="n">memories_5</span><span class="p">,</span> <span class="n">memories_0</span><span class="p">,</span> <span class="n">memories_2</span><span class="p">]</span>
+                <span class="n">memories</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Document</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EACH_LIMIT</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">memory_list</span> <span class="ow">in</span> <span class="n">memory_lists</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">memory_list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">memories</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">MAX_MEMORIES</span><span class="p">:</span>
+                            <span class="n">memory</span> <span class="o">=</span> <span class="n">memory_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">memory</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">memories</span><span class="p">]:</span>
+                                <span class="n">memories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+
+                <span class="c1"># Format memories as strings</span>
+                <span class="n">formatted_memories</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">memory</span> <span class="ow">in</span> <span class="n">memories</span><span class="p">:</span>
+                    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;creation_time&quot;</span><span class="p">]</span>
+                    <span class="n">time_str</span> <span class="o">=</span> <span class="n">time_elapsed_str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+                    <span class="n">mem_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">time_str</span><span class="si">}</span><span class="s2">)&quot;</span>
+                    <span class="n">mem_content</span> <span class="o">=</span> <span class="n">truncate_length</span><span class="p">(</span><span class="n">memory</span><span class="o">.</span><span class="n">page_content</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+                    <span class="n">formatted_memories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mem_title</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">mem_content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">formatted_memories</span><span class="p">:</span>
+                    <span class="n">log_debug_info</span><span class="p">(</span>
+                        <span class="n">truncate_length</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;===== Bob memories =====</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">truncate_length</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="mi">192</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">formatted_memories</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># noqa: E501</span>
+                            <span class="mi">1000</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">formatted_memories</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="c1"># Get activity status</span>
             <span class="n">activity_status</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_activity_status</span><span class="p">()</span>
@@ -224,8 +231,9 @@
             <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_response_with_tools</span><span class="p">(</span>
                 <span class="n">history</span><span class="o">.</span><span class="n">as_langchain_msgs</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
                 <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
-                <span class="n">uncensored</span><span class="o">=</span><span class="p">(</span><span class="n">is_safe</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">),</span>
-                <span class="n">obedient</span><span class="o">=</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">Mode</span><span class="o">.</span><span class="n">OBEDIENT</span><span class="p">),</span>
+                <span class="n">uncensored</span><span class="o">=</span><span class="ow">not</span> <span class="n">is_safe</span><span class="p">,</span>
+                <span class="n">obedient</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">is_obedient</span><span class="p">,</span>
+                <span class="n">store_memories</span><span class="o">=</span><span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span> <span class="o">==</span> <span class="n">saved_message_count</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>

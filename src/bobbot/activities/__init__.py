@@ -2,6 +2,7 @@
 
 from bobbot.activities.activities import (
     Activity,
+    get_activity,
     get_activity_status,
     spectate_activity,
     start_activity,
@@ -12,6 +13,7 @@ from bobbot.activities.eat import configure_meal
 
 __all__ = [
     "Activity",
+    "get_activity",
     "get_activity_status",
     "spectate_activity",
     "start_activity",

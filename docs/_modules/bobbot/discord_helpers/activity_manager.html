@@ -87,9 +87,11 @@
 <span class="kn">from</span> <span class="nn">discord</span> <span class="kn">import</span> <span class="n">app_commands</span>
 <span class="kn">from</span> <span class="nn">discord.ext</span> <span class="kn">import</span> <span class="n">commands</span>
 
-<span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># stop_activity,</span>
+<span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Activity</span><span class="p">,</span>
     <span class="n">configure_chess</span><span class="p">,</span>
+    <span class="n">get_activity</span><span class="p">,</span>
+    <span class="n">get_activity_status</span><span class="p">,</span>
     <span class="n">spectate_activity</span><span class="p">,</span>
     <span class="n">start_activity</span><span class="p">,</span>
     <span class="n">stop_activity</span><span class="p">,</span>
@@ -185,6 +187,9 @@
 
 
 
+<span class="c1"># ===== Chess and League Commands =====</span>
+
+
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;chess&quot;</span><span class="p">)</span>
 <span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
     <span class="n">against</span><span class="o">=</span><span class="p">[</span>
@@ -192,8 +197,14 @@
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Chess.com Bot&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;bot&quot;</span><span class="p">),</span>
     <span class="p">]</span>
 <span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">chess</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">against</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a chess game with Bob.&quot;&quot;&quot;</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">chess</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">elo</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">against</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a chess game with Bob.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ctx: The context of the command.</span>
+<span class="sd">        elo: The elo rating to play at. Must be in 200-1600.</span>
+<span class="sd">        against: Whether to play against a human or bot. Defaults to a human.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">elo</span> <span class="o">&lt;</span> <span class="mi">200</span> <span class="ow">or</span> <span class="n">elo</span> <span class="o">&gt;</span> <span class="mi">1600</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid elo, must be between 200 and 1600&quot;</span><span class="p">)</span>
         <span class="k">return</span>
@@ -205,7 +216,17 @@
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
 
 
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">)</span>
+<span class="c1"># ===== Activity Group Commands =====</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_group</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check Bob&#39;s current activity status.&quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_activity_status</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@activity</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
 <span class="nd">@app_commands</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
     <span class="n">activity</span><span class="o">=</span><span class="p">[</span>
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;School&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;school&quot;</span><span class="p">),</span>
@@ -217,23 +238,44 @@
     <span class="p">]</span>
 <span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">do_basic_activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">activity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start an activity (without configuring parameters).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start an activity with default parameters.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">activity</span> <span class="o">==</span> <span class="s2">&quot;chess&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">chess</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="s2">&quot;human&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
         <span class="n">act</span> <span class="o">=</span> <span class="n">Activity</span><span class="p">(</span><span class="n">activity</span><span class="p">)</span>
-        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; ok i </span><span class="si">{</span><span class="n">activity</span><span class="si">}</span><span class="s2"> now&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ok i </span><span class="si">{</span><span class="n">activity</span><span class="si">}</span><span class="s2"> now&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">act</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! invalid activity, try school, eat, shower, sleep, chess, or league&quot;</span><span class="p">)</span>
 
 
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spectate&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">video</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spectate the current activity. If on Linux, video mode is disabled.</span>
+<span class="nd">@activity</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">discord_stop_activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stops the current activity.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">get_activity</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! not in an activity&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">stop_activity</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! stopped activity&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># ===== Spectate Commands =====</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_group</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spectate&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">video</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start spectating the current activity. If on Linux, video mode is disabled.</span>
 
 <span class="sd">    Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ctx: The context of the command.</span>
+<span class="sd">        video: Whether to spectate in video mode. Has no effect on Linux.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
         <span class="n">video</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Not enough memory to do video spectating on Linux</span>
+    <span class="n">RATE</span> <span class="o">=</span> <span class="mf">1.5</span>  <span class="c1"># Need to slow down editing rate for video mode</span>
     <span class="k">global</span> <span class="n">spectate_status</span>
     <span class="k">if</span> <span class="n">spectate_status</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;stopping&quot;</span><span class="p">]:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! too fast, try again in a bit&quot;</span><span class="p">)</span>
@@ -265,7 +307,7 @@
                         <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">discord</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;spectate.jpeg&quot;</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="n">frame_num</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>  <span class="c1"># Slow down editing rate</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">RATE</span><span class="p">)</span>  <span class="c1"># Slow down editing rate</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">image_or_msg</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -290,7 +332,7 @@
         <span class="n">spectate_status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
 
 
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop_spectating&quot;</span><span class="p">)</span>
+<span class="nd">@spectate</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">discord_stop_spectating</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop spectating the current activity.&quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">spectate_status</span>
@@ -299,13 +341,6 @@
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! ok D:&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! but ur not spectating anything D:&quot;</span><span class="p">)</span>
-
-
-<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop_activity&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">discord_stop_activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stops the current activity.&quot;&quot;&quot;</span>
-    <span class="k">await</span> <span class="n">stop_activity</span><span class="p">()</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! stopped activity&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>

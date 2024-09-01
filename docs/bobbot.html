@@ -50,6 +50,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.get_debug_info"><code class="docutils literal notranslate"><span class="pre">get_debug_info()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.lazy_send_message"><code class="docutils literal notranslate"><span class="pre">lazy_send_message()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.query_memories"><code class="docutils literal notranslate"><span class="pre">query_memories()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.run_bot"><code class="docutils literal notranslate"><span class="pre">run_bot()</span></code></a></li>
 </ul>
 </li>
@@ -134,6 +135,28 @@ If force is True, the message will not be cancelled. Note that empty messages st
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Whether the message was sent in full.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.query_memories">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.</span></span><span class="sig-name descname"><span class="pre">query_memories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timedelta</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_recent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_tools</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Document</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/memory.html#query_memories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.query_memories" title="Link to this definition"></a></dt>
+<dd><p>Search Bob’s long term memory for relevant, recent memories.</p>
+<p>Most memories should not exceed ~5000 characters in length, but this is still a lot, and is also not guaranteed.
+Truncate all memories before giving them to an LLM!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> – The query to search for.</p></li>
+<li><p><strong>limit</strong> – The maximum number of memories to retrieve.</p></li>
+<li><p><strong>age_limit</strong> – The maximum age of the memories to retrieve. If None, all memories are considered.</p></li>
+<li><p><strong>ignore_recent</strong> – Whether to ignore recent memories (within 1 minute old) when retrieving.</p></li>
+<li><p><strong>only_tools</strong> – Whether to only retrieve tool memories.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The list of retrieved memories, sorted by relevance.</p>
 </dd>
 </dl>
 </dd></dl>

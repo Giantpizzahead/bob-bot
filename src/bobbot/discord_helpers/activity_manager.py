@@ -10,9 +10,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bobbot.activities import (  # stop_activity,
+from bobbot.activities import (
     Activity,
     configure_chess,
+    get_activity,
+    get_activity_status,
     spectate_activity,
     start_activity,
     stop_activity,
@@ -99,6 +101,9 @@ async def check_waiting_responses(channel: discord.TextChannel) -> None:
                 await command_handler(channel, text)  # Send clarification
 
 
+# ===== Chess and League Commands =====
+
+
 @bot.hybrid_command(name="chess")
 @app_commands.choices(
     against=[
@@ -106,8 +111,14 @@ async def check_waiting_responses(channel: discord.TextChannel) -> None:
         app_commands.Choice(name="Chess.com Bot", value="bot"),
     ]
 )
-async def chess(ctx: commands.Context, elo: int, against: str | None) -> None:
-    """Start a chess game with Bob."""
+async def chess(ctx: commands.Context, elo: int, against: Optional[str]) -> None:
+    """Start a chess game with Bob.
+
+    Args:
+        ctx: The context of the command.
+        elo: The elo rating to play at. Must be in 200-1600.
+        against: Whether to play against a human or bot. Defaults to a human.
+    """
     if elo < 200 or elo > 1600:
         await ctx.send("! invalid elo, must be between 200 and 1600")
         return
@@ -119,7 +130,17 @@ async def chess(ctx: commands.Context, elo: int, against: str | None) -> None:
     await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
 
 
-@bot.hybrid_command(name="activity")
+# ===== Activity Group Commands =====
+
+
+@bot.hybrid_group(name="activity", fallback="status")
+async def activity(ctx: commands.Context) -> None:
+    """Check Bob's current activity status."""
+    status = await get_activity_status()
+    await ctx.send(f"! {status}")
+
+
+@activity.command(name="start")
 @app_commands.choices(
     activity=[
         app_commands.Choice(name="School", value="school"),
@@ -131,23 +152,44 @@ async def chess(ctx: commands.Context, elo: int, against: str | None) -> None:
     ]
 )
 async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
-    """Start an activity (without configuring parameters)."""
+    """Start an activity with default parameters."""
     try:
+        if activity == "chess":
+            await chess(ctx, 800, "human")
+            return
         act = Activity(activity)
-        await ctx.send(f" ok i {activity} now")
+        await ctx.send(f"ok i {activity} now")
         await start_activity(act, gen_command_handler(ctx.channel))
     except ValueError:
         await ctx.send("! invalid activity, try school, eat, shower, sleep, chess, or league")
 
 
-@bot.hybrid_command(name="spectate")
-async def spectate(ctx: commands.Context, video: bool = True, rate: float = 1.5) -> None:
-    """Spectate the current activity. If on Linux, video mode is disabled.
+@activity.command(name="stop")
+async def discord_stop_activity(ctx: commands.Context) -> None:
+    """Stops the current activity."""
+    if get_activity() is None:
+        await ctx.send("! not in an activity")
+    else:
+        await stop_activity()
+        await ctx.send("! stopped activity")
+
+
+# ===== Spectate Commands =====
+
+
+@bot.hybrid_group(name="spectate", fallback="start")
+async def spectate(ctx: commands.Context, video: bool = True) -> None:
+    """Start spectating the current activity. If on Linux, video mode is disabled.
 
     Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.
+
+    Args:
+        ctx: The context of the command.
+        video: Whether to spectate in video mode. Has no effect on Linux.
     """
     if platform == "linux" or platform == "linux2":
         video = False  # Not enough memory to do video spectating on Linux
+    RATE = 1.5  # Need to slow down editing rate for video mode
     global spectate_status
     if spectate_status in ["stopping"]:
         await ctx.send("! too fast, try again in a bit")
@@ -179,7 +221,7 @@ async def spectate(ctx: commands.Context, video: bool = True, rate: float = 1.5)
                         content=content, file=discord.File(fp=image_or_msg, filename="spectate.jpeg")
                     )
                 frame_num += 1
-                await asyncio.sleep(rate)  # Slow down editing rate
+                await asyncio.sleep(RATE)  # Slow down editing rate
             elif isinstance(image_or_msg, list):
                 await ctx.send(image_or_msg[0])
                 for msg in image_or_msg[1:]:
@@ -204,7 +246,7 @@ async def spectate(ctx: commands.Context, video: bool = True, rate: float = 1.5)
         spectate_status = "idle"
 
 
-@bot.hybrid_command(name="stop_spectating")
+@spectate.command(name="stop")
 async def discord_stop_spectating(ctx: commands.Context) -> None:
     """Stop spectating the current activity."""
     global spectate_status
@@ -213,10 +255,3 @@ async def discord_stop_spectating(ctx: commands.Context) -> None:
         await ctx.send("! ok D:")
     else:
         await ctx.send("! but ur not spectating anything D:")
-
-
-@bot.hybrid_command(name="stop_activity")
-async def discord_stop_activity(ctx: commands.Context) -> None:
-    """Stops the current activity."""
-    await stop_activity()
-    await ctx.send("! stopped activity")
