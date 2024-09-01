@@ -1,10 +1,12 @@
 """Agents that respond to messages in a Discord-appropriate style."""
 
+import asyncio
 import os
+import uuid
 from datetime import datetime
 from typing import Optional
+from zoneinfo import ZoneInfo
 
-import pytz
 from langchain.tools import Tool
 from langchain_core.messages import (
     AIMessage,
@@ -16,6 +18,7 @@ from langchain_core.messages import (
 
 from bobbot.agents.llms import llm_deepseek, llm_gpt4omini, messages_to_string
 from bobbot.agents.tools import TOOL_BY_NAME, TOOL_LIST
+from bobbot.memory import add_tool_memories
 from bobbot.utils import get_logger, log_debug_info, truncate_length
 
 logger = get_logger(__name__)
@@ -37,7 +40,7 @@ async def get_response_with_tools(
     MAX_LOOPS = 3  # Max number of LLM iterations allowed
 
     # Setup prompt
-    current_time_pst = datetime.now(pytz.timezone("US/Pacific"))
+    current_time_pst = datetime.now(ZoneInfo("America/New_York"))
     curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
     server_intro = "You are a Discord user named Bob chatting in a private Discord server. Bob is a rising junior majoring in CS at MIT and is a witty gamer."  # noqa: E501
     if uncensored and os.getenv("UNCENSORED_INTRO") is not None:
@@ -71,14 +74,17 @@ Notes:
         HumanMessage(content="Axoa1: ah..."),
         AIMessage(content="yo lets talk abt life"),
     ]
+
     if context is not None:
-        # Insert into msg_history
-        msg_history.insert(-1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
+        # Insert into messages as a second system message
+        messages.insert(1, SystemMessage(content=context + "\n\nKeep your messaging style as described previously."))
+
     messages.extend(msg_history)
-    print(messages_to_string(messages))
+    logger.info(f"Full Bob prompt:\n{messages_to_string(messages)}")
     # log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
 
     # Let the agent self loop
+    tool_call_log: list[str] = []
     base_llm = llm_gpt4omini if not uncensored else llm_deepseek
     for i in range(MAX_LOOPS):
         # Force a response on the last loop
@@ -92,6 +98,11 @@ Notes:
                 tool: Tool = TOOL_BY_NAME[tool_call["name"]]
                 tool_message: ToolMessage = await tool.ainvoke(tool_call)
                 messages.append(tool_message)
+                formatted_output = (
+                    f"Called {tool_call['name']} with args {truncate_length(tool_call['args'], 2048)}, got result:\n"
+                )
+                formatted_output += truncate_length(tool_message.content, 4096)
+                tool_call_log.append(formatted_output)
                 log_debug_info(
                     f"===== Iteration {i+1}: {tool_call['name']}, args {tool_call['args']} =====\n{truncate_length(tool_message.content, 256)}"  # noqa: E501
                 )
@@ -108,6 +119,10 @@ Notes:
     if obedient:
         modifiers.append("obedient ")
     log_debug_info(f"===== Bob {','.join(modifiers)}response =====\n{content}")
+
+    # Save tool memories in the background
+    if tool_call_log:
+        asyncio.create_task(add_tool_memories(tool_call_log, uuid.uuid4().hex, content))
     return content
 
 
@@ -118,7 +133,7 @@ async def get_response(msg_history: list[BaseMessage], context: Optional[str] = 
         msg_history: The message history.
         context: The system context to provide right before the last message.
     """
-    current_time_pst = datetime.now(pytz.timezone("US/Pacific"))
+    current_time_pst = datetime.now(ZoneInfo("America/New_York"))
     curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
     messages = [
         SystemMessage(

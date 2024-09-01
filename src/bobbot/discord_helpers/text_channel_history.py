@@ -65,6 +65,11 @@ class ParsedMessage:
     """Whether the message was deleted."""
 
     @property
+    def id(self) -> int:
+        """The message ID."""
+        return self.message.id
+
+    @property
     def is_edited(self) -> bool:
         """Whether the message was edited."""
         return self.message.edited_at is not None

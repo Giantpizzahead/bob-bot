@@ -17,6 +17,7 @@ from bobbot.discord_helpers.text_channel_history import (
     get_channel_history,
     get_users_in_channel,
 )
+from bobbot.memory import add_chat_memory
 from bobbot.utils import close_playwright_browser, get_logger, log_debug_info
 
 logger = get_logger(__name__)
@@ -59,8 +60,6 @@ def init_bot() -> BobBot:
     intents: discord.Intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True
-    if os.getenv("UNCENSORED_INTRO") is not None:
-        logger.info(f"Using custom uncensored intro:\n{os.getenv('UNCENSORED_INTRO')}")
     return BobBot(command_prefix="!", help_command=None, intents=intents)
 
 
@@ -160,4 +159,13 @@ async def lazy_send_message(
             except discord.DiscordException:
                 logger.exception("Error sending message")
                 return False
+
+    # Wait for Bob's last message to be sent
+    await asyncio.sleep(0.5)
+    # Save current history to memory
+    await history.aupdate()
+    parsed_msgs = history.as_parsed_messages(5)
+    text = history.as_string(5)
+    message_ids = [msg.id for msg in parsed_msgs]
+    await add_chat_memory(text, message_ids)
     return True

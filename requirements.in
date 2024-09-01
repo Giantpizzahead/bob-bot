@@ -15,3 +15,5 @@ pytube
 youtube-comment-downloader
 beautifulsoup4
 psutil
+pinecone-client
+pinecone-text

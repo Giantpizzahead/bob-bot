@@ -26,14 +26,16 @@ Environment variables (some required, some optional):
 - Discord channels: It's best to have at most one channel per server. Use Discord's developer mode to get these IDs. Format it as a Python list of strings, ex: `['123...', '456...']`.
 - OpenAI API key: See https://platform.openai.com/api-keys. Costs a bit of money, probably less than a quarter if you're just playing around.
 - Serper API key: See https://serper.dev/api-key. They have a good free plan.
+- Pinecone API key: See https://www.pinecone.io/product/. They also have a good free plan.
 - Uncensored intro: Use this to give context on how you want the bot to behave in uncensored mode. Be as specific as possible. Consider giving it info on inside jokes. Phrase these as guidelines, rather than trying to give specific examples to the bot. No need for extra spaces at the end. If not set, the bot will use a default uncensored intro prompt, see [responses.py](https://github.com/Giantpizzahead/bob-bot/blob/main/src/bobbot/agents/responses.py). You can use this prompt as reference for your own.
 
 ```text
 DISCORD_TOKEN = Discord bot token.
 DISCORD_CHANNELS = A list of channel ID strings to talk in.
 OPENAI_KEY = OpenAI API key.
-OPENROUTER_KEY = OpenRouter API key.
-SERPER_API_KEY = Serper API key (for Google search).
+OPENROUTER_KEY = OpenRouter API key, for the Deepseek uncensored model.
+SERPER_API_KEY = Serper API key, for Google search.
+PINECONE_API_KEY = Pinecone API key, for long term memory.
 UNCENSORED_INTRO = (Optional) Custom prompt to feed to the bot when using the uncensored model.
 
 ACTIVITIES_USERNAME = (Optional) Username for logging into all activities. Needed to use activities.

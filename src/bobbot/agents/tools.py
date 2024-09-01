@@ -201,6 +201,7 @@ async def fetch_webpage(url: str, prompt: str) -> str:
         #     logger.warning("Webpage RAG agent did not output answer in the requested format. Returning all content.")
         #     answer = content
         # return {"result": answer}
+
         return {"result": content}
     except Exception as e:
         logger.exception("Error running tool")
@@ -209,7 +210,7 @@ async def fetch_webpage(url: str, prompt: str) -> str:
 
 @tool(parse_docstring=True)
 async def perform_image_search(query: str) -> dict:
-    """Use to search for images online and get back the retrieved image URLs (with metadata). Can help when a user requests an image, or you want to react with one.
+    """Use to search for images online and get back the retrieved image URLs (with metadata). Use when a user requests an image, picture, or GIF, or when you want to react with one.
 
     Args:
         query: The query to search for. For present-day queries, do NOT include the date.

@@ -28,7 +28,6 @@ async def check_openai_safety(msg_history: str) -> Optional[bool]:
     response = openai_client.moderations.create(input=msg_history)
     categories = response.results[0].categories  # https://platform.openai.com/docs/api-reference/moderations/object
     true_categories: list[str] = [category for category, is_true in vars(categories).items() if is_true]
-    log_debug_info(f"===== Safety agent moderations =====\nFlagged: {true_categories}")
     if (
         categories.self_harm
         or categories.self_harm_instructions
@@ -38,8 +37,10 @@ async def check_openai_safety(msg_history: str) -> Optional[bool]:
         or categories.violence
         or categories.violence_graphic
     ):
+        log_debug_info(f"===== Safety agent moderations =====\nFlagged: {true_categories}")
         return True  # Handle these seriously
     elif categories.sexual or categories.hate:
+        log_debug_info(f"===== Safety agent moderations =====\nFlagged: {true_categories}")
         return False  # Don't handle these
 
     # Precise check with LLM (to find cases like cheating on an exam)
@@ -56,7 +57,7 @@ Here is the server's message history, including the most recent message. You MUS
     # log_debug_info(f"===== Safety agent history =====\n{messages[1].content}")
     response = await llm_gpt4omini_factual.ainvoke(messages)
     content = response.content
-    log_debug_info(f"===== Safety agent LLM response =====\n{content}")
+    log_debug_info(f"===== Safety agent response =====\nFlagged: {true_categories}\n{content}")
     # Get the decision
     if "ACCEPT" in content:
         return True

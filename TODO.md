@@ -6,7 +6,9 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Memory
 
-- [ ] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a Pinecone vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
+- [ ] Make a command to look up stored long term memories with a query, potentially choosing to filter with only tools
+- [ ] Make a command to delete a stored memory by ID, for manual cleanup if sensitive info gets leaked
+- [ ] Make an "incognito mode" where all attempts to save new memories are turned off (can still access and use old memories)
 
 #### Voice
 
@@ -48,7 +50,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
   - It looks like no specifically designed libraries exist for creating these memories, so let's build this up ourselves, potentially reusing other people's code, with citations.
 - [ ] Use the memory agent to create candidate long-term memories. Then, before putting them in the vector store, retrieve similar memories that already exist, and combine them into a "knowledge base article" or similar.
   - We could potentially use [LlamaIndex](https://medium.com/llamaindex-blog/data-agents-eed797d7972f) to process the memories once we've created them. I'm not sure how this would fit together yet.
-- [ ] Implement a memory pruning system that just prunes the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
+- [ ] Implement a memory pruning system that just prunes the Pinecone database, removing the oldest memories which haven't been retrieved/updated upon reaching a limit, or prunes memories that haven't been retrieved/updated for X days (maybe incremental, like spaced repetition retention times).
 
 #### Text
 
@@ -137,7 +139,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Memory
 
-hi
+- [x] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a Pinecone vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
+- [x] Improve the memory system by filtering based on either tool calls or chat history, having queries with different time ranges to weight recent messages more, and combining query variations to produce diverse memory results
 
 ## Milestones and Capstones
 
