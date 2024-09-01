@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.4
+        """! hi i am bob 2nd edition v1.5
 command prefix is `!`, slash commands work too
 
 activities:
@@ -35,7 +35,8 @@ config:
 `mode [default/obedient/off]` - Set the mode of the bot, clearing the conversation history.
 `speed [default/instant]` - Set the typing speed of the bot.
 `reset` - Reset the bot's conversation history.
-`reboot` - Reboot the bot.
+`delete_last [count]` - Delete up to count messages sent by the bot in recent history.
+`reboot` - Reboot the bot. May take a while.
 
 info:
 `help` - Show this help message.
@@ -116,6 +117,26 @@ async def debug(ctx: commands.Context) -> None:
         await ctx.send("! No trace available.")
     else:
         await ctx.send(truncate_length("!```Trace:\n" + debug_info + "```", 2000))
+
+
+@bot.hybrid_command(name="delete_last")
+async def delete_last(ctx, count: int):
+    """Delete up to count messages sent by the bot in recent history."""
+    if count > 5:
+        await ctx.send("! can only delete up to 5 msgs at a time")
+        return
+    num_deleted = 0
+    async for message in ctx.channel.history(limit=20):
+        if message.author == bot.user:
+            await message.delete()
+            num_deleted += 1
+            if num_deleted == count:
+                break
+    if num_deleted == 0:
+        await ctx.send(f"! {ctx.author.mention} no bot msgs in recent history (last 20 msgs)")
+    else:
+        await ctx.send(f"! {ctx.author.mention} deleted last {num_deleted} bot msgs")
+    await ctx.message.delete()
 
 
 @bot.event

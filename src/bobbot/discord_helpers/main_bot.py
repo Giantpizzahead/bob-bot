@@ -59,6 +59,8 @@ def init_bot() -> BobBot:
     intents: discord.Intents = discord.Intents.default()
     intents.members = True
     intents.message_content = True
+    if os.getenv("UNCENSORED_INTRO") is not None:
+        logger.info(f"Using custom uncensored intro:\n{os.getenv('UNCENSORED_INTRO')}")
     return BobBot(command_prefix="!", help_command=None, intents=intents)
 
 
@@ -135,8 +137,8 @@ async def lazy_send_message(
             j = min(i + chunk_size_limit, len(message_str))  # Ending of this message
             chunk = message_str[i:j]
             i = j
-            # Calculate typing time (on top of generation time): ~200 WPM or 14-18 seconds max
-            typing_time = min(random.uniform(0.7, 1.3) * 75 * len(chunk), random.uniform(14000, 18000))
+            # Calculate typing time (on top of generation time): ~200 WPM or 10-14 seconds max
+            typing_time = min(random.uniform(0.8, 1.2) * 75 * len(chunk), random.uniform(10000, 14000))
             if instant or bot.speed == Speed.INSTANT:
                 typing_time = 0
             saved_message_count: int = history.message_count

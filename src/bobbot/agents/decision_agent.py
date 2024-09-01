@@ -25,7 +25,7 @@ async def decide_to_respond(msg_history: str, status: Optional[str] = None) -> t
         if status
         else ""
     )
-    DECISION_PROMPT = f"""You are an expert decision maker named Bob chatting in a private Discord server with other users. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
+    DECISION_PROMPT = f"""You are an expert decision maker named Bob chatting in a private 18+ NSFW Discord server with other users. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:
 
 Example chat history 1:
 AlexiKeys: yooo @bob
@@ -58,15 +58,7 @@ Example response format 3:
 Thoughts: Donahue4 is thanking me and said good night, I should reciprocate and respond.
 Answer: RESPOND
 
-Example chat history 4:
-Donahue4: hey bob wut games u play?
-bob: league and val
-
-Example response format 4:
-Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.
-Answer: WAIT
-
-Here is the message history of the server, including the most recent message. {status_addendum}Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. Keep thoughts concise.
+Here is the message history of the server, including the most recent message. {status_addendum}Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they're heading out, you should respond. For safety concerns or sensitive topics involving you, you should respond instead of avoiding engagement. Keep thoughts concise.
 
 You MUST follow the example response formats!"""  # noqa: E501
     messages = [SystemMessage(content=DECISION_PROMPT)]
@@ -92,5 +84,5 @@ You MUST follow the example response formats!"""  # noqa: E501
         return True, thoughts
     elif "WAIT" in content:
         return False, thoughts
-    logger.warning("Decision agent did not output a valid response - defaulting to True.")
+    logger.warning("Decision agent did not output a valid response - defaulting to RESPOND.")
     return True, thoughts

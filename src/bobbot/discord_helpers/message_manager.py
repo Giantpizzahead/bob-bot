@@ -1,9 +1,15 @@
 """Manages messages received by the bot."""
 
+import asyncio
+
 import discord
 
 from bobbot.activities import get_activity_status
-from bobbot.agents import decide_to_respond, get_response_with_tools
+from bobbot.agents import (
+    check_openai_safety,
+    decide_to_respond,
+    get_response_with_tools,
+)
 from bobbot.discord_helpers.activity_manager import check_waiting_responses
 from bobbot.discord_helpers.main_bot import Mode, bot, lazy_send_message
 from bobbot.discord_helpers.text_channel_history import (
@@ -41,19 +47,19 @@ async def on_message(message: discord.Message):
     try:
         reset_debug_info()
         decision, thoughts = await decide_to_respond(history.as_string(5))
-        if decision:
-            await curr_channel.typing()
-            await check_waiting_responses(curr_channel)
+        if decision is False:
+            return
+        async with curr_channel.typing():
+            asyncio.create_task(check_waiting_responses(curr_channel))
+            is_safe = await check_openai_safety(history.as_string(5))
             context = f"Context that may be helpful:\nYour status: {await get_activity_status()}"
             if "You're free right now." in context:
                 context = None
-            # response: str = await get_response(
-            #     history.as_langchain_msgs(bot.user),
-            #     context=context,
-            # )
             response: str = await get_response_with_tools(
                 history.as_langchain_msgs(bot.user),
                 context=context,
+                uncensored=(is_safe is False),
+                obedient=(bot.mode == Mode.OBEDIENT),
             )
             if history.message_count == saved_message_count:
                 await lazy_send_message(message.channel, response)

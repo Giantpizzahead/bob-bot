@@ -4,10 +4,6 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
-#### Smarts
-
-- [ ] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detected using OpenAI's moderation API
-
 #### Memory
 
 - [ ] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a Pinecone vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
@@ -70,6 +66,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Make the chess prompt track the name of the user Bob is playing against (for better comments)
 - [ ] Update exports from each module
 - [ ] Make fake typing speed timing wait from when the last message was received, rather than when the final response has been determined
+- [ ] Send image link, if a single one is present in AI's response, in a separate message (to hide the link)
+- [ ] Allow for a custom Bob normal prompt using an environment variable
 
 ## Completed Tasks
 
@@ -112,6 +110,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Think about what to do when Bob is fed an image - probably shouldn't go through all the tools, right?
 - [x] Give Bob a website scraping tool (ideally with something like Playwright for JS sites), see [here](https://python.langchain.com/v0.2/docs/integrations/tools/playwright/) and [here](https://python.langchain.com/v0.2/api_reference/_modules/langchain_community/tools/playwright/extract_text.html#ExtractTextTool).
   - Turns out this is more complicated than expected, because it also needs retrieval through RAG. I'm using [the JS version](https://github.com/langchain-ai/langchainjs/blob/b85e160b66d8ab09075aee1755efa0448a4aad52/langchain/src/tools/webbrowser.ts#L185) as a reference implementation.
+- [x] Implement a system that switches to deepseek (model/prompt) when very edgy or NSFW responses are needed, can be detected using OpenAI's moderation API
 
 ### Activities
 

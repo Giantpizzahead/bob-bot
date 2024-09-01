@@ -104,7 +104,7 @@
         <span class="k">if</span> <span class="n">status</span>
         <span class="k">else</span> <span class="s2">&quot;&quot;</span>
     <span class="p">)</span>
-    <span class="n">DECISION_PROMPT</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;You are an expert decision maker named Bob chatting in a private Discord server with other users. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:</span>
+    <span class="n">DECISION_PROMPT</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;You are an expert decision maker named Bob chatting in a private 18+ NSFW Discord server with other users. Your goal is to decide whether or not to send a message in the server, given the chat history. Follow these examples:</span>
 
 <span class="s2">Example chat history 1:</span>
 <span class="s2">AlexiKeys: yooo @bob</span>
@@ -137,15 +137,7 @@
 <span class="s2">Thoughts: Donahue4 is thanking me and said good night, I should reciprocate and respond.</span>
 <span class="s2">Answer: RESPOND</span>
 
-<span class="s2">Example chat history 4:</span>
-<span class="s2">Donahue4: hey bob wut games u play?</span>
-<span class="s2">bob: league and val</span>
-
-<span class="s2">Example response format 4:</span>
-<span class="s2">Thoughts: I just finished responding to Donahue4 with the games I play. Nothing important to add, so wait.</span>
-<span class="s2">Answer: WAIT</span>
-
-<span class="s2">Here is the message history of the server, including the most recent message. </span><span class="si">{</span><span class="n">status_addendum</span><span class="si">}</span><span class="s2">Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they&#39;re heading out, you should respond. For safety concerns or sensitive topics, you should respond instead of avoiding engagement. Keep thoughts concise.</span>
+<span class="s2">Here is the message history of the server, including the most recent message. </span><span class="si">{</span><span class="n">status_addendum</span><span class="si">}</span><span class="s2">Respond with brainstorming thoughts, followed by your answer of RESPOND or WAIT. Remember that if a user is directly addressing, pinging, or replying to you, or if a user sends a general message looking for someone to chat with or saying they&#39;re heading out, you should respond. For safety concerns or sensitive topics involving you, you should respond instead of avoiding engagement. Keep thoughts concise.</span>
 
 <span class="s2">You MUST follow the example response formats!&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
     <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">DECISION_PROMPT</span><span class="p">)]</span>
@@ -171,7 +163,7 @@
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">thoughts</span>
     <span class="k">elif</span> <span class="s2">&quot;WAIT&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">thoughts</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Decision agent did not output a valid response - defaulting to True.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Decision agent did not output a valid response - defaulting to RESPOND.&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">thoughts</span></div>
 
 </pre></div>
