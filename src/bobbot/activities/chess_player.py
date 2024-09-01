@@ -11,7 +11,6 @@ from typing import Callable, Optional
 import chess
 import chess.engine
 from chess import Board
-from PIL import Image
 from playwright.async_api import BrowserContext, Locator, Page, TimeoutError
 
 from bobbot.utils import get_logger, get_playwright_browser, get_playwright_page
@@ -21,7 +20,7 @@ logger = get_logger(__name__)
 status = "idle"
 match_result = None
 curr_win_chance: int = 50
-last_screenshot: Optional[Image.Image] = None
+last_screenshot: Optional[Path] = None
 
 elo = 800  # Should be in [200, 1600]
 against_computer = False
@@ -457,11 +456,17 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             return
         status = "playing"
         asyncio.create_task(cmd_handler("start_spectating"))  # Start spectating
+        move_num = 1
         while True:
             await wait_for_move(page)
             match_result = await check_game_over(page)
             if match_result:
                 break
+            if move_num % 5 == 0 and random.random() < 0.5 and not against_computer:
+                # Comment on the game
+                await cmd_handler(
+                    f"Give some banter on your chess match. You are playing as the Black pieces against a user. It is (approximately) move #{move_num}. Based on the current board, your chance of winning is {curr_win_chance:.0f}%."  # noqa: E501
+                )
             await play_move(page)  # Might dry move, but that's ok
             if status == "stopping":
                 logger.info("Stopping chess match (while playing)...")
@@ -470,14 +475,15 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
                 await context.close()
                 status = "idle"
                 return
+            move_num += 1
 
         # Close ending dialog
         status = "finished"
         await page.wait_for_timeout(700)
         await close_ending_dialog(page)
-        last_screenshot = await screenshot_chess_activity()
+        # last_screenshot = await screenshot_chess_activity()
         await cmd_handler(
-            f"Comment on your chess match against the user. You were playing Black. Make it clear who the winner was (you or the user). Winner: {match_result[0]}. (Reason: {match_result[1].strip()})"  # noqa: E501
+            f"Comment on your chess match against the user. You were playing Black. Make it clear whether you won or lost. Winner: {match_result[0]}. (Reason: {match_result[1].strip()})"  # noqa: E501
         )
         logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
         await page.wait_for_timeout(3000)

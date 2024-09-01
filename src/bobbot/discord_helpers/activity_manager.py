@@ -3,6 +3,7 @@
 import asyncio
 import uuid
 from pathlib import Path
+from sys import platform
 from typing import Callable, Optional
 
 import discord
@@ -140,11 +141,13 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
 
 
 @bot.hybrid_command(name="spectate")
-async def spectate(ctx: commands.Context, video: bool = True, rate: float = 5.0) -> None:
-    """Spectate the current activity.
+async def spectate(ctx: commands.Context, video: bool = True, rate: float = 1.5) -> None:
+    """Spectate the current activity. If on Linux, video mode is disabled.
 
     Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.
     """
+    if platform == "linux" or platform == "linux2":
+        video = False  # Not enough memory to do video spectating on Linux
     global spectate_status
     if spectate_status in ["stopping"]:
         await ctx.send("! too fast, try again in a bit")
