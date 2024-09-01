@@ -18,7 +18,6 @@ from bobbot.activities.eat import eat_meal_activity, get_eating_info, stop_eatin
 from bobbot.activities.school import get_school_info, school_activity, stop_school
 from bobbot.activities.shower import get_shower_info, shower_activity, stop_showering
 from bobbot.activities.sleep import get_sleep_info, sleep_activity, stop_sleeping
-from bobbot.utils import do_garbage_collection
 
 
 class Activity(Enum):
@@ -115,7 +114,6 @@ async def spectate_activity() -> Optional[list[str] | Path]:
     """Returns a path to an image or list of messages for the current activity (if available)."""
     if current_activity is None:
         return None
-    do_garbage_collection()  # Free up memory before taking a screenshot
     if current_activity == Activity.SCHOOL:
         return [
             "https://tenor.com/view/mochi-peach-work-annoying-gif-11281690480465316781",

@@ -14,12 +14,7 @@ from chess import Board
 from PIL import Image
 from playwright.async_api import BrowserContext, Locator, Page, TimeoutError
 
-from bobbot.utils import (
-    do_garbage_collection,
-    get_logger,
-    get_playwright_browser,
-    get_playwright_page,
-)
+from bobbot.utils import get_logger, get_playwright_browser, get_playwright_page
 
 STATE_FILE = "local/pw/state.json"
 logger = get_logger(__name__)
@@ -467,14 +462,12 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             match_result = await check_game_over(page)
             if match_result:
                 break
-            do_garbage_collection()  # Free up memory before playing move
             await play_move(page)  # Might dry move, but that's ok
             if status == "stopping":
                 logger.info("Stopping chess match (while playing)...")
                 await stop_sunfish_engine()
                 chess_page = None
                 await context.close()
-                await browser.close()
                 status = "idle"
                 return
 

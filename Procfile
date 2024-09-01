@@ -1,1 +1,1 @@
-worker: playwright install && python src/main.py
+worker: playwright install chrome && python src/main.py

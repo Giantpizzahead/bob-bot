@@ -106,13 +106,18 @@ async def parse_website(url: str, use_browser: bool = False) -> dict[str, str]:
     # Get the page's raw HTML content
     browser = await get_playwright_browser()
     context = await browser.new_context()
-    page = await get_playwright_page(context)
     try:
-        await page.goto(url, timeout=7000)
-        await page.wait_for_timeout(2000)
-    except TimeoutError:
-        logger.info("Website load timed out, parsing anyway...")
-    content = await page.content()
+        page = await get_playwright_page(context)
+        try:
+            await page.goto(url, timeout=7000)
+            await page.wait_for_timeout(2000)
+        except TimeoutError:
+            logger.info("Website load timed out, parsing anyway...")
+        content = await page.content()
+        await context.close()
+    except Exception as e:
+        await context.close()
+        raise e
     soup = BeautifulSoup(content, "html.parser")
     results = build_metadata(soup, url)
 
@@ -234,7 +239,7 @@ async def perform_image_search(query: str) -> dict:
 
 
 @tool(parse_docstring=True)
-async def watch_youtube_video(url: str) -> dict:
+async def youtube_watch_video(url: str) -> dict:
     """Use to get info about a YouTube video (transcript, comments, etc). Only works on youtube.com URLs. DO NOT USE THIS TOOL FOR OTHER VIDEO SITES (Twitch, TikTok, etc.). USE fetch_webpage INSTEAD.
 
     Args:
@@ -329,7 +334,7 @@ TOOL_BY_NAME = {
     "perform_google_search": perform_google_search,
     "fetch_webpage": fetch_webpage,
     "perform_image_search": perform_image_search,
-    "watch_youtube_video": watch_youtube_video,
+    "youtube_watch_video": youtube_watch_video,
 }
 
 TOOL_LIST = list(TOOL_BY_NAME.values())

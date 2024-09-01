@@ -91,12 +91,7 @@
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="n">BrowserContext</span><span class="p">,</span> <span class="n">Locator</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="ne">TimeoutError</span>
 
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">do_garbage_collection</span><span class="p">,</span>
-    <span class="n">get_logger</span><span class="p">,</span>
-    <span class="n">get_playwright_browser</span><span class="p">,</span>
-    <span class="n">get_playwright_page</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_playwright_browser</span><span class="p">,</span> <span class="n">get_playwright_page</span>
 
 <span class="n">STATE_FILE</span> <span class="o">=</span> <span class="s2">&quot;local/pw/state.json&quot;</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -594,14 +589,12 @@
             <span class="n">match_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_game_over</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">match_result</span><span class="p">:</span>
                 <span class="k">break</span>
-            <span class="n">do_garbage_collection</span><span class="p">()</span>  <span class="c1"># Free up memory before playing move</span>
             <span class="k">await</span> <span class="n">play_move</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>  <span class="c1"># Might dry move, but that&#39;s ok</span>
             <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;stopping&quot;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping chess match (while playing)...&quot;</span><span class="p">)</span>
                 <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
                 <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
                 <span class="k">return</span>
 

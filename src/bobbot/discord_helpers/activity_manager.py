@@ -22,7 +22,7 @@ from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_channel_history,
 )
-from bobbot.utils import do_garbage_collection, get_logger
+from bobbot.utils import get_logger
 
 logger = get_logger(__name__)
 waiting_cmd_events: dict[str, asyncio.Event] = {}
@@ -176,7 +176,6 @@ async def spectate(ctx: commands.Context, video: bool = True, rate: float = 5.0)
                         content=content, file=discord.File(fp=image_or_msg, filename="spectate.jpeg")
                     )
                 frame_num += 1
-                do_garbage_collection()  # Free up memory after sending image file
                 await asyncio.sleep(rate)  # Slow down editing rate
             elif isinstance(image_or_msg, list):
                 await ctx.send(image_or_msg[0])
