@@ -24,7 +24,7 @@ async def get_playwright_browser() -> Browser:
     if browser is None:
         if playwright_instance is None:
             playwright_instance = await async_playwright().start()
-        browser = await playwright_instance.chromium.launch(headless=True, channel="chrome", slow_mo=500)
+        browser = await playwright_instance.chromium.launch(headless=True, slow_mo=500)
     return browser
 
 

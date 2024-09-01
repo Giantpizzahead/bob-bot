@@ -10,7 +10,7 @@ logger = bobbot.get_logger(__name__)
 def main() -> None:
     """Run the bot."""
     try:
-        limit_mb = 896  # Heroku 896 MB RAM limit
+        limit_mb = 960  # Heroku 960 MB RAM limit
         limit_bytes = limit_mb * 1024 * 1024
         resource.setrlimit(resource.RLIMIT_AS, (limit_bytes, limit_bytes))
         logger.info(f"Memory limit set to {limit_mb} MB.")
