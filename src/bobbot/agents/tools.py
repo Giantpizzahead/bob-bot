@@ -270,19 +270,11 @@ async def watch_youtube_video(url: str) -> dict:
                 try:
                     description = yt.initial_data["engagementPanels"][n]["engagementPanelSectionListRenderer"][
                         "content"
-                    ][  # noqa: E501
-                        "structuredDescriptionContentRenderer"
-                    ][
-                        "items"
-                    ][
-                        1
-                    ][
-                        "expandableVideoDescriptionBodyRenderer"
-                    ][
+                    ]["structuredDescriptionContentRenderer"]["items"][1]["expandableVideoDescriptionBodyRenderer"][
                         "attributedDescriptionBodyText"
                     ][
                         "content"
-                    ]
+                    ]  # noqa: E501
                     break
                 except Exception:
                     pass

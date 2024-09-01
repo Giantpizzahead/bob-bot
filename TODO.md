@@ -10,7 +10,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Memory
 
-- [ ] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
+- [ ] Make a simple memory system that adds every tool call query and result, along with every message (or message pair), into a Pinecone vector store, then retrieves the top 3 or so to give directly as context to Bob in the first system prompt.
 
 #### Voice
 
@@ -20,9 +20,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 #### Activities
 
-- [ ] Fix memory leak and/or memory inefficiency issue with spectate (maybe save/load screenshots from a file instead, to avoid any possibility of leaking RAM)
-- [ ] Allow Bob to auto-start activities based on context
 - [ ] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
+- [ ] Allow Bob to auto-start chess, league, and voice calls based on context
 
 ### Future
 
@@ -33,6 +32,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 #### Activities
 
 - [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
+- [ ] Figure out why the YouTube comment grabber works (and not PyTube), then try to use it to get the video's metadata and transcript
+  - It looks like the issue is not the library. Instead, it's YouTube blocking proxies (which makes sense). We could try looking into [free](https://www.croxyproxy.com/) [proxies](https://www.webshare.io/features/free-proxy), which can be integrated into requests and PyTube. But the simpler option is likely to use YouTube's official API, which actually has reasonable daily quotas (we won't hit them with normal usage, maybe close with dev usage). See [here](https://github.com/sns-sdks/python-youtube) for a python library using it. I don't think trying to fix this right now makes sense, since YouTube will continue to change their blacklist/bot countering mechanisms.
 
 #### Smarts
 
@@ -132,6 +133,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Implement simulated work, sleep, eat, and shower activities
 - [x] Fix YouTube video search on Heroku (unknown PyTube error), potentially needing [this](https://github.com/JuanBindez/pytubefix) since the pytube repo hasn't been updated in about a year now
 - [x] Make a command to stop spectating, and a command to check the program's RAM usage
+- [x] Fix memory leak and/or memory inefficiency issue with spectate (maybe save/load screenshots from a file instead, to avoid any possibility of leaking RAM)
+- [x] Trigger Python garbage collection a lot while playing Chess and/or spectating to avoid memory limit issues (at the cost of speed, but not really since we get slowed due to memory)
 
 ### Memory
 

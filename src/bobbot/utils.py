@@ -1,11 +1,13 @@
 """Logging, environment variables, and other utility functions."""
 
+import gc
 import logging
 import logging.config
 import re
 from datetime import datetime, timezone
 from typing import Optional
 
+import psutil
 import requests
 from discord.utils import _ColourFormatter as ColourFormatter
 from dotenv import load_dotenv
@@ -165,4 +167,24 @@ def get_images_in(content: str) -> list[str]:
     return image_urls
 
 
-logger: logging.Logger = get_logger(__name__)
+def do_garbage_collection() -> None:
+    """Run the garbage collector to free up memory."""
+
+    def memory_usage():
+        process = psutil.Process()
+        return process.memory_info().rss / (1024 * 1024)  # Memory in MB
+
+    try:
+        logger.info(f"PID {psutil.Process().pid}")
+        usage_before = memory_usage()
+        collected = gc.collect()
+        usage_after = memory_usage()
+        collected = 0
+        logger.info(
+            f"Garbage collector: collected {collected} objects. Memory usage: {usage_before:.0f} MB -> {usage_after:.0f} MB"  # noqa: E501
+        )
+    except Exception:
+        logger.exception("Error during garbage collection")
+
+
+logger = get_logger(__name__)

@@ -4,9 +4,9 @@
 
 hi i am bob 2nd edition v1.4 :D
 
-See [FEATURES.md](FEATURES.md) for all currently implemented (and planned) features.
+See [FEATURES.md](https://github.com/Giantpizzahead/bob-bot/blob/main/FEATURES.md) for all currently implemented (and planned) features.
 
-See [TODO.md](TODO.md) for the bot's todo list.
+See [TODO.md](https://github.com/Giantpizzahead/bob-bot/blob/main/TODO.md) for the bot's todo list.
 
 ## Setup
 

@@ -83,7 +83,6 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">discord</span>
-<span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">from</span> <span class="nn">discord</span> <span class="kn">import</span> <span class="n">app_commands</span>
 <span class="kn">from</span> <span class="nn">discord.ext</span> <span class="kn">import</span> <span class="n">commands</span>
 
@@ -100,7 +99,7 @@
     <span class="n">TextChannelHistory</span><span class="p">,</span>
     <span class="n">get_channel_history</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">do_garbage_collection</span><span class="p">,</span> <span class="n">get_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">waiting_cmd_events</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -227,7 +226,7 @@
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;spectate&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">video</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">spectate</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">video</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Spectate the current activity.</span>
 
 <span class="sd">    Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.</span>
@@ -249,11 +248,10 @@
         <span class="n">spectate_status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
         <span class="k">return</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="n">frame_num</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">while</span> <span class="n">spectate_status</span> <span class="o">==</span> <span class="s2">&quot;spectating&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
-                <span class="n">memory_info</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span>
-                <span class="n">memory_mb</span> <span class="o">=</span> <span class="n">memory_info</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-                <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Spectating: (Using </span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MB of RAM)&quot;</span> <span class="k">if</span> <span class="n">video</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Spectating: (Frame </span><span class="si">{</span><span class="n">frame_num</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">if</span> <span class="n">video</span> <span class="k">else</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="n">curr_message</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># Edit previous message</span>
                     <span class="k">await</span> <span class="n">curr_message</span><span class="o">.</span><span class="n">edit</span><span class="p">(</span>
@@ -263,7 +261,9 @@
                     <span class="n">curr_message</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
                         <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">discord</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;spectate.jpeg&quot;</span><span class="p">)</span>
                     <span class="p">)</span>
-                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Slow down editing rate</span>
+                <span class="n">frame_num</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">do_garbage_collection</span><span class="p">()</span>  <span class="c1"># Free up memory after sending image file</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>  <span class="c1"># Slow down editing rate</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">image_or_msg</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -294,7 +294,9 @@
     <span class="k">global</span> <span class="n">spectate_status</span>
     <span class="k">if</span> <span class="n">spectate_status</span> <span class="o">==</span> <span class="s2">&quot;spectating&quot;</span><span class="p">:</span>
         <span class="n">spectate_status</span> <span class="o">=</span> <span class="s2">&quot;stopping&quot;</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! ok D:&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! ok D:&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;! but ur not spectating anything D:&quot;</span><span class="p">)</span>
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop_activity&quot;</span><span class="p">)</span>

@@ -14,7 +14,12 @@ from chess import Board
 from PIL import Image
 from playwright.async_api import BrowserContext, Locator, Page, TimeoutError
 
-from bobbot.utils import get_logger, get_playwright_browser, get_playwright_page
+from bobbot.utils import (
+    do_garbage_collection,
+    get_logger,
+    get_playwright_browser,
+    get_playwright_page,
+)
 
 STATE_FILE = "local/pw/state.json"
 logger = get_logger(__name__)
@@ -104,8 +109,9 @@ async def start_match_computer(page: Page) -> None:
         await page.get_by_role("button", name="Start").click(timeout=1500)
     except TimeoutError:
         pass
-    await page.get_by_role("button", name="Choose").click()
-    await page.locator("div.select-playing-as-radio-black").click()
+    # await page.get_by_role("button", name="Choose").click()
+    # await page.locator("div.select-playing-as-radio-black").click()
+    await page.locator("#board-layout-sidebar").get_by_role("button").nth(3).click()
     await page.get_by_role("button", name="Play").click()
     await page.wait_for_timeout(1000)  # Wait for board to update
 
@@ -452,7 +458,6 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             await stop_sunfish_engine()
             chess_page = None
             await context.close()
-            await browser.close()
             status = "idle"
             return
         status = "playing"
@@ -462,6 +467,7 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             match_result = await check_game_over(page)
             if match_result:
                 break
+            do_garbage_collection()  # Free up memory before playing move
             await play_move(page)  # Might dry move, but that's ok
             if status == "stopping":
                 logger.info("Stopping chess match (while playing)...")

@@ -77,12 +77,14 @@
   <h1>Source code for bobbot.utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Logging, environment variables, and other utility functions.&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">logging.config</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
+<span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">discord.utils</span> <span class="kn">import</span> <span class="n">_ColourFormatter</span> <span class="k">as</span> <span class="n">ColourFormatter</span>
 <span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
@@ -248,7 +250,27 @@
     <span class="k">return</span> <span class="n">image_urls</span>
 
 
-<span class="n">logger</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_garbage_collection</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the garbage collector to free up memory.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">memory_usage</span><span class="p">():</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>  <span class="c1"># Memory in MB</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PID </span><span class="si">{</span><span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span><span class="o">.</span><span class="n">pid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">usage_before</span> <span class="o">=</span> <span class="n">memory_usage</span><span class="p">()</span>
+        <span class="n">collected</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+        <span class="n">usage_after</span> <span class="o">=</span> <span class="n">memory_usage</span><span class="p">()</span>
+        <span class="n">collected</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Garbage collector: collected </span><span class="si">{</span><span class="n">collected</span><span class="si">}</span><span class="s2"> objects. Memory usage: </span><span class="si">{</span><span class="n">usage_before</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MB -&gt; </span><span class="si">{</span><span class="n">usage_after</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MB&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error during garbage collection&quot;</span><span class="p">)</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 
            </div>
