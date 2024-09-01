@@ -99,7 +99,7 @@
     <span class="n">TextChannelHistory</span><span class="p">,</span>
     <span class="n">get_channel_history</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">do_garbage_collection</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">waiting_cmd_events</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -262,7 +262,6 @@
                         <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">discord</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;spectate.jpeg&quot;</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="n">frame_num</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">do_garbage_collection</span><span class="p">()</span>  <span class="c1"># Free up memory after sending image file</span>
                 <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>  <span class="c1"># Slow down editing rate</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">image_or_msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>

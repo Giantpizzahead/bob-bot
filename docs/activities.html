@@ -47,7 +47,24 @@
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="bobbot.html">Bob Bot</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Activities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Activities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.Activity"><code class="docutils literal notranslate"><span class="pre">Activity</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.CHESS"><code class="docutils literal notranslate"><span class="pre">Activity.CHESS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.EAT"><code class="docutils literal notranslate"><span class="pre">Activity.EAT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.LEAGUE"><code class="docutils literal notranslate"><span class="pre">Activity.LEAGUE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.SCHOOL"><code class="docutils literal notranslate"><span class="pre">Activity.SCHOOL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.SHOWER"><code class="docutils literal notranslate"><span class="pre">Activity.SHOWER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.SLEEP"><code class="docutils literal notranslate"><span class="pre">Activity.SLEEP</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.configure_chess"><code class="docutils literal notranslate"><span class="pre">configure_chess()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.configure_meal"><code class="docutils literal notranslate"><span class="pre">configure_meal()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.get_activity_status"><code class="docutils literal notranslate"><span class="pre">get_activity_status()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.spectate_activity"><code class="docutils literal notranslate"><span class="pre">spectate_activity()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.start_activity"><code class="docutils literal notranslate"><span class="pre">start_activity()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.stop_activity"><code class="docutils literal notranslate"><span class="pre">stop_activity()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="chess.html">Chess</a></li>
 <li class="toctree-l1"><a class="reference internal" href="agents.html">Agents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="discord_helpers.html">Discord Helpers</a></li>
@@ -77,8 +94,106 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="activities">
-<h1>Activities<a class="headerlink" href="#activities" title="Link to this heading"></a></h1>
+  <section id="module-bobbot.activities">
+<span id="activities"></span><h1>Activities<a class="headerlink" href="#module-bobbot.activities" title="Link to this heading"></a></h1>
+<p>This module contains activites that the bot can perform.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="bobbot.activities.Activity">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">Activity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=&lt;not</span> <span class="pre">given&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bobbot/activities/activities.html#Activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.Activity" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Valid activities for the bot.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.CHESS">
+<span class="sig-name descname"><span class="pre">CHESS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'chess'</span></em><a class="headerlink" href="#bobbot.activities.Activity.CHESS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.EAT">
+<span class="sig-name descname"><span class="pre">EAT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'eat'</span></em><a class="headerlink" href="#bobbot.activities.Activity.EAT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.LEAGUE">
+<span class="sig-name descname"><span class="pre">LEAGUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'league'</span></em><a class="headerlink" href="#bobbot.activities.Activity.LEAGUE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.SCHOOL">
+<span class="sig-name descname"><span class="pre">SCHOOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'school'</span></em><a class="headerlink" href="#bobbot.activities.Activity.SCHOOL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.SHOWER">
+<span class="sig-name descname"><span class="pre">SHOWER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'shower'</span></em><a class="headerlink" href="#bobbot.activities.Activity.SHOWER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.SLEEP">
+<span class="sig-name descname"><span class="pre">SLEEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sleep'</span></em><a class="headerlink" href="#bobbot.activities.Activity.SLEEP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.configure_chess">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">configure_chess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">against_computer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/chess_player.html#configure_chess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.configure_chess" title="Link to this definition"></a></dt>
+<dd><p>Configures the chess activity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elo</strong> – Bob’s elo rating. Should be in [200, 1600].</p></li>
+<li><p><strong>against_computer</strong> – Whether Bob is playing against the computer or a user.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.configure_meal">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">configure_meal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/eat.html#configure_meal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.configure_meal" title="Link to this definition"></a></dt>
+<dd><p>Configures the meal to eat (lunch or dinner).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.get_activity_status">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">get_activity_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/activities/activities.html#get_activity_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.get_activity_status" title="Link to this definition"></a></dt>
+<dd><p>Returns a readable version of the current activity status directed at Bob.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.spectate_activity">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">spectate_activity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/activities.html#spectate_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.spectate_activity" title="Link to this definition"></a></dt>
+<dd><p>Returns a path to an image or list of messages for the current activity (if available).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.start_activity">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">start_activity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">activity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#bobbot.activities.Activity" title="bobbot.activities.activities.Activity"><span class="pre">Activity</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd_handler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bobbot/activities/activities.html#start_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.start_activity" title="Link to this definition"></a></dt>
+<dd><p>Starts the given activity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>activity</strong> – The activity to start.</p></li>
+<li><p><strong>cmd_handler</strong> – The callback to send commands directed at Bob.
+The callback should be an async function that accepts exactly one string argument.
+If the activity fails to start, it will be called with the reason.
+Otherwise, it will be called the activity goes on and important things happen.
+Optionally, it can have a second boolean argument, which specifies when a response from
+the user is expected. If True, the returned string from the callback is used as the response.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the activity successfully began running.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.stop_activity">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">stop_activity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/activities.html#stop_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.stop_activity" title="Link to this definition"></a></dt>
+<dd><p>Stops the current activity.</p>
+</dd></dl>
+
 </section>
 
 

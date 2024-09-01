@@ -95,7 +95,6 @@
 <span class="kn">from</span> <span class="nn">bobbot.activities.school</span> <span class="kn">import</span> <span class="n">get_school_info</span><span class="p">,</span> <span class="n">school_activity</span><span class="p">,</span> <span class="n">stop_school</span>
 <span class="kn">from</span> <span class="nn">bobbot.activities.shower</span> <span class="kn">import</span> <span class="n">get_shower_info</span><span class="p">,</span> <span class="n">shower_activity</span><span class="p">,</span> <span class="n">stop_showering</span>
 <span class="kn">from</span> <span class="nn">bobbot.activities.sleep</span> <span class="kn">import</span> <span class="n">get_sleep_info</span><span class="p">,</span> <span class="n">sleep_activity</span><span class="p">,</span> <span class="n">stop_sleeping</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">do_garbage_collection</span>
 
 
 <div class="viewcode-block" id="Activity">
@@ -206,7 +205,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a path to an image or list of messages for the current activity (if available).&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">current_activity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">do_garbage_collection</span><span class="p">()</span>  <span class="c1"># Free up memory before taking a screenshot</span>
     <span class="k">if</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">SCHOOL</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="s2">&quot;https://tenor.com/view/mochi-peach-work-annoying-gif-11281690480465316781&quot;</span><span class="p">,</span>
