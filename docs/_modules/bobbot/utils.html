@@ -125,9 +125,11 @@
     <span class="k">global</span> <span class="n">browser</span><span class="p">,</span> <span class="n">playwright_instance</span>
     <span class="k">if</span> <span class="n">browser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">browser</span>
         <span class="n">browser</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">playwright_instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">playwright_instance</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">playwright_instance</span>
         <span class="n">playwright_instance</span> <span class="o">=</span> <span class="kc">None</span>
 
 

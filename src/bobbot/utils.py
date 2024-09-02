@@ -48,9 +48,11 @@ async def close_playwright_browser():
     global browser, playwright_instance
     if browser is not None:
         await browser.close()
+        del browser
         browser = None
     if playwright_instance is not None:
         await playwright_instance.stop()
+        del playwright_instance
         playwright_instance = None
 
 

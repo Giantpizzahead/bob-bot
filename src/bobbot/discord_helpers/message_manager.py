@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import discord
 from langchain.docstore.document import Document
 
-from bobbot.activities import get_activity_status
+from bobbot.activities import Activity, get_activity, get_activity_status
 from bobbot.agents import (
     check_openai_safety,
     decide_to_respond,
@@ -22,6 +22,7 @@ from bobbot.memory import query_memories
 from bobbot.utils import (
     get_logger,
     log_debug_info,
+    on_heroku,
     reset_debug_info,
     time_elapsed_str,
     truncate_length,
@@ -62,8 +63,14 @@ async def on_message(message: discord.Message):
         async with curr_channel.typing():
             asyncio.create_task(check_waiting_responses(curr_channel))
             is_safe = await check_openai_safety(short_history)
-
-            if not bot.is_incognito:
+            heroku_override = False
+            if on_heroku() and get_activity() == Activity.CHESS:
+                heroku_override = True  # Can't query memories while playing chess on Heroku
+            elif on_heroku() and bot.voice_clients:
+                heroku_override = True  # Can't query memories while in a voice channel on Heroku
+            if on_heroku():
+                logger.info(f"Heroku memory saver override: {heroku_override}")
+            if not bot.is_incognito and not heroku_override:
                 # Find relevant memories using varying methods
                 EACH_LIMIT = 2
                 MAX_MEMORIES = 4
@@ -156,7 +163,7 @@ async def on_message(message: discord.Message):
                 context=context,
                 uncensored=not is_safe,
                 obedient=bot.is_obedient,
-                store_memories=not bot.is_incognito,
+                store_memories=not bot.is_incognito and not heroku_override,
             )
         if history.message_count == saved_message_count:
             await lazy_send_message(message.channel, response)

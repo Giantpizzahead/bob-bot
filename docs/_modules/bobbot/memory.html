@@ -127,7 +127,8 @@
 <span class="n">sparse_encoder</span> <span class="o">=</span> <span class="n">create_bm25_encoder</span><span class="p">()</span>
 <span class="n">retriever</span> <span class="o">=</span> <span class="n">PineconeHybridSearchRetriever</span><span class="p">(</span><span class="n">embeddings</span><span class="o">=</span><span class="n">openai_embeddings</span><span class="p">,</span> <span class="n">sparse_encoder</span><span class="o">=</span><span class="n">sparse_encoder</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
-    <span class="k">del</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span>  <span class="c1"># Free up memory</span>
+    <span class="k">del</span> <span class="n">sparse_encoder</span>  <span class="c1"># Free up memory</span>
+    <span class="n">sparse_encoder</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="o">=</span> <span class="kc">None</span>
 
 

@@ -12,10 +12,11 @@ import numpy as np
 from discord.ext import commands, voice_recv
 from scipy.signal import decimate, resample
 
+from bobbot.activities import Activity, get_activity
 from bobbot.agents import get_vc_response
 from bobbot.discord_helpers import ManualHistory
 from bobbot.discord_helpers.main_bot import bot
-from bobbot.utils import get_logger, truncate_length
+from bobbot.utils import get_logger, on_heroku, truncate_length
 
 if platform.system() == "Darwin":  # Manual load for Mac
     discord.opus.load_opus("libopus.0.dylib")
@@ -267,12 +268,15 @@ async def join_vc(ctx: commands.Context) -> None:
     elif ctx.voice_client is not None:
         await ctx.send("! im already in vc?")
         return
+    elif on_heroku() and get_activity() == Activity.CHESS:  # Too much memory
+        await ctx.send("! (heroku) can't join vc while playing chess")
+        return
     channel: discord.VoiceChannel = ctx.author.voice.channel
     vc_histories[channel.id] = ManualHistory()
     vc: voice_recv.VoiceRecvClient = await channel.connect(cls=voice_recv.VoiceRecvClient)
     vc.listen(voice_recv.BasicSink(process_voice_packet))
     await ctx.send(
-        "! hopping on :D\n\n**Tip: Right now, VC works best if you keep it turn-based. Speak without pausing, and let Bob finish.**\nIf Bob stops answering, make him leave then rejoin."  # noqa: E501
+        "! hopping on :D\n\n**Tip: VC works best if you keep it turn-based. Speak without pausing, and let Bob finish.**\nBob responds to the first person that finishes talking after Bob does. If he stops answering, make him leave and rejoin."  # noqa: E501
     )
 
     # Handle messages and leave if VC is empty

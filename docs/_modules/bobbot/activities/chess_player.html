@@ -90,7 +90,13 @@
 <span class="kn">from</span> <span class="nn">chess</span> <span class="kn">import</span> <span class="n">Board</span>
 <span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="n">BrowserContext</span><span class="p">,</span> <span class="n">Locator</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="ne">TimeoutError</span>
 
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_playwright_browser</span><span class="p">,</span> <span class="n">get_playwright_page</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">close_playwright_browser</span><span class="p">,</span>
+    <span class="n">get_logger</span><span class="p">,</span>
+    <span class="n">get_playwright_browser</span><span class="p">,</span>
+    <span class="n">get_playwright_page</span><span class="p">,</span>
+    <span class="n">on_heroku</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">STATE_FILE</span> <span class="o">=</span> <span class="s2">&quot;local/pw/state.json&quot;</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -579,6 +585,8 @@
             <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
             <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+                <span class="n">close_playwright_browser</span><span class="p">()</span>  <span class="c1"># Save memory</span>
             <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
             <span class="k">return</span>
         <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
@@ -600,6 +608,8 @@
                 <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
                 <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+                    <span class="n">close_playwright_browser</span><span class="p">()</span>  <span class="c1"># Save memory</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
                 <span class="k">return</span>
             <span class="n">move_num</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -615,11 +625,12 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Finished chess match. Winner: </span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">. (</span><span class="si">{</span><span class="n">match_result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">wait_for_timeout</span><span class="p">(</span><span class="mi">3000</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tell the user there was an unexpected error while playing chess: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">stop_sunfish_engine</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+        <span class="n">close_playwright_browser</span><span class="p">()</span>  <span class="c1"># Save memory</span>
     <span class="n">chess_page</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span></div>
 

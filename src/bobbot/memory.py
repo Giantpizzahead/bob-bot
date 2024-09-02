@@ -50,7 +50,8 @@ index = pc.Index(index_name)
 sparse_encoder = create_bm25_encoder()
 retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=sparse_encoder, index=index)
 if on_heroku():
-    del retriever.sparse_encoder  # Free up memory
+    del sparse_encoder  # Free up memory
+    sparse_encoder = None
     retriever.sparse_encoder = None
 
 

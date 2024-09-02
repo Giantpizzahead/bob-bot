@@ -13,7 +13,13 @@ import chess.engine
 from chess import Board
 from playwright.async_api import BrowserContext, Locator, Page, TimeoutError
 
-from bobbot.utils import get_logger, get_playwright_browser, get_playwright_page
+from bobbot.utils import (
+    close_playwright_browser,
+    get_logger,
+    get_playwright_browser,
+    get_playwright_page,
+    on_heroku,
+)
 
 STATE_FILE = "local/pw/state.json"
 logger = get_logger(__name__)
@@ -452,6 +458,8 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             await stop_sunfish_engine()
             chess_page = None
             await context.close()
+            if on_heroku():
+                close_playwright_browser()  # Save memory
             status = "idle"
             return
         status = "playing"
@@ -473,6 +481,8 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
                 await stop_sunfish_engine()
                 chess_page = None
                 await context.close()
+                if on_heroku():
+                    close_playwright_browser()  # Save memory
                 status = "idle"
                 return
             move_num += 1
@@ -488,11 +498,12 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
         logger.info(f"Finished chess match. Winner: {match_result[0]}. ({match_result[1].strip()})")
         await page.wait_for_timeout(3000)
         await context.close()
-        await browser.close()
     except Exception as e:
         logger.exception(e)
         await cmd_handler(f"Tell the user there was an unexpected error while playing chess: {e}")
     await stop_sunfish_engine()
+    if on_heroku():
+        close_playwright_browser()  # Save memory
     chess_page = None
     status = "idle"
 

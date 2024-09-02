@@ -20,10 +20,12 @@ from youtube_transcript_api.formatters import TextFormatter
 
 from bobbot.agents.llms import llm_deepseek_factual, openai_embeddings
 from bobbot.utils import (
+    close_playwright_browser,
     get_logger,
     get_playwright_browser,
     get_playwright_page,
     log_debug_info,
+    on_heroku,
     truncate_length,
 )
 
@@ -115,8 +117,12 @@ async def parse_website(url: str, use_browser: bool = False) -> dict[str, str]:
             logger.info("Website load timed out, parsing anyway...")
         content = await page.content()
         await context.close()
+        if on_heroku():
+            close_playwright_browser()  # Save memory
     except Exception as e:
         await context.close()
+        if on_heroku():
+            close_playwright_browser()  # Save memory
         raise e
     soup = BeautifulSoup(content, "html.parser")
     results = build_metadata(soup, url)

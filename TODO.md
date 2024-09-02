@@ -72,6 +72,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Split big files (modules) into smaller, manageable modules while avoiding cyclic dependencies for ease of development
 - [x] Make a command that reboots the bot on Heroku (just make the worker terminate)
 - [x] Add tests for stable functions (that likely won't change)
+- [x] Only open Playwright when needed instead of persisting the browser to save memory
 
 ### Text
 

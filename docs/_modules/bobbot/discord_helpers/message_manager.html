@@ -83,7 +83,7 @@
 <span class="kn">import</span> <span class="nn">discord</span>
 <span class="kn">from</span> <span class="nn">langchain.docstore.document</span> <span class="kn">import</span> <span class="n">Document</span>
 
-<span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="n">get_activity_status</span>
+<span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="n">Activity</span><span class="p">,</span> <span class="n">get_activity</span><span class="p">,</span> <span class="n">get_activity_status</span>
 <span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">check_openai_safety</span><span class="p">,</span>
     <span class="n">decide_to_respond</span><span class="p">,</span>
@@ -99,6 +99,7 @@
 <span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_logger</span><span class="p">,</span>
     <span class="n">log_debug_info</span><span class="p">,</span>
+    <span class="n">on_heroku</span><span class="p">,</span>
     <span class="n">reset_debug_info</span><span class="p">,</span>
     <span class="n">time_elapsed_str</span><span class="p">,</span>
     <span class="n">truncate_length</span><span class="p">,</span>
@@ -141,8 +142,14 @@
         <span class="k">async</span> <span class="k">with</span> <span class="n">curr_channel</span><span class="o">.</span><span class="n">typing</span><span class="p">():</span>
             <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">check_waiting_responses</span><span class="p">(</span><span class="n">curr_channel</span><span class="p">))</span>
             <span class="n">is_safe</span> <span class="o">=</span> <span class="k">await</span> <span class="n">check_openai_safety</span><span class="p">(</span><span class="n">short_history</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span><span class="p">:</span>
+            <span class="n">heroku_override</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">on_heroku</span><span class="p">()</span> <span class="ow">and</span> <span class="n">get_activity</span><span class="p">()</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">:</span>
+                <span class="n">heroku_override</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Can&#39;t query memories while playing chess on Heroku</span>
+            <span class="k">elif</span> <span class="n">on_heroku</span><span class="p">()</span> <span class="ow">and</span> <span class="n">bot</span><span class="o">.</span><span class="n">voice_clients</span><span class="p">:</span>
+                <span class="n">heroku_override</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Can&#39;t query memories while in a voice channel on Heroku</span>
+            <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Heroku memory saver override: </span><span class="si">{</span><span class="n">heroku_override</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">heroku_override</span><span class="p">:</span>
                 <span class="c1"># Find relevant memories using varying methods</span>
                 <span class="n">EACH_LIMIT</span> <span class="o">=</span> <span class="mi">2</span>
                 <span class="n">MAX_MEMORIES</span> <span class="o">=</span> <span class="mi">4</span>
@@ -235,7 +242,7 @@
                 <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
                 <span class="n">uncensored</span><span class="o">=</span><span class="ow">not</span> <span class="n">is_safe</span><span class="p">,</span>
                 <span class="n">obedient</span><span class="o">=</span><span class="n">bot</span><span class="o">.</span><span class="n">is_obedient</span><span class="p">,</span>
-                <span class="n">store_memories</span><span class="o">=</span><span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span><span class="p">,</span>
+                <span class="n">store_memories</span><span class="o">=</span><span class="ow">not</span> <span class="n">bot</span><span class="o">.</span><span class="n">is_incognito</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">heroku_override</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">history</span><span class="o">.</span><span class="n">message_count</span> <span class="o">==</span> <span class="n">saved_message_count</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">lazy_send_message</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
