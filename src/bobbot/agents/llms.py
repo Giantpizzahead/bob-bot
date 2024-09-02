@@ -69,6 +69,16 @@ llm_deepseek_factual = ChatOpenAI(
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
+llm_mythomax = ChatOpenAI(
+    openai_api_key=openrouter_key,
+    openai_api_base="https://openrouter.ai/api/v1",
+    model_name="gryphe/mythomax-l2-13b",
+    temperature=1,
+    max_tokens=512,
+    top_p=0.8,
+    frequency_penalty=0.05,
+    presence_penalty=0.05,
+)
 del openrouter_key
 
 

@@ -31,11 +31,13 @@ from bobbot.discord_helpers.misc_commands import (  # help,
     prune,
 )
 from bobbot.discord_helpers.text_channel_history import (
+    ManualHistory,
     ParsedMessage,
     TextChannelHistory,
     get_channel_history,
     get_users_in_channel,
 )
+from bobbot.discord_helpers.voice import discord_tts, join_vc, leave_vc, log_vc
 
 # Other imports
 
@@ -57,12 +59,17 @@ __all__ = [
     "discord_delete_memory",
     "discord_stop_activity",
     "discord_stop_spectating",
+    "discord_tts",
     "do_basic_activity",
     "gen_command_handler",
     "get_channel_history",
     "get_users_in_channel",
     "help",
+    "join_vc",
+    "leave_vc",
+    "log_vc",
     "lazy_send_message",
+    "ManualHistory",
     "memories",
     "on_message",
     "ping",
@@ -72,4 +79,5 @@ __all__ = [
     "spectate",
     "TextChannelHistory",
     "ParsedMessage",
+    "join_vc",
 ]

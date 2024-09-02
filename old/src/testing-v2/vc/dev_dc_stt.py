@@ -42,6 +42,19 @@ class RealTimeResampler:
 sampler = RealTimeResampler(1, 6, 100)
 
 
+# def on_voice_state_update(user: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+#     """Handle voice state updates for a user."""
+#     print(f"Voice state update for {user.display_name}: {before} -> {after}")
+#     # if after.channel is None:
+#     #     if user.id in stt_conns:
+#     #         stt_conn = stt_conns.pop(user.id)
+#     #         stt_conn.recognizer.stop_continuous_recognition_async()
+#     #         stt_conn.stream.close()
+#     #         logger.info(f"STT connection closed for {user.display_name}")
+#     #         del stt_conn
+#     #         logger.info(f"STT connection removed for {user.display_name}")
+
+
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.6
+        """! hi i am bob 2nd edition v1.7
 command prefix is `!`, slash commands work too
 
 `activity status` - Check Bob's current activity status.
@@ -37,6 +37,9 @@ command prefix is `!`, slash commands work too
 `activity stop` - Stops the current activity.
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
 `spectate start` - Spectate the current activity.\t\t`spectate stop` - Stop spectating the current activity.
+
+`vc join` - Tell Bob to join your voice channel.\t\t`vc leave` - Tell Bob to leave your voice channel.
+`tts [text]` - Speak the given text in a familiar voice.\t\t`vc log` - Show the current VC conversation history.
 
 `memory reset` - Wipes the bot's short term conversation history. No effect on long term memories.
 `memory query [query]` - Query Bob's long term memory. Must provide a search query.

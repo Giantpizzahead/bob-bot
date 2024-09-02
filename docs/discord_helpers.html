@@ -59,6 +59,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.BobBot.speed"><code class="docutils literal notranslate"><span class="pre">BobBot.speed</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.discord_helpers.ManualHistory"><code class="docutils literal notranslate"><span class="pre">ManualHistory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ManualHistory.add_message"><code class="docutils literal notranslate"><span class="pre">ManualHistory.add_message()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ManualHistory.as_langchain_msgs"><code class="docutils literal notranslate"><span class="pre">ManualHistory.as_langchain_msgs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ManualHistory.as_string"><code class="docutils literal notranslate"><span class="pre">ManualHistory.as_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ManualHistory.limit_messages"><code class="docutils literal notranslate"><span class="pre">ManualHistory.limit_messages()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.discord_helpers.ParsedMessage"><code class="docutils literal notranslate"><span class="pre">ParsedMessage</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ParsedMessage.as_string"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.as_string()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.discord_helpers.ParsedMessage.author"><code class="docutils literal notranslate"><span class="pre">ParsedMessage.author</span></code></a></li>
@@ -173,6 +180,37 @@
 <dt class="sig sig-object py" id="bobbot.discord_helpers.BobBot.speed">
 <span class="sig-name descname"><span class="pre">speed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#bobbot.discord_helpers.Speed" title="bobbot.discord_helpers.main_bot.Speed"><span class="pre">Speed</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'instant'</span></em><a class="headerlink" href="#bobbot.discord_helpers.BobBot.speed" title="Link to this definition"></a></dt>
 <dd><p>The typing speed of the bot.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bobbot.discord_helpers.ManualHistory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.discord_helpers.</span></span><span class="sig-name descname"><span class="pre">ManualHistory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ManualHistory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.discord_helpers.ManualHistory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generate message histories manually. Messages sent by bob should always start with “bob: “.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bobbot.discord_helpers.ManualHistory.add_message">
+<span class="sig-name descname"><span class="pre">add_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ManualHistory.add_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.discord_helpers.ManualHistory.add_message" title="Link to this definition"></a></dt>
+<dd><p>Add a message (with any desired context) to the message history.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bobbot.discord_helpers.ManualHistory.as_langchain_msgs">
+<span class="sig-name descname"><span class="pre">as_langchain_msgs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ManualHistory.as_langchain_msgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.discord_helpers.ManualHistory.as_langchain_msgs" title="Link to this definition"></a></dt>
+<dd><p>Return the message history as Langchain messages.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bobbot.discord_helpers.ManualHistory.as_string">
+<span class="sig-name descname"><span class="pre">as_string</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ManualHistory.as_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.discord_helpers.ManualHistory.as_string" title="Link to this definition"></a></dt>
+<dd><p>Return the full message history.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bobbot.discord_helpers.ManualHistory.limit_messages">
+<span class="sig-name descname"><span class="pre">limit_messages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/discord_helpers/text_channel_history.html#ManualHistory.limit_messages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.discord_helpers.ManualHistory.limit_messages" title="Link to this definition"></a></dt>
+<dd><p>Limit the number of messages in the history.</p>
 </dd></dl>
 
 </dd></dl>

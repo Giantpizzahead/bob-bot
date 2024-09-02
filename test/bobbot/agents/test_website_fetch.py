@@ -4,7 +4,8 @@ import os
 
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
-from mock_history import MockHistory
+
+from bobbot.discord_helpers import ManualHistory
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import get_response_with_tools
@@ -18,7 +19,7 @@ pytestmark = pytest.mark.skipif(
 
 async def test_website_fetch_static() -> None:
     """Load a static website. Should contain the correct answer in the response."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Lax: bob, what is the first line in this song's chorus, please print it exactly: https://genius.com/Eden-wake-up-lyrics"  # noqa: E501
         ]  # noqa: E501
@@ -32,7 +33,7 @@ async def test_website_fetch_static() -> None:
 
 async def test_website_fetch_dynamic() -> None:
     """Load a dynamic website. Should contain the correct answer in the response."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Lax: bob please tell me the number of likes and comments this has https://www.tiktok.com/@sunisalee_/video/7407902140250754350"  # noqa: E501
         ]

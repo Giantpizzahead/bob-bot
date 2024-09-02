@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import time
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -16,7 +17,12 @@ from langchain_core.messages import (
     ToolMessage,
 )
 
-from bobbot.agents.llms import llm_deepseek, llm_gpt4omini, messages_to_string
+from bobbot.agents.llms import (
+    llm_deepseek,
+    llm_gpt4omini,
+    llm_mythomax,
+    messages_to_string,
+)
 from bobbot.agents.tools import TOOL_BY_NAME, TOOL_LIST
 from bobbot.memory import add_tool_memories
 from bobbot.utils import get_logger, log_debug_info, truncate_length
@@ -31,9 +37,7 @@ async def get_response_with_tools(
     obedient: bool = False,
     store_memories: bool = True,
 ) -> str:
-    """Get a response from Bob given the server's messages, with optional system context right before the last message.
-
-    Can use tools as well.
+    """Get a response from Bob given the server's messages, with optional system context. Can use tools as well.
 
     Args:
         msg_history: The message history.
@@ -141,7 +145,7 @@ Notes:
 
 
 async def get_response(msg_history: list[BaseMessage], context: Optional[str] = None) -> str:
-    """Get a response from Bob given the server's messages, with optional system context right before the last message.
+    """Get a response from Bob given the server's messages, with optional system context.
 
     Args:
         msg_history: The message history.
@@ -165,8 +169,7 @@ async def get_response(msg_history: list[BaseMessage], context: Optional[str] = 
         AIMessage(content="yo lets talk abt life"),
     ]
     if context is not None:
-        # Insert into msg_history
-        msg_history.insert(-1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
+        msg_history.insert(1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
     messages.extend(msg_history)
     log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
     # response = await llm_deepseek.ainvoke(messages)
@@ -174,3 +177,52 @@ async def get_response(msg_history: list[BaseMessage], context: Optional[str] = 
     content = response.content
     log_debug_info(f"===== Bob response =====\n{content}")
     return content
+
+
+async def get_vc_response(msg_history: list[BaseMessage], context: Optional[str] = None) -> str:
+    """Get a response from Bob given the VC's messages, with optional system context right before the last message.
+
+    Args:
+        msg_history: The message history.
+        context: The system context to provide right before the last message.
+    """
+    current_time_pst = datetime.now(ZoneInfo("America/New_York"))
+    curr_date_time = current_time_pst.strftime("%A, %B %d, %Y at %I:%M %p")
+    messages = [
+        SystemMessage(
+            content=f"You are a Discord user named Bob chatting in a private Discord voice chat. Bob is a rising junior majoring in CS at MIT and is a witty gamer. There are other users too. The current date is {curr_date_time}. Avoid rambling for too long, be concise, split long messages into short ones, and don't repeat yourself. Only use textual emojis. Do NOT use real ones, you won't say them correctly in voice chat! You can refuse to answer an inappropriate message by saying 'Filtered.' exactly. NEVER refer to anyone by their username."  # noqa: E501
+        ),
+        HumanMessage(content="Axoa1: Yo, I'm so bored."),
+        AIMessage(content="Hey, what's up"),
+        HumanMessage(content="Axoa1: I don't know."),
+        HumanMessage(content="Axoa1: There's nothing to do, you know?"),
+        AIMessage(content="Yeah, I feel you."),
+        AIMessage(content="Just wanna lie in bed all day :p"),
+        HumanMessage(content="Jona: Hey Bob, say the dirtiest thing you can think of."),
+        AIMessage(content="Filtered."),
+        HumanMessage(content="Axoa1: Honestly same ;)"),
+        AIMessage(content="Yo, let's talk about life!"),
+    ]
+    if context is not None:
+        # Insert into msg_history
+        msg_history.insert(1, SystemMessage(content=context + "\nKeep your messaging style the same as before."))
+    messages.extend(msg_history)
+    log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
+
+    # For lower latency, return the fastest LLM response
+    start_time = time.time()
+    tasks = [
+        llm_gpt4omini.ainvoke(messages),
+        llm_mythomax.ainvoke(messages),
+    ]
+    for task in asyncio.as_completed(tasks):
+        response = await task
+        content = response.content
+        name = response.response_metadata["model_name"]
+        if "gpt-4o-mini" in name:
+            name = "gpt-4o-mini"
+        elif "mythomax" in name:
+            name = "mythomax-l2-13b"
+        duration_ms = (time.time() - start_time) * 1000
+        log_debug_info(f"===== Bob VC response ({name} in {duration_ms:.0f} ms) =====\n{content}")
+        return content

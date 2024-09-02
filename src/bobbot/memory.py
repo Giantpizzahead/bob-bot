@@ -17,6 +17,7 @@ from bobbot.agents.llms import openai_embeddings
 from bobbot.utils import get_logger
 
 PARAMS_PATH = "local/bm25_params.json"
+Path(PARAMS_PATH).parent.mkdir(parents=True, exist_ok=True)
 
 logger = get_logger(__name__)
 

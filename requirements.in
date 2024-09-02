@@ -20,4 +20,4 @@ pinecone-text
 PyNaCl
 discord-ext-voice-recv
 azure-cognitiveservices-speech
-resampy
+scipy

@@ -342,6 +342,36 @@ class TextChannelHistory:
         return result
 
 
+class ManualHistory:
+    """Generate message histories manually. Messages sent by bob should always start with "bob: "."""
+
+    def __init__(self, history: list[str] = None) -> None:
+        """Initialize the message history."""
+        self._history = history.copy() if history else []
+
+    def add_message(self, message: str) -> None:
+        """Add a message (with any desired context) to the message history."""
+        self._history.append(message)
+
+    def limit_messages(self, limit: int) -> None:
+        """Limit the number of messages in the history."""
+        self._history = self._history[-limit:]
+
+    def as_string(self) -> str:
+        """Return the full message history."""
+        return "\n".join(self._history)
+
+    def as_langchain_msgs(self) -> list[str]:
+        """Return the message history as Langchain messages."""
+        msgs = []
+        for msg in self._history:
+            if msg.startswith("bob: "):
+                msgs.append(AIMessage(msg[5:]))
+            else:
+                msgs.append(HumanMessage(msg))
+        return msgs
+
+
 channel_history: dict[int, TextChannelHistory] = {}
 
 

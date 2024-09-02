@@ -4,11 +4,15 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Today
 
+#### General
+
+- [ ] Make a demo showcasing all the cool features the bot has!
+
 #### Voice
 
-- [ ] Implement a simple, robotic-sounding TTS system (Neurosama?)
-- [ ] Try using Azure's STT with Discord to get a voice-based chat history
-- [ ] Make or use a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+- [ ] Improve the VC prompt to make a better-sounding bot
+- [ ] Make the bot say "filtered" if appropriate
+- [ ] Implement better VC chatting logic (don't block on every new message, stop talking if a user is talking, etc)
 
 #### Activities
 
@@ -64,6 +68,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Make fake typing speed timing wait from when the last message was received, rather than when the final response has been determined
 - [ ] Send image link, if a single one is present in AI's response, in a separate message (to hide the link)
 - [ ] Allow for a custom Bob normal prompt using an environment variable
+- [ ] Avoid starting speech to text connections for frivolous speech detections
 
 ## Completed Tasks
 
@@ -146,6 +151,9 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 - [x] Figure out how to work with Discord voice calls, since discord.py's voice module got removed
 - [x] Why is downsampling and working with audio formats so confusing??? Mark this complete when we being to sort of figure everything out
+- [x] Implement a simple, robotic-sounding TTS system (Neurosama?)
+- [x] Try using Azure's STT with Discord to get a voice-based chat history
+- [x] Make or use a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
 
 ## Milestones and Capstones
 

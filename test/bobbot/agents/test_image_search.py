@@ -4,7 +4,8 @@ import os
 
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
-from mock_history import MockHistory
+
+from bobbot.discord_helpers import ManualHistory
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import get_response_with_tools
@@ -20,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 
 async def test_image_search() -> None:
     """Should contain a single image URL in the response."""
-    history = MockHistory(["Lax: bob can u send me a pic of zoe from league of legends?"])
+    history = ManualHistory(["Lax: bob can u send me a pic of zoe from league of legends?"])
     with tracing_v2_enabled(tags=["test_image_search"]):
         response = await get_response_with_tools(history.as_langchain_msgs())
         num_images = len(get_images_in(response))

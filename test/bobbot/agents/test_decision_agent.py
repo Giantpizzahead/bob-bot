@@ -5,7 +5,8 @@ from typing import Optional
 
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
-from mock_history import MockHistory
+
+from bobbot.discord_helpers import ManualHistory
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import decide_to_respond
@@ -25,7 +26,7 @@ async def assert_decision(should_respond: bool, msg_history: str, status: Option
 
 async def test_question_respond() -> None:
     """Should respond to a direct question."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Lax: i wanna apex",
             "Mora: @bob what do u think?",
@@ -36,7 +37,7 @@ async def test_question_respond() -> None:
 
 async def test_question_wait() -> None:
     """Should not respond to a question targetted at someone else."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Lax: i wanna apex",
             "Mora: @Neal what do u think?",
@@ -47,7 +48,7 @@ async def test_question_wait() -> None:
 
 async def test_thank_you_respond() -> None:
     """Should respond to a thank you from the user."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Mora: bob what time is it",
             "bob: it's 5:25 PM, why? you lost track of time in the void? 😄",
@@ -59,7 +60,7 @@ async def test_thank_you_respond() -> None:
 
 async def test_good_night_wait() -> None:
     """Should not respond to a good night message twice."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Mora: ok bob ima sleep now",
             "bob: rip mora, sweet dreams dude 💤",

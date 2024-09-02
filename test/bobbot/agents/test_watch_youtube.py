@@ -4,7 +4,8 @@ import os
 
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
-from mock_history import MockHistory
+
+from bobbot.discord_helpers import ManualHistory
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import get_response_with_tools
@@ -19,7 +20,7 @@ pytestmark = pytest.mark.skipif(
 
 async def test_watch_youtube() -> None:
     """Should contain the correct answer in the response, which can only be gotten from the transcript or comments."""
-    history = MockHistory(
+    history = ManualHistory(
         [
             "Lax: bob, what is the shape of the barrier in this youtube vid? answer in the format 'X-shaped' https://www.youtube.com/shorts/pa7Zomh_Q60"  # noqa: E501
         ]  # noqa: E501
