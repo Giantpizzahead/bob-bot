@@ -2,17 +2,10 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ## Current Tasks
 
-### Today
-
-#### General
-
 - [ ] Make a demo showcasing all the cool features the bot has!
+- [ ] Maintenance mode: Fix any bugs/issues if they come up. No new features or improvements.
 
-#### Activities
-
-- [ ] Allow Bob to auto-start chess and voice calls based on context
-
-### Future
+### Scrapped
 
 #### Voice
 
@@ -23,6 +16,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [ ] Implement some sort of auto schedule planner that decides when Bob will do certain activities each day (by default, but Bob can override this)
 - [ ] Figure out why the YouTube comment grabber works (and not PyTube), then try to use it to get the video's metadata and transcript
   - It looks like the issue is not the library. Instead, it's YouTube blocking proxies (which makes sense). We could try looking into [free](https://www.croxyproxy.com/) [proxies](https://www.webshare.io/features/free-proxy), which can be integrated into requests and PyTube. But the simpler option is likely to use YouTube's official API, which actually has reasonable daily quotas (we won't hit them with normal usage, maybe close with dev usage). See [here](https://github.com/sns-sdks/python-youtube) for a python library using it. I don't think trying to fix this right now makes sense, since YouTube will continue to change their blacklist/bot countering mechanisms.
+- [ ] Allow Bob to auto-start chess and voice calls based on context
 
 #### Smarts
 
@@ -175,8 +169,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Join voice chat and play some music (7/15/24)
 - [x] Be able to respond intelligbly to someone talking in voice chat (7/18/24)
 - ~~[ ] Respond in a more human-like voice~~
-- [ ] Generate a response in near real-time, quick enough to not be awkward
-- [ ] Integrate text chat capabilities (memory and reasoning) into voice chat
+- [x] Generate a response in near real-time, quick enough to not be awkward (9/2/24)
+- ~~[ ] Integrate text chat capabilities (memory and reasoning) into voice chat~~
 - [ ] **Capstone:** Participate decently in a group voice chat, in real-time!
 
 ### Gaming
@@ -186,7 +180,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### All Together
 
-- [ ] **Capstone:** Ask Bob to join Discord voice chat, then ask in VC to play a game, then have him actually join and play that video game!
+- [ ] **Capstone:** Ask Bob to join Discord voice chat, then have him start a game of Chess, then have some friendly banter while playing against him!
 
 From [the initial Node.js version](https://github.com/Giantpizzahead/bob-bot-ts):
 

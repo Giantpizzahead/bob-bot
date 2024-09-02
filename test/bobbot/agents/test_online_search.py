@@ -5,7 +5,7 @@ import os
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
 
-from bobbot.discord_helpers import ManualHistory
+from bobbot.discord_helpers import ManualHistory, bot
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import get_response_with_tools
@@ -16,6 +16,8 @@ pytestmark = pytest.mark.skipif(
     os.getenv("OPENAI_KEY") is None or os.getenv("SERPER_API_KEY") is None,
     reason="Missing OPENAI_KEY or SERPER_API_KEY environment variable",
 )
+
+bot.is_incognito = True
 
 
 async def test_online_search() -> None:

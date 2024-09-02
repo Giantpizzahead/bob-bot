@@ -47,11 +47,11 @@ if index_name not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
     )
 index = pc.Index(index_name)
-if not on_heroku():
-    sparse_encoder = create_bm25_encoder()
-else:
-    sparse_encoder = None  # Not enough memory
+sparse_encoder = create_bm25_encoder()
 retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=sparse_encoder, index=index)
+if on_heroku():
+    del retriever.sparse_encoder  # Free up memory
+    retriever.sparse_encoder = None
 
 
 async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> None:

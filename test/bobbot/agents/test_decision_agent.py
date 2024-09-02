@@ -6,13 +6,15 @@ from typing import Optional
 import pytest
 from langchain_core.tracers.context import tracing_v2_enabled
 
-from bobbot.discord_helpers import ManualHistory
+from bobbot.discord_helpers import ManualHistory, bot
 
 if os.getenv("OPENAI_KEY"):
     from bobbot.agents import decide_to_respond
 
 # Skip if no OpenAI key is provided
 pytestmark = pytest.mark.skipif(os.getenv("OPENAI_KEY") is None, reason="Missing OPENAI_KEY environment variable")
+
+bot.is_incognito = True
 
 
 async def assert_decision(should_respond: bool, msg_history: str, status: Optional[str]) -> None:
