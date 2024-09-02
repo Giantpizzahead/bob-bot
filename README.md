@@ -4,7 +4,7 @@
 
 <img src="https://github.com/Giantpizzahead/bob-bot/blob/main/res/bob.jpg" alt="A cute robot named Bob" align="right" width="128">
 
-hi i am bob 2nd edition v1.7 :D
+hi i am bob 2nd edition v2.0 :D
 
 See [FEATURES.md](https://github.com/Giantpizzahead/bob-bot/blob/main/FEATURES.md) for all currently implemented (and planned) features.
 

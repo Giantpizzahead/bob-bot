@@ -36,11 +36,11 @@ class BobBot(commands.Bot):
     """The channels the bot is active in."""
     is_on: bool = True
     """Whether the bot is on (will send messages)."""
-    speed: Speed = Speed.INSTANT
+    speed: Speed = Speed.DEFAULT
     """The typing speed of the bot."""
     is_obedient: bool = False
     """Whether the bot is obedient (encouraged to fulfill all requests)."""
-    is_incognito: bool = True
+    is_incognito: bool = False
     """Whether the bot is incognito (will not store memories)."""
     active_channel: Optional[discord.TextChannel] = None
     """The active channel for the bot."""

@@ -14,7 +14,7 @@ from pinecone_text.hybrid import hybrid_convex_scale
 from pinecone_text.sparse import BM25Encoder
 
 from bobbot.agents.llms import openai_embeddings
-from bobbot.utils import get_logger
+from bobbot.utils import get_logger, on_heroku
 
 PARAMS_PATH = "local/bm25_params.json"
 Path(PARAMS_PATH).parent.mkdir(parents=True, exist_ok=True)
@@ -47,8 +47,11 @@ if index_name not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
     )
 index = pc.Index(index_name)
-bm25_encoder = create_bm25_encoder()
-retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=bm25_encoder, index=index)
+if not on_heroku():
+    sparse_encoder = create_bm25_encoder()
+else:
+    sparse_encoder = None  # Not enough memory
+retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=sparse_encoder, index=index)
 
 
 async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> None:
@@ -72,6 +75,8 @@ async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> N
                 "version": 1,
             }
         )
+    if retriever.sparse_encoder is None:
+        retriever.sparse_encoder = create_bm25_encoder()
     await asyncio.to_thread(retriever.add_texts, texts, metadatas=metadatas)
     logger.info("Saved tool memories for this chain.")
 
@@ -93,7 +98,12 @@ async def add_chat_memory(text: str, message_ids: list[int]) -> None:
             "version": 1,
         }
     ]
+    if retriever.sparse_encoder is None:
+        retriever.sparse_encoder = create_bm25_encoder()
     await asyncio.to_thread(retriever.add_texts, [text], metadatas=metadatas)
+    if on_heroku():
+        del retriever.sparse_encoder  # Free up memory
+        retriever.sparse_encoder = None
     logger.info("Saved chat memory.")
 
 
@@ -124,22 +134,33 @@ async def get_relevant_documents(query: str, query_filter: Optional[dict] = None
 
     Adapted from PineconeHybridSearchRetriever's _get_relevant_documents method.
     """
-    sparse_vec = retriever.sparse_encoder.encode_queries(query)
     # Convert the question into a dense vector
     dense_vec = retriever.embeddings.embed_query(query)
-    # Scale alpha with hybrid_scale
-    dense_vec, sparse_vec = hybrid_convex_scale(dense_vec, sparse_vec, retriever.alpha)
-    sparse_vec["values"] = [float(s1) for s1 in sparse_vec["values"]]
-    # Query Pinecone index
-    result = await asyncio.to_thread(
-        retriever.index.query,
-        vector=dense_vec,
-        sparse_vector=sparse_vec if sparse_vec["indices"] else None,
-        top_k=retriever.top_k,
-        include_metadata=True,
-        namespace=retriever.namespace,
-        filter=query_filter,
-    )
+    if on_heroku():
+        # Not enough memory to use sparse
+        result = await asyncio.to_thread(
+            retriever.index.query,
+            vector=dense_vec,
+            top_k=retriever.top_k,
+            include_metadata=True,
+            namespace=retriever.namespace,
+            filter=query_filter,
+        )
+    else:
+        sparse_vec = retriever.sparse_encoder.encode_queries(query)
+        # Scale alpha with hybrid_scale
+        dense_vec, sparse_vec = hybrid_convex_scale(dense_vec, sparse_vec, retriever.alpha)
+        sparse_vec["values"] = [float(s1) for s1 in sparse_vec["values"]]
+        # Query Pinecone index
+        result = await asyncio.to_thread(
+            retriever.index.query,
+            vector=dense_vec,
+            sparse_vector=sparse_vec if sparse_vec["indices"] else None,
+            top_k=retriever.top_k,
+            include_metadata=True,
+            namespace=retriever.namespace,
+            filter=query_filter,
+        )
     # print(result["usage"])
     final_result = []
     for res in result["matches"]:

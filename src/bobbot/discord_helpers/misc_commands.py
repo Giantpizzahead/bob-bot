@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v1.7
+        """! hi i am bob 2nd edition v2.0
 command prefix is `!`, slash commands work too
 
 `activity status` - Check Bob's current activity status.

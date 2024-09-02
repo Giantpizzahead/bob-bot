@@ -3,7 +3,6 @@
 import asyncio
 import uuid
 from pathlib import Path
-from sys import platform
 from typing import Callable, Optional
 
 import discord
@@ -25,7 +24,7 @@ from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_channel_history,
 )
-from bobbot.utils import get_logger
+from bobbot.utils import get_logger, on_heroku
 
 logger = get_logger(__name__)
 waiting_cmd_events: dict[str, asyncio.Event] = {}
@@ -179,16 +178,16 @@ async def discord_stop_activity(ctx: commands.Context) -> None:
 
 @bot.hybrid_group(name="spectate", fallback="start")
 async def spectate(ctx: commands.Context, video: bool = True) -> None:
-    """Start spectating the current activity. If on Linux, video mode is disabled.
+    """Start spectating the current activity. If on Heroku, video mode is disabled.
 
     Either uses a low quality/frame rate video or a screenshot. If given messages, sends them instead.
 
     Args:
         ctx: The context of the command.
-        video: Whether to spectate in video mode. Has no effect on Linux.
+        video: Whether to spectate in video mode. Has no effect on Heroku.
     """
-    if platform == "linux" or platform == "linux2":
-        video = False  # Not enough memory to do video spectating on Linux
+    if on_heroku():
+        video = False  # Not enough memory to do video spectating on Heroku
     RATE = 1.5  # Need to slow down editing rate for video mode
     global spectate_status
     if spectate_status in ["stopping"]:

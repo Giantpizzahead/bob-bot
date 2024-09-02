@@ -91,7 +91,7 @@
 <span class="kn">from</span> <span class="nn">pinecone_text.sparse</span> <span class="kn">import</span> <span class="n">BM25Encoder</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">openai_embeddings</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">on_heroku</span>
 
 <span class="n">PARAMS_PATH</span> <span class="o">=</span> <span class="s2">&quot;local/bm25_params.json&quot;</span>
 <span class="n">Path</span><span class="p">(</span><span class="n">PARAMS_PATH</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -124,8 +124,11 @@
         <span class="n">spec</span><span class="o">=</span><span class="n">ServerlessSpec</span><span class="p">(</span><span class="n">cloud</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">),</span>
     <span class="p">)</span>
 <span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">index_name</span><span class="p">)</span>
-<span class="n">bm25_encoder</span> <span class="o">=</span> <span class="n">create_bm25_encoder</span><span class="p">()</span>
-<span class="n">retriever</span> <span class="o">=</span> <span class="n">PineconeHybridSearchRetriever</span><span class="p">(</span><span class="n">embeddings</span><span class="o">=</span><span class="n">openai_embeddings</span><span class="p">,</span> <span class="n">sparse_encoder</span><span class="o">=</span><span class="n">bm25_encoder</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">on_heroku</span><span class="p">():</span>
+    <span class="n">sparse_encoder</span> <span class="o">=</span> <span class="n">create_bm25_encoder</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">sparse_encoder</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Not enough memory</span>
+<span class="n">retriever</span> <span class="o">=</span> <span class="n">PineconeHybridSearchRetriever</span><span class="p">(</span><span class="n">embeddings</span><span class="o">=</span><span class="n">openai_embeddings</span><span class="p">,</span> <span class="n">sparse_encoder</span><span class="o">=</span><span class="n">sparse_encoder</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
 
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">add_tool_memories</span><span class="p">(</span><span class="n">texts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">chain_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -149,6 +152,8 @@
                 <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="o">=</span> <span class="n">create_bm25_encoder</span><span class="p">()</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">retriever</span><span class="o">.</span><span class="n">add_texts</span><span class="p">,</span> <span class="n">texts</span><span class="p">,</span> <span class="n">metadatas</span><span class="o">=</span><span class="n">metadatas</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved tool memories for this chain.&quot;</span><span class="p">)</span>
 
@@ -170,7 +175,12 @@
             <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">]</span>
+    <span class="k">if</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="o">=</span> <span class="n">create_bm25_encoder</span><span class="p">()</span>
     <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">retriever</span><span class="o">.</span><span class="n">add_texts</span><span class="p">,</span> <span class="p">[</span><span class="n">text</span><span class="p">],</span> <span class="n">metadatas</span><span class="o">=</span><span class="n">metadatas</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+        <span class="k">del</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span>  <span class="c1"># Free up memory</span>
+        <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saved chat memory.&quot;</span><span class="p">)</span>
 
 
@@ -201,22 +211,33 @@
 
 <span class="sd">    Adapted from PineconeHybridSearchRetriever&#39;s _get_relevant_documents method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">sparse_vec</span> <span class="o">=</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span><span class="o">.</span><span class="n">encode_queries</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
     <span class="c1"># Convert the question into a dense vector</span>
     <span class="n">dense_vec</span> <span class="o">=</span> <span class="n">retriever</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">embed_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-    <span class="c1"># Scale alpha with hybrid_scale</span>
-    <span class="n">dense_vec</span><span class="p">,</span> <span class="n">sparse_vec</span> <span class="o">=</span> <span class="n">hybrid_convex_scale</span><span class="p">(</span><span class="n">dense_vec</span><span class="p">,</span> <span class="n">sparse_vec</span><span class="p">,</span> <span class="n">retriever</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
-    <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span> <span class="k">for</span> <span class="n">s1</span> <span class="ow">in</span> <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]]</span>
-    <span class="c1"># Query Pinecone index</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span>
-        <span class="n">retriever</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">,</span>
-        <span class="n">vector</span><span class="o">=</span><span class="n">dense_vec</span><span class="p">,</span>
-        <span class="n">sparse_vector</span><span class="o">=</span><span class="n">sparse_vec</span> <span class="k">if</span> <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">top_k</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">top_k</span><span class="p">,</span>
-        <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">namespace</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span>
-        <span class="nb">filter</span><span class="o">=</span><span class="n">query_filter</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_heroku</span><span class="p">():</span>
+        <span class="c1"># Not enough memory to use sparse</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span>
+            <span class="n">retriever</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">,</span>
+            <span class="n">vector</span><span class="o">=</span><span class="n">dense_vec</span><span class="p">,</span>
+            <span class="n">top_k</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">top_k</span><span class="p">,</span>
+            <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="n">query_filter</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sparse_vec</span> <span class="o">=</span> <span class="n">retriever</span><span class="o">.</span><span class="n">sparse_encoder</span><span class="o">.</span><span class="n">encode_queries</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="c1"># Scale alpha with hybrid_scale</span>
+        <span class="n">dense_vec</span><span class="p">,</span> <span class="n">sparse_vec</span> <span class="o">=</span> <span class="n">hybrid_convex_scale</span><span class="p">(</span><span class="n">dense_vec</span><span class="p">,</span> <span class="n">sparse_vec</span><span class="p">,</span> <span class="n">retriever</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span> <span class="k">for</span> <span class="n">s1</span> <span class="ow">in</span> <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]]</span>
+        <span class="c1"># Query Pinecone index</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span>
+            <span class="n">retriever</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">,</span>
+            <span class="n">vector</span><span class="o">=</span><span class="n">dense_vec</span><span class="p">,</span>
+            <span class="n">sparse_vector</span><span class="o">=</span><span class="n">sparse_vec</span> <span class="k">if</span> <span class="n">sparse_vec</span><span class="p">[</span><span class="s2">&quot;indices&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">top_k</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">top_k</span><span class="p">,</span>
+            <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="n">retriever</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="n">query_filter</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="c1"># print(result[&quot;usage&quot;])</span>
     <span class="n">final_result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;matches&quot;</span><span class="p">]:</span>

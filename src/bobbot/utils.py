@@ -2,6 +2,7 @@
 
 import logging
 import logging.config
+import os
 import re
 from datetime import datetime, timezone
 from functools import partialmethod
@@ -166,6 +167,11 @@ def get_images_in(content: str) -> list[str]:
         except requests.RequestException:
             pass
     return image_urls
+
+
+def on_heroku() -> bool:
+    """Check if the bot is running on Heroku."""
+    return "HEROKU_DYNO" in os.environ
 
 
 logger = get_logger(__name__)

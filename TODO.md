@@ -8,12 +8,6 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 - [ ] Make a demo showcasing all the cool features the bot has!
 
-#### Voice
-
-- [ ] Improve the VC prompt to make a better-sounding bot
-- [ ] Make the bot say "filtered" if appropriate
-- [ ] Implement better VC chatting logic (don't block on every new message, stop talking if a user is talking, etc)
-
 #### Activities
 
 - [ ] Allow Bob to auto-start chess and voice calls based on context
@@ -154,6 +148,9 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Implement a simple, robotic-sounding TTS system (Neurosama?)
 - [x] Try using Azure's STT with Discord to get a voice-based chat history
 - [x] Make or use a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+- [x] Improve the VC prompt to make a better-sounding bot
+- [x] Make the bot say "filtered" if appropriate
+- [x] Implement better VC chatting logic (don't block on every new message, stop talking if a user is talking, etc)
 
 ## Milestones and Capstones
 
