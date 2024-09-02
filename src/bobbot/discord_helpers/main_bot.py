@@ -40,7 +40,7 @@ class BobBot(commands.Bot):
     """The typing speed of the bot."""
     is_obedient: bool = False
     """Whether the bot is obedient (encouraged to fulfill all requests)."""
-    is_incognito: bool = False
+    is_incognito: bool = True
     """Whether the bot is incognito (will not store memories)."""
     active_channel: Optional[discord.TextChannel] = None
     """The active channel for the bot."""
@@ -148,7 +148,7 @@ async def lazy_send_message(
                 logger.exception("Error sending message")
                 return False
 
-    if not bot.is_incognito and not message_str.startswith("!"):
+    if not bot.is_incognito and not instant and not force:
         # Wait for Bob's last message to be sent
         await asyncio.sleep(0.5)
         # Save current history to memory

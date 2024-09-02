@@ -3,6 +3,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 
 import nltk
@@ -15,8 +16,24 @@ from pinecone_text.sparse import BM25Encoder
 from bobbot.agents.llms import openai_embeddings
 from bobbot.utils import get_logger
 
+PARAMS_PATH = "local/bm25_params.json"
+
 logger = get_logger(__name__)
-nltk.download("punkt_tab")
+
+
+def create_bm25_encoder() -> "BM25Encoder":
+    """Create a default BM25 model from the MS MARCO passages corpus, or restore from local cache."""
+    bm25 = BM25Encoder()
+    if not Path(PARAMS_PATH).exists():
+        bm25 = BM25Encoder().default()  # Default tf-idf values
+        print()
+        bm25.dump(str(Path(PARAMS_PATH)))
+    else:
+        bm25.load(str(Path(PARAMS_PATH)))
+    return bm25
+
+
+nltk.download("punkt_tab", quiet=True)
 
 # Create index if it doesn't exist
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
@@ -29,7 +46,7 @@ if index_name not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
     )
 index = pc.Index(index_name)
-bm25_encoder = BM25Encoder().default()  # Default tf-idf values
+bm25_encoder = create_bm25_encoder()
 retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=bm25_encoder, index=index)
 
 
@@ -90,7 +107,6 @@ async def delete_memory(id: str) -> bool:
     """
     try:
         result = index.fetch(ids=[id])
-        print(result)
         if len(result["vectors"]) == 0:
             logger.info(f"Memory with ID {id} does not exist.")
             return False
@@ -180,7 +196,7 @@ async def query_memories(
     except Exception:
         logger.exception("Error querying long term memory")
         return []
-    logger.info(
+    logger.debug(
         f"Long term memory query with query={query}, limit={limit}, age_limit={age_limit}, ignore_recent={ignore_recent}, only_tools={only_tools} -> {[f'{doc.metadata["id"][:16]}...' for doc in results]}"  # noqa: E501
     )
 

@@ -4,6 +4,7 @@ import logging
 import logging.config
 import re
 from datetime import datetime, timezone
+from functools import partialmethod
 from typing import Optional
 
 import requests
@@ -11,8 +12,10 @@ from discord.utils import _ColourFormatter as ColourFormatter
 from dotenv import load_dotenv
 from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 from playwright_stealth import StealthConfig, stealth_async
+from tqdm import tqdm
 
 load_dotenv()
+tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  # Disable tqdm progress bars by default
 debug_info: str = ""
 browser: Optional[Browser] = None
 playwright_instance = None

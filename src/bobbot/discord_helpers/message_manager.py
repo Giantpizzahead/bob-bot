@@ -105,11 +105,13 @@ async def on_message(message: discord.Message):
                 memory_lists = [memories_6, memories_1, memories_4, memories_3, memories_5, memories_0, memories_2]
                 memories: list[Document] = []
                 for i in range(EACH_LIMIT):
-                    for memory_list in memory_lists:
+                    for j, memory_list in enumerate(memory_lists):
                         if i < len(memory_list) and len(memories) < MAX_MEMORIES:
                             memory = memory_list[i]
                             if memory.metadata["id"] not in [m.metadata["id"] for m in memories]:
                                 memories.append(memory)
+                                if len(memories) == MAX_MEMORIES:
+                                    logger.info(f"Hit max of {MAX_MEMORIES} memories on iter {i}, memory list {j}.")
 
                 # Format memories as strings
                 formatted_memories: list[str] = []
@@ -122,7 +124,7 @@ async def on_message(message: discord.Message):
                 if formatted_memories:
                     log_debug_info(
                         truncate_length(
-                            f"===== Bob memories =====\n{'\n'.join([truncate_length(m, 192) for m in formatted_memories])}",  # noqa: E501
+                            f"===== Bob memories (found {len(memories)}) =====\n{'\n'.join([truncate_length(m, 192) for m in formatted_memories])}",  # noqa: E501
                             1000,
                         )
                     )

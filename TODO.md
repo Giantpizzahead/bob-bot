@@ -7,13 +7,12 @@ This list will evolve as the bot progresses. We'll start getting features workin
 #### Voice
 
 - [ ] Implement a simple, robotic-sounding TTS system (Neurosama?)
-- [ ] Try using OpenAI's whisper (maybe the fast local version if it's memory-efficient) to do STT
-- [ ] Make a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
+- [ ] Try using Azure's STT with Discord to get a voice-based chat history
+- [ ] Make or use a bare bones prompt that takes STT results and VC message history to talk decently in voice chat
 
 #### Activities
 
-- [ ] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
-- [ ] Allow Bob to auto-start chess, league, and voice calls based on context
+- [ ] Allow Bob to auto-start chess and voice calls based on context
 
 ### Future
 
@@ -31,10 +30,11 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 - [ ] Give Bob a code execution tool (as an advanced calculator or code debugging helper), see [here](https://rapidapi.com/onecompiler-onecompiler-default/api/onecompiler-apis)
 - [ ] Give Bob a reverse image search tool (to look up where locations are, what show an image is from, etc), see [here](https://rapidapi.com/letscrape-6bRBa3QguO5/api/reverse-image-search1)
-- [ ] Give Bob a reasoning tool (as an agent + verifier combo with access to tools that reasons through a complex problem, step by step)
+- [ ] Add a reasoning dummy tool with guided plan arguments, hard code it to send back a system message or something
 - [ ] Consider giving Bob a Discord history tool to manually go back and find specific messages
-- [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). Initially, just do a single pass.
+- [ ] Implement a verifier agent that checks if the problem solving agent's context makes sense, given previous tool call results and what the verifier itself knows. Only needs checking if the reasoning tool was called. This verifier agent should use a different LLM model (sorta like manual mixture-of-experts). If not reasonable, delegate it back and keep iterating.
 - [ ] Make the verifier interact with the problem solving agent in a single back-and-forth. If it fails verification once, send back to the problem solving agent with feedback. If it fails verification twice, send context to Bob saying that the problem solving agent couldn't figure out the answer, and to echo that uncertainty to the user (making clear that it's guessing).
+- [ ] Add a view_image tool to see a given URL. Only enable it if no image is present already. Custom code it to basically send a success tool message then add human image, or if it can be direct in tool do that.
 
 #### Memory
 
@@ -130,6 +130,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Make a command to stop spectating, and a command to check the program's RAM usage
 - [x] Fix memory leak and/or memory inefficiency issue with spectate (maybe save/load screenshots from a file instead, to avoid any possibility of leaking RAM)
 - [x] Trigger Python garbage collection a lot while playing Chess and/or spectating to avoid memory limit issues (at the cost of speed, but not really since we get slowed due to memory)
+- [x] Refamiliarize ourselves with the AlphaLoL codebase and think through the feasibility of directly converting it to use the Arduino mouse (start with this, don't jump!)
+  - Actually, in the spirit of not trying to revive a done project with very little time left, and also to avoid tying the two projects together, we're not going to implement League stuff.
 
 ### Memory
 
@@ -139,6 +141,11 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Make a command to delete a stored memory by ID, for manual cleanup if sensitive info gets leaked
 - [x] Make an "incognito mode" where all attempts to save new memories are turned off (can still access and use old memories), also consider making !off and !on commands, does /mode make sense?
 - [x] Check overall token usage from test suite, to get a sense of how much this overall system costs (we optimized a decent amount, so it shouldn't be too bad... right?)
+
+### Voice
+
+- [x] Figure out how to work with Discord voice calls, since discord.py's voice module got removed
+- [x] Why is downsampling and working with audio formats so confusing??? Mark this complete when we being to sort of figure everything out
 
 ## Milestones and Capstones
 
@@ -153,10 +160,10 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Demonstrate improved knowledge by answering questions requiring real time (online) info (8/29/24)
 - ~~[ ] Initiate a DM or group chat conversation after being inactive for a while~~
 - ~~[ ] Have a persistent mood and/or life story through simulated emotions and events~~
-- [ ] Remember details about people from a long time ago, say >50 messages
-- [ ] Understand the difference between DMs and servers, and participate in both of them
+- [x] Remember details about people from a long time ago, say >50 messages (8/31/24)
+- ~~[ ] Understand the difference between DMs and servers, and participate in both of them~~
 - [ ] **Capstone:** Hold an emotional and long (requiring memory) chat conversation in DMs while acting similar to a human
-- [ ] **Capstone:** Act like a normal, active Discord user in a medium sized server, replying to or initiating messages
+- [x] **Capstone:** Act like a normal, active Discord user in a medium sized server, replying to or initiating messages (9/1/24)
 
 ### Voice
 
@@ -169,8 +176,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ### Gaming
 
-- [x] Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept (8/28/24)
-- [ ] **Capstone:** Play League, a comprehensive, tough game with an anticheat
+- ~~[ ] Play League, a comprehensive, tough game with an anticheat~~
+- [x] **Capstone:** Play Chess at a rating > 800, for an easy-to-play (ish) proof of concept (8/28/24)
 
 ### All Together
 

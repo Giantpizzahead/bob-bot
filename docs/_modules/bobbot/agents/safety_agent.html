@@ -118,7 +118,7 @@
     <span class="p">):</span>
         <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Safety agent moderations =====</span><span class="se">\n</span><span class="s2">Flagged: </span><span class="si">{</span><span class="n">true_categories</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># Handle these seriously</span>
-    <span class="k">elif</span> <span class="n">categories</span><span class="o">.</span><span class="n">sexual</span> <span class="ow">or</span> <span class="n">categories</span><span class="o">.</span><span class="n">hate</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">categories</span><span class="o">.</span><span class="n">sexual</span><span class="p">:</span>
         <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Safety agent moderations =====</span><span class="se">\n</span><span class="s2">Flagged: </span><span class="si">{</span><span class="n">true_categories</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Don&#39;t handle these</span>
 
@@ -136,7 +136,8 @@
     <span class="c1"># log_debug_info(f&quot;===== Safety agent history =====\n{messages[1].content}&quot;)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini_factual</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
     <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
-    <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Safety agent response =====</span><span class="se">\n</span><span class="s2">Flagged: </span><span class="si">{</span><span class="n">true_categories</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">true_categories</span> <span class="ow">or</span> <span class="s2">&quot;ACCEPT&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>  <span class="c1"># Only log for non-clean messages</span>
+        <span class="n">log_debug_info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Safety agent response =====</span><span class="se">\n</span><span class="s2">Flagged: </span><span class="si">{</span><span class="n">true_categories</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="c1"># Get the decision</span>
     <span class="k">if</span> <span class="s2">&quot;ACCEPT&quot;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>

@@ -81,6 +81,7 @@
 <span class="kn">import</span> <span class="nn">logging.config</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partialmethod</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">requests</span>
@@ -88,8 +89,10 @@
 <span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
 <span class="kn">from</span> <span class="nn">playwright.async_api</span> <span class="kn">import</span> <span class="n">Browser</span><span class="p">,</span> <span class="n">BrowserContext</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="n">async_playwright</span>
 <span class="kn">from</span> <span class="nn">playwright_stealth</span> <span class="kn">import</span> <span class="n">StealthConfig</span><span class="p">,</span> <span class="n">stealth_async</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="n">load_dotenv</span><span class="p">()</span>
+<span class="n">tqdm</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">partialmethod</span><span class="p">(</span><span class="n">tqdm</span><span class="o">.</span><span class="fm">__init__</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Disable tqdm progress bars by default</span>
 <span class="n">debug_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 <span class="n">browser</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Browser</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">playwright_instance</span> <span class="o">=</span> <span class="kc">None</span>

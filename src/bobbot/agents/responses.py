@@ -89,7 +89,7 @@ Notes:
         messages.insert(1, SystemMessage(content=context + "\n\nKeep your messaging style as described previously."))
 
     messages.extend(msg_history)
-    logger.debug(f"Full Bob prompt:\n{messages_to_string(messages)}")
+    logger.info(f"Full Bob prompt:\n{messages_to_string(messages)}")
     # log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
 
     # Let the agent self loop
@@ -99,6 +99,7 @@ Notes:
         # Force a response on the last loop
         tool_choice = "auto" if i != MAX_LOOPS - 1 else "none"
         llm_with_tools = base_llm.bind_tools(TOOL_LIST, tool_choice=tool_choice, strict=True)
+        # If model doesn't support images, it will gracefully ignore them
         ai_message = await llm_with_tools.ainvoke(messages)
         messages.append(ai_message)
         if ai_message.tool_calls:
@@ -116,8 +117,12 @@ Notes:
                     f"===== Iteration {i+1}: {tool_call['name']}, args {tool_call['args']} =====\n{truncate_length(tool_message.content, 256)}"  # noqa: E501
                 )
                 logger.info(f"Full tool call result: {tool_message.content}")
+        elif "tool▁sep" in ai_message.content and "tool▁call▁end" in ai_message.content:
+            # Sanity check for improper tool call format
+            logger.warning(f"Improper tool call detected, switching to OpenAI: {ai_message.content}")
+            base_llm = llm_gpt4omini
         else:
-            break
+            break  # Valid response
 
     # Output response
     assert len(ai_message.content.strip()) > 0

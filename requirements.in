@@ -17,3 +17,7 @@ beautifulsoup4
 psutil
 pinecone-client
 pinecone-text
+PyNaCl
+discord-ext-voice-recv
+azure-cognitiveservices-speech
+resampy
