@@ -25,6 +25,6 @@ async def test_image_search() -> None:
     """Should contain a single image URL in the response."""
     history = ManualHistory(["Lax: bob can u send me a pic of zoe from league of legends?"])
     with tracing_v2_enabled(tags=["test_image_search"]):
-        response = await get_response_with_tools(history.as_langchain_msgs())
+        response = await get_response_with_tools(history.as_langchain_msgs(), store_memories=False)
         num_images = len(get_images_in(response))
         assert num_images == 1, f"Expected exactly 1 image URL in response, got {num_images}"

@@ -28,7 +28,7 @@ async def test_watch_youtube() -> None:
         ]  # noqa: E501
     )
     with tracing_v2_enabled(tags=["test_watch_youtube"]):
-        response = await get_response_with_tools(history.as_langchain_msgs())
+        response = await get_response_with_tools(history.as_langchain_msgs(), store_memories=False)
         # Look for the expected answer in some format
         for keyword in ["l-shaped"]:
             assert keyword in response.lower(), "Expected answer (L-shaped) not in response"

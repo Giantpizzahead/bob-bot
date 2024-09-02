@@ -27,7 +27,7 @@ async def test_website_fetch_static() -> None:
         ]  # noqa: E501
     )
     with tracing_v2_enabled(tags=["test_website_fetch_static"]):
-        response = await get_response_with_tools(history.as_langchain_msgs())
+        response = await get_response_with_tools(history.as_langchain_msgs(), store_memories=False)
         # Look for the expected answer in some format
         for keyword in ["stay", "not", "leave", "me"]:
             assert keyword in response.lower(), "Expected answer (Stay, you're not gonna leave me) not in response"
@@ -41,7 +41,7 @@ async def test_website_fetch_dynamic() -> None:
         ]
     )
     with tracing_v2_enabled(tags=["test_website_fetch_dynamic"]):
-        response = await get_response_with_tools(history.as_langchain_msgs())
+        response = await get_response_with_tools(history.as_langchain_msgs(), store_memories=False)
         # Look for the expected answer in some format
         for keyword in ["likes", "comments"]:
             assert keyword in response.lower(), "Expected answer (some number of likes and comments) not in response"

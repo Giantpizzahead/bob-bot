@@ -28,7 +28,7 @@ async def test_online_search() -> None:
         ]
     )
     with tracing_v2_enabled(tags=["test_online_search"]):
-        response = await get_response_with_tools(history.as_langchain_msgs())
+        response = await get_response_with_tools(history.as_langchain_msgs(), store_memories=False)
         # Look for the expected answer in some format
         for keyword in ["july", "17", "2024"]:
             assert keyword in response.lower(), "Expected answer (July 17, 2024) not in response"
