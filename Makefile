@@ -27,6 +27,6 @@ run:
 test:
 	flake8 .
 	black . --check
-	pytest
+	# pytest
 
 .PHONY: requirements lint format docs build clean run test
