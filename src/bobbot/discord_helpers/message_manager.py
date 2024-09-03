@@ -18,9 +18,10 @@ from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_channel_history,
 )
-from bobbot.memory import query_memories
+from bobbot.memory import is_sparse_encoder_loaded, query_memories
 from bobbot.utils import (
     get_logger,
+    is_playwright_browser_open,
     log_debug_info,
     on_heroku,
     reset_debug_info,
@@ -42,7 +43,13 @@ async def on_message(message: discord.Message):
     bot.active_channel = message.channel
     await bot.process_commands(message)
     # Don't respond if the bot is off, or if it's a command message
-    if not bot.is_on or message.content.startswith(bot.command_prefix):
+    if message.content.startswith(bot.command_prefix):
+        return
+    elif not bot.is_on:
+        if bot.user in message.mentions:
+            await lazy_send_message(
+                curr_channel, "! im off rn, see help with /help, turn on with /config on", instant=True, force=True
+            )
         return
     # For now, don't respond to self messages
     if message.author == bot.user:
@@ -54,6 +61,10 @@ async def on_message(message: discord.Message):
     history.clear_users_typing()
     saved_message_count: int = history.message_count
     # Get a response
+    if on_heroku():
+        logger.info(
+            f"Before message, playwright: {is_playwright_browser_open()}, sparse encoder: {is_sparse_encoder_loaded()}"
+        )
     try:
         reset_debug_info()
         short_history: str = history.as_string(5)

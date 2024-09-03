@@ -48,6 +48,7 @@ if index_name not in pc.list_indexes().names():
     )
 index = pc.Index(index_name)
 sparse_encoder = create_bm25_encoder()
+sparse_usage_count = 0
 retriever = PineconeHybridSearchRetriever(embeddings=openai_embeddings, sparse_encoder=sparse_encoder, index=index)
 if on_heroku():
     del sparse_encoder  # Free up memory
@@ -63,6 +64,7 @@ async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> N
         chain_id: The ID of the chain in which the tools were used.
         response: Bob's final response after using the tools.
     """
+    global sparse_usage_count
     curr_time = datetime.now(timezone.utc).timestamp()
     metadatas = []
     for _ in texts:
@@ -76,9 +78,11 @@ async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> N
                 "version": 1,
             }
         )
+    sparse_usage_count += 1
     if retriever.sparse_encoder is None:
         retriever.sparse_encoder = create_bm25_encoder()
     await asyncio.to_thread(retriever.add_texts, texts, metadatas=metadatas)
+    sparse_usage_count -= 1
     logger.info("Saved tool memories for this chain.")
 
 
@@ -89,6 +93,7 @@ async def add_chat_memory(text: str, message_ids: list[int]) -> None:
         text: The message history.
         message_ids: The message IDs of the messages in the history.
     """
+    global sparse_usage_count
     curr_time = datetime.now(timezone.utc).timestamp()
     metadatas = [
         {
@@ -99,10 +104,12 @@ async def add_chat_memory(text: str, message_ids: list[int]) -> None:
             "version": 1,
         }
     ]
+    sparse_usage_count += 1
     if retriever.sparse_encoder is None:
         retriever.sparse_encoder = create_bm25_encoder()
     await asyncio.to_thread(retriever.add_texts, [text], metadatas=metadatas)
-    if on_heroku():
+    sparse_usage_count -= 1
+    if on_heroku() and sparse_usage_count == 0:
         del retriever.sparse_encoder  # Free up memory
         retriever.sparse_encoder = None
     logger.info("Saved chat memory.")
@@ -233,3 +240,8 @@ async def query_memories(
     ]
     await asyncio.gather(*tasks)
     return results
+
+
+def is_sparse_encoder_loaded() -> bool:
+    """Check if the sparse encoder is loaded."""
+    return retriever.sparse_encoder is not None

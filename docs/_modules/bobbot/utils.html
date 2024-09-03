@@ -133,6 +133,11 @@
         <span class="n">playwright_instance</span> <span class="o">=</span> <span class="kc">None</span>
 
 
+<span class="k">def</span> <span class="nf">is_playwright_browser_open</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the Playwright browser instance is open.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">browser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+
 <div class="viewcode-block" id="get_logger">
 <a class="viewcode-back" href="../../bobbot.html#bobbot.get_logger">[docs]</a>
 <span class="k">def</span> <span class="nf">get_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">formatter</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>

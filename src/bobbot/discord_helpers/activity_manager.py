@@ -24,7 +24,8 @@ from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
     get_channel_history,
 )
-from bobbot.utils import get_logger, on_heroku
+from bobbot.memory import is_sparse_encoder_loaded
+from bobbot.utils import get_logger, is_playwright_browser_open, on_heroku
 
 logger = get_logger(__name__)
 waiting_cmd_events: dict[str, asyncio.Event] = {}
@@ -136,7 +137,9 @@ async def chess(ctx: commands.Context, elo: int, against: Optional[str]) -> None
 async def activity(ctx: commands.Context) -> None:
     """Check Bob's current activity status."""
     status = await get_activity_status()
-    await ctx.send(f"! {status}")
+    await ctx.send(
+        f"! {status}\nplaywright: {is_playwright_browser_open()}, sparse encoder: {is_sparse_encoder_loaded()}"
+    )
 
 
 @activity.command(name="start")

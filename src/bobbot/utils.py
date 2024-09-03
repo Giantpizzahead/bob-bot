@@ -56,6 +56,11 @@ async def close_playwright_browser():
         playwright_instance = None
 
 
+def is_playwright_browser_open() -> bool:
+    """Check if the Playwright browser instance is open."""
+    return browser is not None
+
+
 def get_logger(name: str, level: int = logging.INFO, formatter: logging.Formatter | None = None) -> logging.Logger:
     """Get a logger with the specified name and logging level.
 

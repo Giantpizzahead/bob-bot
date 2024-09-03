@@ -101,7 +101,8 @@
     <span class="n">TextChannelHistory</span><span class="p">,</span>
     <span class="n">get_channel_history</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">on_heroku</span>
+<span class="kn">from</span> <span class="nn">bobbot.memory</span> <span class="kn">import</span> <span class="n">is_sparse_encoder_loaded</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">is_playwright_browser_open</span><span class="p">,</span> <span class="n">on_heroku</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">waiting_cmd_events</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -222,7 +223,9 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">activity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check Bob&#39;s current activity status.&quot;&quot;&quot;</span>
     <span class="n">status</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_activity_status</span><span class="p">()</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;! </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">playwright: </span><span class="si">{</span><span class="n">is_playwright_browser_open</span><span class="p">()</span><span class="si">}</span><span class="s2">, sparse encoder: </span><span class="si">{</span><span class="n">is_sparse_encoder_loaded</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
 
 
 <span class="nd">@activity</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
