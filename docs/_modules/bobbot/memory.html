@@ -91,7 +91,7 @@
 <span class="kn">from</span> <span class="nn">pinecone_text.sparse</span> <span class="kn">import</span> <span class="n">BM25Encoder</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">openai_embeddings</span>
-<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">on_heroku</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">is_playwright_browser_open</span><span class="p">,</span> <span class="n">on_heroku</span>
 
 <span class="n">PARAMS_PATH</span> <span class="o">=</span> <span class="s2">&quot;local/bm25_params.json&quot;</span>
 <span class="n">Path</span><span class="p">(</span><span class="n">PARAMS_PATH</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -141,6 +141,9 @@
 <span class="sd">        chain_id: The ID of the chain in which the tools were used.</span>
 <span class="sd">        response: Bob&#39;s final response after using the tools.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">on_heroku</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_playwright_browser_open</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;(Heroku) Skipping tool memory saving due to open Playwright browser.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="k">global</span> <span class="n">sparse_usage_count</span>
     <span class="n">curr_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span>
     <span class="n">metadatas</span> <span class="o">=</span> <span class="p">[]</span>
@@ -170,6 +173,9 @@
 <span class="sd">        text: The message history.</span>
 <span class="sd">        message_ids: The message IDs of the messages in the history.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">on_heroku</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_playwright_browser_open</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;(Heroku) Skipping chat memory saving due to open Playwright browser.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="k">global</span> <span class="n">sparse_usage_count</span>
     <span class="n">curr_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span>
     <span class="n">metadatas</span> <span class="o">=</span> <span class="p">[</span>

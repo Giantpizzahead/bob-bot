@@ -14,7 +14,7 @@ from pinecone_text.hybrid import hybrid_convex_scale
 from pinecone_text.sparse import BM25Encoder
 
 from bobbot.agents.llms import openai_embeddings
-from bobbot.utils import get_logger, on_heroku
+from bobbot.utils import get_logger, is_playwright_browser_open, on_heroku
 
 PARAMS_PATH = "local/bm25_params.json"
 Path(PARAMS_PATH).parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +64,9 @@ async def add_tool_memories(texts: list[str], chain_id: str, response: str) -> N
         chain_id: The ID of the chain in which the tools were used.
         response: Bob's final response after using the tools.
     """
+    if on_heroku() and is_playwright_browser_open():
+        logger.warning("(Heroku) Skipping tool memory saving due to open Playwright browser.")
+        return
     global sparse_usage_count
     curr_time = datetime.now(timezone.utc).timestamp()
     metadatas = []
@@ -93,6 +96,9 @@ async def add_chat_memory(text: str, message_ids: list[int]) -> None:
         text: The message history.
         message_ids: The message IDs of the messages in the history.
     """
+    if on_heroku() and is_playwright_browser_open():
+        logger.warning("(Heroku) Skipping chat memory saving due to open Playwright browser.")
+        return
     global sparse_usage_count
     curr_time = datetime.now(timezone.utc).timestamp()
     metadatas = [
