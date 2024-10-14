@@ -36,7 +36,7 @@ class BobBot(commands.Bot):
     """The channels the bot is active in."""
     is_on: bool = True
     """Whether the bot is on (will send messages)."""
-    speed: Speed = Speed.DEFAULT
+    speed: Speed = Speed.INSTANT  # Default due to pings
     """The typing speed of the bot."""
     is_obedient: bool = False
     """Whether the bot is obedient (encouraged to fulfill all requests)."""

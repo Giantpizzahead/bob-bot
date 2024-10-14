@@ -4,12 +4,14 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 import discord
+from discord.ext import commands
 from langchain.docstore.document import Document
 
 from bobbot.activities import Activity, get_activity, get_activity_status
 from bobbot.agents import (
     check_openai_safety,
     decide_to_respond,
+    get_response,
     get_response_with_tools,
 )
 from bobbot.discord_helpers.activity_manager import check_waiting_responses
@@ -33,10 +35,13 @@ logger = get_logger(__name__)
 
 
 @bot.event
-async def on_message(message: discord.Message):
-    """Respond to messages."""
+async def on_message(message: discord.Message, use_perplexity: bool = False):
+    """Respond to messages, using or not using smart search (Perplexity)."""
     # Only respond to messages in DMs and specified channels
-    if not (message.channel.id in bot.CHANNELS or isinstance(message.channel, discord.DMChannel)):
+    if not (use_perplexity or message.channel.id in bot.CHANNELS or isinstance(message.channel, discord.DMChannel)):
+        return
+    # Don't respond unless pinged or in a DM
+    if not (use_perplexity or bot.user in message.mentions or isinstance(message.channel, discord.DMChannel)):
         return
     curr_channel: discord.TextChannel = message.channel
     # Set the active channel
@@ -52,7 +57,7 @@ async def on_message(message: discord.Message):
             )
         return
     # For now, don't respond to self messages
-    if message.author == bot.user:
+    if not use_perplexity and message.author == bot.user:
         return
 
     # Get history for the current channel
@@ -69,8 +74,9 @@ async def on_message(message: discord.Message):
         reset_debug_info()
         short_history: str = history.as_string(5)
         decision, thoughts = await decide_to_respond(short_history)
-        if decision is False:
-            return
+        # Bypass decision agent (due to pings)
+        # if decision is False:
+        #     return
         async with curr_channel.typing():
             asyncio.create_task(check_waiting_responses(curr_channel))
             is_safe = await check_openai_safety(short_history)
@@ -169,15 +175,31 @@ async def on_message(message: discord.Message):
             # logger.info(f"Context:\n{context}")
 
             # Get response and send message
-            response: str = await get_response_with_tools(
-                history.as_langchain_msgs(bot.user),
-                context=context,
-                uncensored=not is_safe,
-                obedient=bot.is_obedient,
-                store_memories=not bot.is_incognito and not heroku_override,
-            )
+            if not use_perplexity:
+                response: str = await get_response_with_tools(
+                    history.as_langchain_msgs(bot.user),
+                    context=context,
+                    uncensored=not is_safe,
+                    obedient=bot.is_obedient,
+                    store_memories=not bot.is_incognito and not heroku_override,
+                )
+            else:
+                response: str = await get_response(
+                    history.as_langchain_msgs(bot.user),
+                    context=context,
+                    obedient=bot.is_obedient,
+                    store_memories=not bot.is_incognito and not heroku_override,
+                    use_perplexity=True,
+                )
         if history.message_count == saved_message_count:
             await lazy_send_message(message.channel, response)
     except Exception as e:
         logger.exception("Error getting response")
         await lazy_send_message(message.channel, str(e), instant=True, force=True)
+
+
+@bot.hybrid_command(name="research")
+async def research(ctx: commands.Context, query: str) -> None:
+    """Return a response using research from online."""
+    message = await ctx.send(f'researching query: "{query}"')
+    await on_message(message, use_perplexity=True)

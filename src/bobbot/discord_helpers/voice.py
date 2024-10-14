@@ -276,7 +276,7 @@ async def join_vc(ctx: commands.Context) -> None:
     vc: voice_recv.VoiceRecvClient = await channel.connect(cls=voice_recv.VoiceRecvClient)
     vc.listen(voice_recv.BasicSink(process_voice_packet))
     await ctx.send(
-        "! hopping on :D\n\n**Tip: VC works best if you keep it turn-based. Speak without pausing, and let Bob finish.**\nBob responds to the first person that finishes talking after Bob does. If he stops answering, make him leave and rejoin."  # noqa: E501
+        "! hopping on :D\n\n**Tip: VC works best if you use push-to-talk. Speak without pausing, and let Bob finish.**\nBob responds to the first person that finishes talking after Bob does. If he stops answering, make him leave and rejoin."  # noqa: E501
     )
 
     # Handle messages and leave if VC is empty

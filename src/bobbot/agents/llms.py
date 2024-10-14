@@ -81,6 +81,17 @@ llm_mythomax = ChatOpenAI(
 )
 del openrouter_key
 
+# Setup Perplexity LLM
+perplexity_key: Optional[str] = os.getenv("PERPLEXITY_KEY")
+if perplexity_key is None:
+    raise ValueError("PERPLEXITY_KEY environment variable is not set.")
+llm_perplexity = ChatOpenAI(
+    openai_api_key=perplexity_key,
+    openai_api_base="https://api.perplexity.ai",
+    model="llama-3.1-sonar-large-128k-online",
+    max_tokens=1024,
+)
+
 
 def messages_to_string(messages):
     """Convert a list of messages to a single string, for debugging."""

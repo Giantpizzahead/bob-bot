@@ -470,10 +470,10 @@ async def play_chess_activity(cmd_handler: Callable) -> None:
             match_result = await check_game_over(page)
             if match_result:
                 break
-            if move_num % 5 == 0 and random.random() < 0.5 and not against_computer:
+            if move_num % 5 == 0 and random.random() < 0.33 and not against_computer:
                 # Comment on the game
                 await cmd_handler(
-                    f"Give some banter on your chess match. You are playing as the Black pieces against a user. It is (approximately) move #{move_num}. Based on the current board, your chance of winning is {curr_win_chance:.0f}%."  # noqa: E501
+                    f"Give some banter on your chess match. You are playing as the Black pieces against a user. It is (approximately) move #{move_num}. Based on the current board, your chance of winning is {curr_win_chance:.0f}%. Make sure to ping the user."  # noqa: E501
                 )
             await play_move(page)  # Might dry move, but that's ok
             if status == "stopping":
