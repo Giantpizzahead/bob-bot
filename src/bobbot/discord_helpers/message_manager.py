@@ -8,9 +8,8 @@ from discord.ext import commands
 from langchain.docstore.document import Document
 
 from bobbot.activities import Activity, get_activity, get_activity_status
-from bobbot.agents import (
+from bobbot.agents import (  # decide_to_respond,
     check_openai_safety,
-    decide_to_respond,
     get_response,
     get_response_with_tools,
 )
@@ -73,7 +72,7 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
     try:
         reset_debug_info()
         short_history: str = history.as_string(5)
-        decision, thoughts = await decide_to_respond(short_history)
+        # decision, thoughts = await decide_to_respond(short_history)
         # Bypass decision agent (due to pings)
         # if decision is False:
         #     return

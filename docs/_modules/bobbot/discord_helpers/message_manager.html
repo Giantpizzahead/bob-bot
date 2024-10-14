@@ -85,9 +85,8 @@
 <span class="kn">from</span> <span class="nn">langchain.docstore.document</span> <span class="kn">import</span> <span class="n">Document</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.activities</span> <span class="kn">import</span> <span class="n">Activity</span><span class="p">,</span> <span class="n">get_activity</span><span class="p">,</span> <span class="n">get_activity_status</span>
-<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># decide_to_respond,</span>
     <span class="n">check_openai_safety</span><span class="p">,</span>
-    <span class="n">decide_to_respond</span><span class="p">,</span>
     <span class="n">get_response</span><span class="p">,</span>
     <span class="n">get_response_with_tools</span><span class="p">,</span>
 <span class="p">)</span>
@@ -152,7 +151,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">reset_debug_info</span><span class="p">()</span>
         <span class="n">short_history</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">history</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-        <span class="n">decision</span><span class="p">,</span> <span class="n">thoughts</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_to_respond</span><span class="p">(</span><span class="n">short_history</span><span class="p">)</span>
+        <span class="c1"># decision, thoughts = await decide_to_respond(short_history)</span>
         <span class="c1"># Bypass decision agent (due to pings)</span>
         <span class="c1"># if decision is False:</span>
         <span class="c1">#     return</span>
