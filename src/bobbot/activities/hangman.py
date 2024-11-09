@@ -1,12 +1,10 @@
 """Play a game of hangman."""
 
 import asyncio
-import random
+import time
 from typing import Callable, Optional
 
-from langchain_core.messages import HumanMessage, SystemMessage
-
-from bobbot.agents.llms import llm_gpt4omini
+from bobbot.agents import decide_topic
 
 status = "idle"
 stop_event: Optional[asyncio.Event] = asyncio.Event()
@@ -19,16 +17,18 @@ is_revealed = []
 correct_guesses = []
 wrong_guesses = []
 is_on_full_guess = False
-MAX_WRONG_GUESSES = 11
+last_guess_time: float = 0
+MAX_WRONG_GUESSES = 10
+TIME_BETWEEN_COMMENTS = 5
 
 
 def display_board() -> str:
     """Returns a string representation of the hangman board."""
-    return f"""Theme: {theme}
-Correct guesses: {", ".join(correct_guesses)}
-Wrong guesses ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
+    return f"""```Theme: {theme}
+Correct:      {", ".join(correct_guesses)}
+Wrong ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
 
-{" ".join([answer[i] if is_revealed[i] else "\\_" for i in range(len(answer))])}"""
+{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
 
 
 def guess_character(c: str) -> int:
@@ -79,39 +79,14 @@ async def hangman_activity(new_cmd_handler: Callable) -> None:
             return
         status = "playing"
 
-        HANGMAN_PROMPT = """You are a helpful AI assistant. The user will provide you with a theme for a game of hangman. You should then choose a word or phrase for the user to guess that matches the theme. Try to choose a creative word/phrase. You will be given a seed to help with picking an answer. Here are some examples:
-
-    ## Example 1
-    Seed: 293847293
-    Theme: league of legends champions
-    Output: Zoe
-
-    ## Example 2
-    Seed: 1239182
-    Theme: household items
-    Output: vaccum cleaner
-
-    ## Example 3
-    Seed: 981274736
-    Theme: movie quotes
-    Output: May the force be with you.
-
-    You must output only the word or phrase you decide on. Do not output anything else."""  # noqa: E501
-
-        # Decide on the answer
-        messages = [
-            SystemMessage(content=HANGMAN_PROMPT),
-            HumanMessage(content=f"Seed: {random.randint(0, 10 ** 9)}\nTheme: {theme}"),
-        ]
-        response = await llm_gpt4omini.ainvoke(messages)
-
         # Setup round
-        global answer, is_revealed, correct_guesses, wrong_guesses, is_on_full_guess
-        answer = response.content
+        global answer, is_revealed, correct_guesses, wrong_guesses, is_on_full_guess, last_guess_time
+        answer = await decide_topic(theme)
         is_revealed = [not answer[i].isalpha() for i in range(len(answer))]
         correct_guesses = []
         wrong_guesses = []
         is_on_full_guess = False
+        last_guess_time = time.time()
 
         # Start game
         print(f"Hangman answer: {answer}")
@@ -129,7 +104,7 @@ async def hangman_activity(new_cmd_handler: Callable) -> None:
 
 async def hangman_on_message(message: str) -> Optional[str]:
     """Handles a message during a hangman game."""
-    global is_on_full_guess, is_revealed
+    global is_on_full_guess, is_revealed, last_guess_time
     if len(message) != 1 and message.upper() != "CANCEL" and is_on_full_guess:
         # Check if the message is the answer
         if message.upper()[: len(answer)] == answer.upper():
@@ -148,7 +123,7 @@ async def hangman_on_message(message: str) -> Optional[str]:
             return
     elif is_on_full_guess:
         await cmd_handler(
-            "The user canceled their full guess. Tell the user that they can now guess letters again. Do NOT mention their username."  # noqa: E501
+            "Tell the user they canceled their full guess, and can now guess letters again. Do NOT mention their username."  # noqa: E501
         )
         is_on_full_guess = False  # Must've been an accident
         return
@@ -160,20 +135,21 @@ async def hangman_on_message(message: str) -> Optional[str]:
         )
         return None
     elif len(message) != 1 or not message.isalpha():
-        await cmd_handler("Tell the user they can only guess a single letter. Do NOT mention their username.")
+        if last_guess_time + TIME_BETWEEN_COMMENTS < time.time():
+            await cmd_handler(
+                "If relevant, remind the user they can only guess a single letter or message 'guess' to guess the full answer. Do NOT mention their username."  # noqa: E501
+            )
         return None
 
     if message.upper() in correct_guesses or message.upper() in wrong_guesses:
-        await cmd_handler(
-            f"Tell the user they have already guessed the letter '{message}'. Do NOT mention their username."
-        )
+        if last_guess_time + TIME_BETWEEN_COMMENTS < time.time():
+            await cmd_handler(
+                f"Tell the user they have already guessed the letter '{message}'. Do NOT mention their username."
+            )
         return None
 
     num_matches = guess_character(message.upper())
     await cmd_handler(display_board(), output_directly=True)
-    await cmd_handler(
-        f"Make a *very* short comment on the game of hangman. The user just guessed '{message.upper()}', and there were {num_matches} matches in the answer. Do NOT try to print the hangman board again. Do NOT mention their username."  # noqa: E501
-    )
     if all(is_revealed):
         await cmd_handler("Tell the user that they won!")
         stop_hangman()
@@ -181,9 +157,15 @@ async def hangman_on_message(message: str) -> Optional[str]:
     elif len(wrong_guesses) >= MAX_WRONG_GUESSES:
         is_revealed = [True] * len(answer)
         await cmd_handler(display_board(), output_directly=True)
-        await cmd_handler("Tell the user that they lost and comment on the revealed answer.")
+        await cmd_handler("Tell the user that they lost (too many wrong guesses) and comment on the revealed answer.")
         stop_hangman()
         return None
+    elif last_guess_time + TIME_BETWEEN_COMMENTS < time.time():
+        await cmd_handler(
+            f"Make a *very* short comment on the game of hangman. The user just guessed '{message.upper()}', and there were {num_matches} matches in the answer. Do NOT try to print the hangman board again. Do NOT mention their username."  # noqa: E501
+        )
+
+    last_guess_time = time.time()
 
 
 def configure_hangman(new_theme: str) -> None:

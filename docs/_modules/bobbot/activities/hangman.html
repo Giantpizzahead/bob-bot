@@ -78,12 +78,10 @@
 <span></span><span class="sd">&quot;&quot;&quot;Play a game of hangman.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">langchain_core.messages</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
-
-<span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini</span>
+<span class="kn">from</span> <span class="nn">bobbot.agents</span> <span class="kn">import</span> <span class="n">decide_topic</span>
 
 <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
 <span class="n">stop_event</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
@@ -96,16 +94,18 @@
 <span class="n">correct_guesses</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">wrong_guesses</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="n">MAX_WRONG_GUESSES</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">last_guess_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">MAX_WRONG_GUESSES</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">TIME_BETWEEN_COMMENTS</span> <span class="o">=</span> <span class="mi">5</span>
 
 
 <span class="k">def</span> <span class="nf">display_board</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a string representation of the hangman board.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span>
-<span class="s2">Correct guesses: </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">correct_guesses</span><span class="p">)</span><span class="si">}</span>
-<span class="s2">Wrong guesses (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">MAX_WRONG_GUESSES</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;```Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span>
+<span class="s2">Correct:      </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">correct_guesses</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">Wrong (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">MAX_WRONG_GUESSES</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span>
 
-<span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_revealed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">))])</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="si">{</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_revealed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;_&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">))])</span><span class="si">}</span><span class="s2">```&quot;&quot;&quot;</span>
 
 
 <span class="k">def</span> <span class="nf">guess_character</span><span class="p">(</span><span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -156,39 +156,14 @@
             <span class="k">return</span>
         <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
 
-        <span class="n">HANGMAN_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a helpful AI assistant. The user will provide you with a theme for a game of hangman. You should then choose a word or phrase for the user to guess that matches the theme. Try to choose a creative word/phrase. You will be given a seed to help with picking an answer. Here are some examples:</span>
-
-<span class="s2">    ## Example 1</span>
-<span class="s2">    Seed: 293847293</span>
-<span class="s2">    Theme: league of legends champions</span>
-<span class="s2">    Output: Zoe</span>
-
-<span class="s2">    ## Example 2</span>
-<span class="s2">    Seed: 1239182</span>
-<span class="s2">    Theme: household items</span>
-<span class="s2">    Output: vaccum cleaner</span>
-
-<span class="s2">    ## Example 3</span>
-<span class="s2">    Seed: 981274736</span>
-<span class="s2">    Theme: movie quotes</span>
-<span class="s2">    Output: May the force be with you.</span>
-
-<span class="s2">    You must output only the word or phrase you decide on. Do not output anything else.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-
-        <span class="c1"># Decide on the answer</span>
-        <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">HANGMAN_PROMPT</span><span class="p">),</span>
-            <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Seed: </span><span class="si">{</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
-        <span class="p">]</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
-
         <span class="c1"># Setup round</span>
-        <span class="k">global</span> <span class="n">answer</span><span class="p">,</span> <span class="n">is_revealed</span><span class="p">,</span> <span class="n">correct_guesses</span><span class="p">,</span> <span class="n">wrong_guesses</span><span class="p">,</span> <span class="n">is_on_full_guess</span>
-        <span class="n">answer</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">global</span> <span class="n">answer</span><span class="p">,</span> <span class="n">is_revealed</span><span class="p">,</span> <span class="n">correct_guesses</span><span class="p">,</span> <span class="n">wrong_guesses</span><span class="p">,</span> <span class="n">is_on_full_guess</span><span class="p">,</span> <span class="n">last_guess_time</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_topic</span><span class="p">(</span><span class="n">theme</span><span class="p">)</span>
         <span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">))]</span>
         <span class="n">correct_guesses</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">wrong_guesses</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">last_guess_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="c1"># Start game</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hangman answer: </span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -208,7 +183,7 @@
 <a class="viewcode-back" href="../../../activities.html#bobbot.activities.hangman_on_message">[docs]</a>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">hangman_on_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles a message during a hangman game.&quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">is_on_full_guess</span><span class="p">,</span> <span class="n">is_revealed</span>
+    <span class="k">global</span> <span class="n">is_on_full_guess</span><span class="p">,</span> <span class="n">is_revealed</span><span class="p">,</span> <span class="n">last_guess_time</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;CANCEL&quot;</span> <span class="ow">and</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
         <span class="c1"># Check if the message is the answer</span>
         <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)]</span> <span class="o">==</span> <span class="n">answer</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
@@ -227,7 +202,7 @@
             <span class="k">return</span>
     <span class="k">elif</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-            <span class="s2">&quot;The user canceled their full guess. Tell the user that they can now guess letters again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+            <span class="s2">&quot;Tell the user they canceled their full guess, and can now guess letters again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
         <span class="p">)</span>
         <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Must&#39;ve been an accident</span>
         <span class="k">return</span>
@@ -239,20 +214,21 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
-        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user they can only guess a single letter. Do NOT mention their username.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">last_guess_time</span> <span class="o">+</span> <span class="n">TIME_BETWEEN_COMMENTS</span> <span class="o">&lt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="s2">&quot;If relevant, remind the user they can only guess a single letter or message &#39;guess&#39; to guess the full answer. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">correct_guesses</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">wrong_guesses</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Tell the user they have already guessed the letter &#39;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&#39;. Do NOT mention their username.&quot;</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">last_guess_time</span> <span class="o">+</span> <span class="n">TIME_BETWEEN_COMMENTS</span> <span class="o">&lt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Tell the user they have already guessed the letter &#39;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&#39;. Do NOT mention their username.&quot;</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="n">num_matches</span> <span class="o">=</span> <span class="n">guess_character</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Make a *very* short comment on the game of hangman. The user just guessed &#39;</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;, and there were </span><span class="si">{</span><span class="n">num_matches</span><span class="si">}</span><span class="s2"> matches in the answer. Do NOT try to print the hangman board again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="p">)</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_revealed</span><span class="p">):</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they won!&quot;</span><span class="p">)</span>
         <span class="n">stop_hangman</span><span class="p">()</span>
@@ -260,9 +236,15 @@
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">MAX_WRONG_GUESSES</span><span class="p">:</span>
         <span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they lost and comment on the revealed answer.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they lost (too many wrong guesses) and comment on the revealed answer.&quot;</span><span class="p">)</span>
         <span class="n">stop_hangman</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">last_guess_time</span> <span class="o">+</span> <span class="n">TIME_BETWEEN_COMMENTS</span> <span class="o">&lt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Make a *very* short comment on the game of hangman. The user just guessed &#39;</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;, and there were </span><span class="si">{</span><span class="n">num_matches</span><span class="si">}</span><span class="s2"> matches in the answer. Do NOT try to print the hangman board again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+
+    <span class="n">last_guess_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
 
 
 

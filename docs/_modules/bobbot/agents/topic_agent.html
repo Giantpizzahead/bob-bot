@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.agents.topic_agent &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.agents.topic_agent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.agents.topic_agent</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Agent that comes up with a random answer/topic given a theme.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">langchain_core.messages</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini</span><span class="p">,</span> <span class="n">llm_gpt4omini_random</span>
+<span class="kn">from</span> <span class="nn">bobbot.utils</span> <span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">SEED_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a helpful AI assistant. You will be given a list of letters. Output uniformly random, unique words that start with each of the given letters.</span>
+
+<span class="s2">## Example 1</span>
+<span class="s2">Input: [&#39;d&#39;, &#39;u&#39;, &#39;x&#39;]</span>
+<span class="s2">Output: [&quot;Destruction&quot;, &quot;Upper&quot;, &quot;Xander&quot;]</span>
+
+<span class="s2">## Example 2</span>
+<span class="s2">Input: [&#39;m&#39;, &#39;a&#39;]</span>
+<span class="s2">Output: [&quot;Map&quot;, &quot;Adventurous&quot;]</span>
+
+<span class="s2">You must output only a Python list with the words you decide on. Each of your words MUST start with the corresponding letter. Do not output anything else.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">decide_seed</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decide on a seed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The decided seed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seed_letters</span> <span class="o">=</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="s2">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))]</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">SEED_PROMPT</span><span class="p">),</span> <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">seed_letters</span><span class="p">))]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini_random</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Seed] Seeds: </span><span class="si">{</span><span class="n">seed_letters</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">seeds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seeds</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Seeds must be a list&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">seeds</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing seeds: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+
+<span class="n">VERIFY_TOPIC_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with an potential answer. You must decide whether the answer matches the theme or not. Here are some examples:</span>
+
+<span class="s2">## Example 1</span>
+<span class="s2">Theme: champions in league of legends</span>
+<span class="s2">Answer: zoe</span>
+<span class="s2">Output: Yes</span>
+
+<span class="s2">## Example 2</span>
+<span class="s2">Theme: champions in league of legends</span>
+<span class="s2">Answer: tranquil</span>
+<span class="s2">Output: No</span>
+
+<span class="s2">## Example 3</span>
+<span class="s2">Theme: movie quotes</span>
+<span class="s2">Answer: &quot;Houston, we have a problem.&quot;</span>
+<span class="s2">Output: Yes</span>
+
+<span class="s2">## Example 4</span>
+<span class="s2">Theme: household items that start with a &#39;l&#39;</span>
+<span class="s2">Answer: vaccum cleaner</span>
+<span class="s2">Output: No</span>
+
+<span class="s2">You must output only the word &quot;Yes&quot; or &quot;No&quot;, depending on whether the answer matches the theme. Do not output anything else.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">verify_matching_topic</span><span class="p">(</span><span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify that the topic matches the theme.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topic: The topic to verify.</span>
+<span class="sd">        theme: The theme to verify against.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True if the topic matches the theme, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">VERIFY_TOPIC_PROMPT</span><span class="p">),</span>
+        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="se">\n</span><span class="s2">Answer: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Verify] Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s2">, Answer: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;YES&quot;</span>
+
+
+<span class="n">TOPIC_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with a context containing a few words. You should then choose a few words or phrases for the user to guess that match the theme. Match the creativity/rarity of chosen words/phrases to the given rarity. Chosen words/phrases should directly relate to the context. Here are some examples:</span>
+
+<span class="s2">## Example 1</span>
+<span class="s2">Context: Yarn Vital Flame Forest</span>
+<span class="s2">Rarity: 9/10</span>
+<span class="s2">Theme: champions in league of legends</span>
+<span class="s2">Output: [&quot;Smolder&quot;, &quot;Swain&quot;, &quot;Jarvan IV&quot;, &quot;Nilah&quot;, &quot;Fiddlesticks&quot;, &quot;Nunu&quot;, &quot;Vel&#39;Koz&quot;]</span>
+
+<span class="s2">## Example 2</span>
+<span class="s2">Context: Paradox Symphony Xenon Serenity Eclipse</span>
+<span class="s2">Rarity: 2/10</span>
+<span class="s2">Theme: champions in league of legends</span>
+<span class="s2">Output: [&quot;Miss Fortune&quot;, &quot;Viego&quot;, &quot;Ahri&quot;, &quot;Brand&quot;, &quot;Soraka&quot;, &quot;Seraphine&quot;, &quot;Nidalee&quot;, &quot;Jhin&quot;, &quot;Yuumi&quot;]</span>
+
+<span class="s2">## Example 3</span>
+<span class="s2">Context: Hypothesis Orchard Apple Penguin Whirp</span>
+<span class="s2">Rarity: 1/10</span>
+<span class="s2">Theme: movie quotes</span>
+<span class="s2">Output: [&quot;Here&#39;s Johnny!&quot;, &quot;Houston, we have a problem.&quot;]</span>
+
+<span class="s2">## Example 4</span>
+<span class="s2">Context: Radiant Oblivion Legacy</span>
+<span class="s2">Rarity: 6/10</span>
+<span class="s2">Theme: household items</span>
+<span class="s2">Output: [&quot;vaccum cleaner&quot;, &quot;laptop&quot;, &quot;screwdriver&quot;]</span>
+
+<span class="s2">You must output only a Python list with the words/phrases you decide on. You can output anywhere from 1 to 20 options - the more options you provide, the better. Your words/phrases MUST fit the provided theme. Do not output anything else.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<div class="viewcode-block" id="decide_topic">
+<a class="viewcode-back" href="../../../agents.html#bobbot.agents.decide_topic">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">decide_topic</span><span class="p">(</span><span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decide on a topic given a theme.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theme: The theme to decide on.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The decided topic.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="k">await</span> <span class="n">decide_seed</span><span class="p">()</span>
+        <span class="c1"># Do this twice, eliminating any options that show up too often</span>
+        <span class="n">topic_counts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">rarity</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="c1"># Decide on the answer</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">TOPIC_PROMPT</span><span class="p">),</span>
+                <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Context: </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="se">\n</span><span class="s2">Rarity: </span><span class="si">{</span><span class="n">rarity</span><span class="si">}</span><span class="s2">/10</span><span class="se">\n</span><span class="s2">Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini_random</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Topic] Context: </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">, Rarity: </span><span class="si">{</span><span class="n">rarity</span><span class="si">}</span><span class="s2">/10, Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="se">\n</span><span class="s2">-&gt; </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">topics</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">topics</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span> <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">:</span>
+                <span class="n">topic_counts</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span> <span class="o">=</span> <span class="n">topic_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># Remove duplicated (common) topics</span>
+        <span class="n">min_count</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">topic_counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="p">[</span><span class="n">topic</span> <span class="k">for</span> <span class="n">topic</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">topic_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="n">min_count</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Candidate topics: </span><span class="si">{</span><span class="n">topics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Decide on a random matching topic</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">topics</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="k">await</span> <span class="n">verify_matching_topic</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">topic</span><span class="p">),</span> <span class="n">theme</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="c1"># Just pick a random topic</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No matching topics found, picking a random topic&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">topics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing topics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

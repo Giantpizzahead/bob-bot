@@ -9,6 +9,7 @@ from bobbot.agents.responses import (
 )
 from bobbot.agents.safety_agent import check_openai_safety
 from bobbot.agents.tools import TOOL_BY_NAME, TOOL_LIST
+from bobbot.agents.topic_agent import decide_topic
 
 __all__ = [
     "decide_to_respond",
@@ -19,4 +20,5 @@ __all__ = [
     "check_openai_safety",
     "TOOL_BY_NAME",
     "TOOL_LIST",
+    "decide_topic",
 ]

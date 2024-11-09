@@ -22,7 +22,7 @@ llm_gpt35 = ChatOpenAI(
     model="gpt-3.5-turbo",
     temperature=1,
     max_tokens=512,
-    top_p=1,
+    top_p=0.95,
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
@@ -31,7 +31,7 @@ llm_gpt4omini = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=1,
     max_tokens=512,
-    top_p=1,
+    top_p=0.95,
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
@@ -41,6 +41,15 @@ llm_gpt4omini_factual = ChatOpenAI(
     temperature=0,
     max_tokens=512,
     top_p=0.5,
+    frequency_penalty=0.05,
+    presence_penalty=0.05,
+)
+llm_gpt4omini_random = ChatOpenAI(
+    api_key=openai_key,
+    model="gpt-4o-mini",
+    temperature=1.5,
+    max_tokens=512,
+    top_p=0.95,
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
