@@ -7,7 +7,12 @@ import discord
 from discord.ext import commands
 from langchain.docstore.document import Document
 
-from bobbot.activities import Activity, get_activity, get_activity_status
+from bobbot.activities import (
+    Activity,
+    get_activity,
+    get_activity_status,
+    hangman_on_message,
+)
 from bobbot.agents import (  # decide_to_respond,
     check_openai_safety,
     get_response,
@@ -39,9 +44,6 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
     # Only respond to messages in DMs and specified channels
     if not (use_perplexity or message.channel.id in bot.CHANNELS or isinstance(message.channel, discord.DMChannel)):
         return
-    # Don't respond unless pinged or in a DM
-    if not (use_perplexity or bot.user in message.mentions or isinstance(message.channel, discord.DMChannel)):
-        return
     curr_channel: discord.TextChannel = message.channel
     # Set the active channel
     bot.active_channel = message.channel
@@ -57,6 +59,17 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
         return
     # For now, don't respond to self messages
     if not use_perplexity and message.author == bot.user:
+        return
+
+    # Call play hangman if activity is hangman
+    if get_activity() == Activity.HANGMAN:
+        response = await hangman_on_message(message.content)
+        if response:
+            await lazy_send_message(message.channel, response)
+        return
+
+    # Don't respond further unless pinged or in a DM
+    if not (use_perplexity or bot.user in message.mentions or isinstance(message.channel, discord.DMChannel)):
         return
 
     # Get history for the current channel

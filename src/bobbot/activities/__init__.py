@@ -9,7 +9,7 @@ from bobbot.activities.activities import (
     stop_activity,
 )
 from bobbot.activities.chess_player import configure_chess
-from bobbot.activities.eat import configure_meal
+from bobbot.activities.hangman import configure_hangman, hangman_on_message
 
 __all__ = [
     "Activity",
@@ -19,5 +19,6 @@ __all__ = [
     "start_activity",
     "stop_activity",
     "configure_chess",
-    "configure_meal",
+    "configure_hangman",
+    "hangman_on_message",
 ]

@@ -36,6 +36,7 @@ command prefix is `!`, slash commands work too
 `activity [school/eat/shower/sleep/chess/league]` - Start an activity with default parameters.
 `activity stop` - Stops the current activity.
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
+`hangman "[theme]"` - Start a game of hangman with Bob. If using command prefix, include the double quotes.
 `spectate start` - Spectate the current activity.\t\t`spectate stop` - Stop spectating the current activity.
 
 `vc join` - Tell Bob to join your voice channel.\t\t`vc leave` - Tell Bob to leave your voice channel.

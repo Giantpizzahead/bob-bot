@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bobbot.activities.hangman &mdash; Bob Bot  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Bob Bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bobbot.html">Bob Bot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../activities.html">Activities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chess.html">Chess</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../agents.html">Agents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../discord_helpers.html">Discord Helpers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Bob Bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bobbot.activities.hangman</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bobbot.activities.hangman</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Play a game of hangman.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">langchain_core.messages</span> <span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+
+<span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="n">llm_gpt4omini</span>
+
+<span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+<span class="n">stop_event</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+<span class="n">cmd_handler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Hangman variables</span>
+<span class="n">theme</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+<span class="n">answer</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+<span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">correct_guesses</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">wrong_guesses</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">MAX_WRONG_GUESSES</span> <span class="o">=</span> <span class="mi">11</span>
+
+
+<span class="k">def</span> <span class="nf">display_board</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a string representation of the hangman board.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span>
+<span class="s2">Correct guesses: </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">correct_guesses</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">Wrong guesses (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">MAX_WRONG_GUESSES</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span><span class="si">}</span>
+
+<span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_revealed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">))])</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">guess_character</span><span class="p">(</span><span class="n">c</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a single character guess, revealing characters that match and returning how many were matched.</span>
+
+<span class="sd">    Assumes that c has not yet been guessed and is a valid uppercase letter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">is_revealed</span>
+    <span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">num_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">is_revealed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">num_matches</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">wrong_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">correct_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">num_matches</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">sleep_interruptable</span><span class="p">(</span><span class="n">delay</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sleeps for delay seconds. Returns False if the wait was interrupted.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">stop_event</span>
+    <span class="n">stop_event</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">stop_event</span><span class="o">.</span><span class="n">wait</span><span class="p">(),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">stop_hangman</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stops playing hangman.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">status</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+    <span class="n">stop_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">hangman_activity</span><span class="p">(</span><span class="n">new_cmd_handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Starts a game of hangman.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">status</span><span class="p">,</span> <span class="n">cmd_handler</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cmd_handler</span> <span class="o">=</span> <span class="n">new_cmd_handler</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Echo this to the user. Failed to start: You are already playing hangman.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;playing&quot;</span>
+
+        <span class="n">HANGMAN_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;You are a helpful AI assistant. The user will provide you with a theme for a game of hangman. You should then choose a word or phrase for the user to guess that matches the theme. Try to choose a creative word/phrase. You will be given a seed to help with picking an answer. Here are some examples:</span>
+
+<span class="s2">    ## Example 1</span>
+<span class="s2">    Seed: 293847293</span>
+<span class="s2">    Theme: league of legends champions</span>
+<span class="s2">    Output: Zoe</span>
+
+<span class="s2">    ## Example 2</span>
+<span class="s2">    Seed: 1239182</span>
+<span class="s2">    Theme: household items</span>
+<span class="s2">    Output: vaccum cleaner</span>
+
+<span class="s2">    ## Example 3</span>
+<span class="s2">    Seed: 981274736</span>
+<span class="s2">    Theme: movie quotes</span>
+<span class="s2">    Output: May the force be with you.</span>
+
+<span class="s2">    You must output only the word or phrase you decide on. Do not output anything else.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+        <span class="c1"># Decide on the answer</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">HANGMAN_PROMPT</span><span class="p">),</span>
+            <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Seed: </span><span class="si">{</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+        <span class="c1"># Setup round</span>
+        <span class="k">global</span> <span class="n">answer</span><span class="p">,</span> <span class="n">is_revealed</span><span class="p">,</span> <span class="n">correct_guesses</span><span class="p">,</span> <span class="n">wrong_guesses</span><span class="p">,</span> <span class="n">is_on_full_guess</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+        <span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">answer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">))]</span>
+        <span class="n">correct_guesses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">wrong_guesses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Start game</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hangman answer: </span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="s2">&quot;Briefly instruct the user to message a single letter to guess it, and to message &#39;guess&#39; to guess the solution. Do NOT try to print the hangman board again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+
+        <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>  <span class="c1"># 1 hour</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tell the user that this error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">stop_hangman</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="hangman_on_message">
+<a class="viewcode-back" href="../../../activities.html#bobbot.activities.hangman_on_message">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">hangman_on_message</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles a message during a hangman game.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">is_on_full_guess</span><span class="p">,</span> <span class="n">is_revealed</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;CANCEL&quot;</span> <span class="ow">and</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
+        <span class="c1"># Check if the message is the answer</span>
+        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)]</span> <span class="o">==</span> <span class="n">answer</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+            <span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they won!&quot;</span><span class="p">)</span>
+            <span class="n">stop_hangman</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wrong_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="s2">&quot;Tell the user that they guessed wrong and to keep trying. Do NOT mention their username.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">return</span>
+    <span class="k">elif</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="s2">&quot;The user canceled their full guess. Tell the user that they can now guess letters again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+        <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Must&#39;ve been an accident</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;GUESS&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
+        <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="s2">&quot;Tell the user to send a message with what they think the answer is, or &#39;cancel&#39; to go back to guessing individual letters, and that their guess must match the answer exactly to count. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user they can only guess a single letter. Do NOT mention their username.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">correct_guesses</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">wrong_guesses</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Tell the user they have already guessed the letter &#39;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&#39;. Do NOT mention their username.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">num_matches</span> <span class="o">=</span> <span class="n">guess_character</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Make a *very* short comment on the game of hangman. The user just guessed &#39;</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;, and there were </span><span class="si">{</span><span class="n">num_matches</span><span class="si">}</span><span class="s2"> matches in the answer. Do NOT try to print the hangman board again. Do NOT mention their username.&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">is_revealed</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they won!&quot;</span><span class="p">)</span>
+        <span class="n">stop_hangman</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrong_guesses</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">MAX_WRONG_GUESSES</span><span class="p">:</span>
+        <span class="n">is_revealed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that they lost and comment on the revealed answer.&quot;</span><span class="p">)</span>
+        <span class="n">stop_hangman</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="configure_hangman">
+<a class="viewcode-back" href="../../../activities.html#bobbot.activities.configure_hangman">[docs]</a>
+<span class="k">def</span> <span class="nf">configure_hangman</span><span class="p">(</span><span class="n">new_theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configures the hangman game.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">theme</span>
+    <span class="n">theme</span> <span class="o">=</span> <span class="n">new_theme</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">get_hangman_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the current hangman status.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;You are not currently playing hangman.&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;You are currently playing hangman.&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Giantpizzahead.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

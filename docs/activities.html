@@ -51,6 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.Activity"><code class="docutils literal notranslate"><span class="pre">Activity</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.CHESS"><code class="docutils literal notranslate"><span class="pre">Activity.CHESS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.EAT"><code class="docutils literal notranslate"><span class="pre">Activity.EAT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.HANGMAN"><code class="docutils literal notranslate"><span class="pre">Activity.HANGMAN</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.LEAGUE"><code class="docutils literal notranslate"><span class="pre">Activity.LEAGUE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.SCHOOL"><code class="docutils literal notranslate"><span class="pre">Activity.SCHOOL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bobbot.activities.Activity.SHOWER"><code class="docutils literal notranslate"><span class="pre">Activity.SHOWER</span></code></a></li>
@@ -58,9 +59,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.configure_chess"><code class="docutils literal notranslate"><span class="pre">configure_chess()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.configure_meal"><code class="docutils literal notranslate"><span class="pre">configure_meal()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.configure_hangman"><code class="docutils literal notranslate"><span class="pre">configure_hangman()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.get_activity"><code class="docutils literal notranslate"><span class="pre">get_activity()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.get_activity_status"><code class="docutils literal notranslate"><span class="pre">get_activity_status()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.hangman_on_message"><code class="docutils literal notranslate"><span class="pre">hangman_on_message()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.spectate_activity"><code class="docutils literal notranslate"><span class="pre">spectate_activity()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.start_activity"><code class="docutils literal notranslate"><span class="pre">start_activity()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.activities.stop_activity"><code class="docutils literal notranslate"><span class="pre">stop_activity()</span></code></a></li>
@@ -114,6 +116,11 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="bobbot.activities.Activity.HANGMAN">
+<span class="sig-name descname"><span class="pre">HANGMAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hangman'</span></em><a class="headerlink" href="#bobbot.activities.Activity.HANGMAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="bobbot.activities.Activity.LEAGUE">
 <span class="sig-name descname"><span class="pre">LEAGUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'league'</span></em><a class="headerlink" href="#bobbot.activities.Activity.LEAGUE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -150,9 +157,9 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="bobbot.activities.configure_meal">
-<span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">configure_meal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/eat.html#configure_meal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.configure_meal" title="Link to this definition"></a></dt>
-<dd><p>Configures the meal to eat (lunch or dinner).</p>
+<dt class="sig sig-object py" id="bobbot.activities.configure_hangman">
+<span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">configure_hangman</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/hangman.html#configure_hangman"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.configure_hangman" title="Link to this definition"></a></dt>
+<dd><p>Configures the hangman game.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -165,6 +172,12 @@
 <dt class="sig sig-object py" id="bobbot.activities.get_activity_status">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">get_activity_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/activities/activities.html#get_activity_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.get_activity_status" title="Link to this definition"></a></dt>
 <dd><p>Returns a readable version of the current activity status directed at Bob.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bobbot.activities.hangman_on_message">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.activities.</span></span><span class="sig-name descname"><span class="pre">hangman_on_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/bobbot/activities/hangman.html#hangman_on_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.activities.hangman_on_message" title="Link to this definition"></a></dt>
+<dd><p>Handles a message during a hangman game.</p>
 </dd></dl>
 
 <dl class="py function">

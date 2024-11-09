@@ -15,6 +15,7 @@ from bobbot.activities.chess_player import (
     stop_playing_chess,
 )
 from bobbot.activities.eat import eat_meal_activity, get_eating_info, stop_eating
+from bobbot.activities.hangman import get_hangman_info, hangman_activity, stop_hangman
 from bobbot.activities.school import get_school_info, school_activity, stop_school
 from bobbot.activities.shower import get_shower_info, shower_activity, stop_showering
 from bobbot.activities.sleep import get_sleep_info, sleep_activity, stop_sleeping
@@ -29,6 +30,7 @@ class Activity(Enum):
     SLEEP = "sleep"
     CHESS = "chess"
     LEAGUE = "league"
+    HANGMAN = "hangman"
 
 
 current_activity: Optional[Activity] = None
@@ -67,6 +69,8 @@ async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
         result = await sleep_activity(cmd_handler)
     elif activity == Activity.CHESS:
         result = await play_chess_activity(cmd_handler)
+    elif activity == Activity.HANGMAN:
+        result = await hangman_activity(cmd_handler)
     else:
         raise NotImplementedError
     current_activity = None
@@ -76,6 +80,7 @@ async def start_activity(activity: Activity, cmd_handler: Callable) -> bool:
 
 async def stop_activity() -> None:
     """Stops the current activity."""
+    global current_activity
     if current_activity is None:
         return
     elif current_activity == Activity.SCHOOL:
@@ -88,8 +93,11 @@ async def stop_activity() -> None:
         stop_sleeping()
     elif current_activity == Activity.CHESS:
         stop_playing_chess()
+    elif current_activity == Activity.HANGMAN:
+        stop_hangman()
     else:
         raise NotImplementedError
+    current_activity = None
 
 
 def get_activity() -> Optional[Activity]:
@@ -111,6 +119,8 @@ async def get_activity_status() -> str:
         return get_sleep_info()
     elif current_activity == Activity.CHESS:
         return get_chess_info()
+    elif current_activity == Activity.HANGMAN:
+        return get_hangman_info()
     else:
         raise NotImplementedError
 

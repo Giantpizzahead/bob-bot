@@ -12,6 +12,7 @@ from discord.ext import commands
 from bobbot.activities import (
     Activity,
     configure_chess,
+    configure_hangman,
     get_activity,
     get_activity_status,
     spectate_activity,
@@ -33,7 +34,9 @@ waiting_responses: dict[str, str] = {}
 spectate_status: str = "idle"
 
 
-async def command_handler(channel: discord.TextChannel, command: str, expect_response: bool = False) -> Optional[str]:
+async def command_handler(
+    channel: discord.TextChannel, command: str, expect_response: bool = False, output_directly: bool = False
+) -> Optional[str]:
     """Handle a command from the current activity.
 
     Commands are directions to Bob, with info or requests to be relayed to the user.
@@ -43,20 +46,25 @@ async def command_handler(channel: discord.TextChannel, command: str, expect_res
         channel: The channel the command is associated with.
         command: The command to give to Bob.
         expect_response: Whether to wait for the user's response.
+        output_directly: Whether to send the literal command directly to the user.
     """
     # Command-specific handlers
     if "start_spectating" in command:
         await spectate(channel)
         return
 
-    # Update history
-    history: TextChannelHistory = get_channel_history(channel)
-    await history.aupdate()
+    if output_directly:
+        logger.info(f"Direct response: {command}")
+        await lazy_send_message(channel, command, force=True)
+    else:
+        # Update history
+        history: TextChannelHistory = get_channel_history(channel)
+        await history.aupdate()
 
-    # In-character response
-    response: str = await get_response(history.as_langchain_msgs(bot.user), context=command)
-    logger.info(f"Command: {command} -> Response: {response}")
-    await lazy_send_message(channel, response, force=True)
+        # In-character response
+        response: str = await get_response(history.as_langchain_msgs(bot.user), context=command)
+        logger.info(f"Command: {command} -> Response: {response}")
+        await lazy_send_message(channel, response, force=True)
 
     if expect_response:
         # Wait for the user's response
@@ -73,9 +81,11 @@ async def command_handler(channel: discord.TextChannel, command: str, expect_res
 def gen_command_handler(channel: discord.TextChannel) -> Callable:
     """Generate a command handler for the given channel."""
 
-    async def _channel_command_handler(command: str, expect_response: bool = False) -> str:
+    async def _channel_command_handler(
+        command: str, expect_response: bool = False, output_directly: bool = False
+    ) -> str:
         """Handle a command from the current activity."""
-        return await command_handler(channel, command, expect_response)
+        return await command_handler(channel, command, expect_response, output_directly)
 
     return _channel_command_handler
 
@@ -130,6 +140,22 @@ async def chess(ctx: commands.Context, elo: int, against: Optional[str]) -> None
     await start_activity(Activity.CHESS, gen_command_handler(ctx.channel))
 
 
+# ===== Hangman Commands =====
+
+
+@bot.hybrid_command(name="hangman")
+async def hangman(ctx: commands.Context, theme: str) -> None:
+    """Start a hangman game with Bob.
+
+    Args:
+        ctx: The context of the command.
+        theme: The theme to play hangman with.
+    """
+    configure_hangman(theme)
+    await ctx.send(f"! reset... ok, ill play hangman with u <@{ctx.author.id}>, lets go!")
+    await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
+
+
 # ===== Activity Group Commands =====
 
 
@@ -151,6 +177,7 @@ async def activity(ctx: commands.Context) -> None:
         app_commands.Choice(name="Sleep", value="sleep"),
         app_commands.Choice(name="Chess", value="chess"),
         app_commands.Choice(name="League", value="league"),
+        app_commands.Choice(name="Hangman", value="hangman"),
     ]
 )
 async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
@@ -163,7 +190,7 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
         await ctx.send(f"ok i {activity} now")
         await start_activity(act, gen_command_handler(ctx.channel))
     except ValueError:
-        await ctx.send("! invalid activity, try school, eat, shower, sleep, chess, or league")
+        await ctx.send("! invalid activity, try school, eat, shower, sleep, chess, league, or hangman")
 
 
 @activity.command(name="stop")
