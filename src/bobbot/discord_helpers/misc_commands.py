@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bobbot.agents import decide_topic
+from bobbot.agents import decide_topics
 from bobbot.discord_helpers.main_bot import Speed, bot
 from bobbot.discord_helpers.text_channel_history import (
     TextChannelHistory,
@@ -38,6 +38,7 @@ command prefix is `!`, slash commands work too
 `activity stop` - Stops the current activity.
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
 `hangman "[theme]"` - Start a game of hangman with Bob. If using command prefix, include the double quotes.
+`timedhangman "[theme]"` - Start a game of timed hangman with Bob. If using command prefix, include the double quotes.
 `spectate start` - Spectate the current activity.\t\t`spectate stop` - Stop spectating the current activity.
 
 `vc join` - Tell Bob to join your voice channel.\t\t`vc leave` - Tell Bob to leave your voice channel.
@@ -182,10 +183,10 @@ async def prune(ctx, count: int):
 # ===== Testing Commands =====
 
 
-@bot.hybrid_command(name="topic")
-async def topic(ctx: commands.Context, theme: str) -> None:
-    """Get a topic with the given theme."""
-    await ctx.send(f"! topic: {await decide_topic(theme)}")
+@bot.hybrid_command(name="topics")
+async def misc_topic(ctx: commands.Context, theme: str, num_topics: int) -> None:
+    """Get topics with the given theme."""
+    await ctx.send(f"! topics: {await decide_topics(theme, num_topics)}")
 
 
 # ===== Misc =====

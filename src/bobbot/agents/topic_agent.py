@@ -1,5 +1,6 @@
 """Agent that comes up with a random answer/topic given a theme."""
 
+import ast
 import json
 import random
 
@@ -43,51 +44,56 @@ async def decide_seed() -> str:
         return str(e)
 
 
-VERIFY_TOPIC_PROMPT = """You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with an potential answer. You must decide whether the answer matches the theme or not. Here are some examples:
+FILTER_TOPIC_PROMPT = """You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with a list of potential answers. You must decide whether each answer matches the theme or not. Here are some examples:
 
 ## Example 1
 Theme: champions in league of legends
-Answer: zoe
-Output: Yes
+Answers: ['zoe', 'tranquil', 'LeBlanc', 'aatrox', 'Zoe', 'Symmetra']
+Output: [True, False, True, True, True, False]
 
 ## Example 2
-Theme: champions in league of legends
-Answer: tranquil
-Output: No
-
-## Example 3
 Theme: movie quotes
-Answer: "Houston, we have a problem."
-Output: Yes
+Answers: ["It's her sandwich.", 'Houston, we have a problem.', 'According to all known laws of aviation, there is no way a bee should be able to fly.']
+Output: [False, True, True]
 
 ## Example 4
 Theme: household items that start with a 'l'
-Answer: vaccum cleaner
-Output: No
+Answer: ['vaccum cleaner', 'desk', 'laptop', 'lamp']
+Output: [False, False, True, True]
 
-You must output only the word "Yes" or "No", depending on whether the answer matches the theme. Do not output anything else."""  # noqa: E501
+You must output a Python list of booleans with the results, depending on whether each answer matches the theme. Do not output anything else."""  # noqa: E501
 
 
-async def verify_matching_topic(topic: str, theme: str) -> bool:
-    """Verify that the topic matches the theme.
+async def filter_topics(theme: str, topics: list[str]) -> list[str]:
+    """Filter topics given a theme.
 
     Args:
-        topic: The topic to verify.
-        theme: The theme to verify against.
+        theme: The theme to verify.
+        topics: The topics to verify.
 
     Returns:
-        True if the topic matches the theme, False otherwise.
+        The topics that match the theme.
     """
-    messages = [
-        SystemMessage(content=VERIFY_TOPIC_PROMPT),
-        HumanMessage(content=f"Theme: {theme}\nAnswer: {topic}"),
-    ]
-    response = await llm_gpt4omini.ainvoke(messages)
-    logger.info(f"[Verify] Theme: {theme}, Answer: {topic} -> {response.content}")
-    return response.content.upper() == "YES"
+    try:
+        messages = [
+            SystemMessage(content=FILTER_TOPIC_PROMPT),
+            HumanMessage(content=f"Theme: {theme}\nAnswers: {topics}"),
+        ]
+        response = await llm_gpt4omini.ainvoke(messages)
+        logger.info(f"[Filter] Theme: {theme}, Answers: {topics} -> {response.content}")
+        results = ast.literal_eval(response.content)
+        assert isinstance(results, list)
+        assert len(results) <= len(topics)
+        return [topics[i] for i, result in enumerate(results) if result]
+    except Exception as e:
+        logger.error(f"Error filtering topics: {e}")
+        return [str(e)]
 
 
-TOPIC_PROMPT = """You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with a context containing a few words. You should then choose a few words or phrases for the user to guess that match the theme. Match the creativity/rarity of chosen words/phrases to the given rarity. Chosen words/phrases should directly relate to the context. Here are some examples:
+def get_topic_prompt(num_topics: int) -> str:
+    """Gets the topic prompt, asking the LLM to generate up to `num_topics` options."""
+    assert num_topics >= 1, "Need at least 1 topic"
+    TOPIC_PROMPT = f"""You are a helpful AI assistant. The user will provide you with a theme for a game of hangman, along with a context containing a few words. You should then choose a few words or phrases for the user to guess that match the theme. Match the creativity/rarity of chosen words/phrases to the given rarity. Chosen words/phrases should directly relate to the context. Here are some examples:
 
 ## Example 1
 Context: Yarn Vital Flame Forest
@@ -113,27 +119,29 @@ Rarity: 6/10
 Theme: household items
 Output: ["vaccum cleaner", "laptop", "screwdriver"]
 
-You must output only a Python list with the words/phrases you decide on. You can output anywhere from 1 to 20 options - the more options you provide, the better. Your words/phrases MUST fit the provided theme. Do not output anything else."""  # noqa: E501
+You must output only a Python list with the words/phrases you decide on. You should output up to {num_topics} options - the more options you provide, the better. Your words/phrases MUST fit the provided theme. Do not output anything else."""  # noqa: E501
+    return TOPIC_PROMPT
 
 
-async def decide_topic(theme: str) -> str:
-    """Decide on a topic given a theme.
+async def decide_topics(theme: str, num_topics: int) -> list[str]:
+    """Decide on a list of topics given a theme.
 
     Args:
         theme: The theme to decide on.
 
     Returns:
-        The decided topic.
+        Up to `num_topics` decided topics (pre-filtered). May return less.
     """
+    assert 1 <= num_topics <= 50, "Number of topics must be between 1 and 50"
     try:
         seed = await decide_seed()
         # Do this twice, eliminating any options that show up too often
         topic_counts = {}
         for _ in range(2):
             rarity = random.randint(1, 10)
-            # Decide on the answer
+            # Decide on the answers
             messages = [
-                SystemMessage(content=TOPIC_PROMPT),
+                SystemMessage(content=get_topic_prompt(num_topics=num_topics)),
                 HumanMessage(content=f"Context: {seed}\nRarity: {rarity}/10\nTheme: {theme}"),
             ]
             response = await llm_gpt4omini_random.ainvoke(messages)
@@ -145,18 +153,19 @@ async def decide_topic(theme: str) -> str:
             for topic in topics:
                 topic_counts[topic] = topic_counts.get(topic, 0) + 1
 
-        # Remove duplicated (common) topics
-        min_count = min(topic_counts.values())
-        topics = [topic for topic, count in topic_counts.items() if count <= min_count]
+        # Decide on random verified topics (removing duplicates)
+        topics = [topic for topic in topic_counts.keys()]
         logger.info(f"Candidate topics: {topics}")
-        # Decide on a random matching topic
-        random.shuffle(topics)
-        for topic in topics[:3]:
-            if await verify_matching_topic(str(topic), theme):
-                return str(topic)
-        # Just pick a random topic
-        logger.warning("No matching topics found, picking a random topic")
-        return topics[0]
+        filtered_topics = await filter_topics(theme, topics)
+        if not filtered_topics:
+            logger.warning("No matching topics found, using unfiltered topics")
+            filtered_topics = topics
+
+        # Remove duplicated (common) topics
+        # min_count = min(topic_counts.values())
+        # topics = [topic for topic, count in topic_counts.items() if count <= min_count]
+        random.shuffle(filtered_topics)
+        return filtered_topics[:num_topics]
     except Exception as e:
         logger.error(f"Error parsing topics: {e}")
         return str(e)

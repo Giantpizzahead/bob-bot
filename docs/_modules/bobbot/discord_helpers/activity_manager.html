@@ -242,6 +242,19 @@
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
 
 
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;timedhangman&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">timed_hangman</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start a timed hangman game with Bob.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ctx: The context of the command.</span>
+<span class="sd">        theme: The theme to play hangman with.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">configure_hangman</span><span class="p">(</span><span class="n">theme</span><span class="p">,</span> <span class="n">timed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! reset... ok, ill play timed hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
+
+
 <span class="c1"># ===== Activity Group Commands =====</span>
 
 

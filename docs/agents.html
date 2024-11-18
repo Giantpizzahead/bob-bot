@@ -52,7 +52,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.check_openai_safety"><code class="docutils literal notranslate"><span class="pre">check_openai_safety()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.decide_to_respond"><code class="docutils literal notranslate"><span class="pre">decide_to_respond()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.decide_topic"><code class="docutils literal notranslate"><span class="pre">decide_topic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.decide_topics"><code class="docutils literal notranslate"><span class="pre">decide_topics()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.extract_answers"><code class="docutils literal notranslate"><span class="pre">extract_answers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.get_response"><code class="docutils literal notranslate"><span class="pre">get_response()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bobbot.agents.get_response_with_tools"><code class="docutils literal notranslate"><span class="pre">get_response_with_tools()</span></code></a></li>
@@ -125,15 +125,15 @@ However, other NSFW messages should not be censored, and therefore should not be
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="bobbot.agents.decide_topic">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.agents.</span></span><span class="sig-name descname"><span class="pre">decide_topic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bobbot/agents/topic_agent.html#decide_topic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.agents.decide_topic" title="Link to this definition"></a></dt>
-<dd><p>Decide on a topic given a theme.</p>
+<dt class="sig sig-object py" id="bobbot.agents.decide_topics">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bobbot.agents.</span></span><span class="sig-name descname"><span class="pre">decide_topics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theme</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_topics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bobbot/agents/topic_agent.html#decide_topics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bobbot.agents.decide_topics" title="Link to this definition"></a></dt>
+<dd><p>Decide on a list of topics given a theme.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>theme</strong> – The theme to decide on.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The decided topic.</p>
+<dd class="field-even"><p>Up to <cite>num_topics</cite> decided topics (pre-filtered). May return less.</p>
 </dd>
 </dl>
 </dd></dl>
