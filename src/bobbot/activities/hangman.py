@@ -6,6 +6,8 @@ import random
 import time
 from typing import Callable, Optional
 
+import editdistance
+
 from bobbot.agents import decide_topics
 from bobbot.utils import get_logger
 
@@ -73,6 +75,18 @@ def guess_character(c: str) -> int:
     return num_matches
 
 
+def check_guess_distance(guess: str) -> int:
+    """Check how many edits the guess is away from the answer, allowing one typo for longer guesses."""
+    # Cut off the suffix
+    guess = guess.upper()[: len(answer)]
+    upper_answer = answer.upper()
+    # Remove non-letters
+    guess = "".join([c for c in guess if c.isalpha()])
+    upper_answer = "".join([c for c in upper_answer if c.isalpha()])
+    # Calculate distance
+    return editdistance.eval(guess, upper_answer)
+
+
 async def sleep_interruptable(delay: float) -> bool:
     """Sleeps for delay seconds. Returns False if the wait was interrupted."""
     global stop_event, sleep_event
@@ -120,7 +134,7 @@ async def guess_hangman(message: str) -> None:
     last_guess_time = time.time()
     if len(message) != 1 and message.upper() != "CANCEL" and is_on_full_guess:
         # Check if the message is the answer
-        if message.upper()[: len(answer)] == answer.upper():
+        if check_guess_distance(message) == 0:
             is_revealed = [True] * len(answer)
             await cmd_handler(display_board(), output_directly=True)
             await cmd_handler("Tell the user that they won!")
@@ -272,59 +286,64 @@ async def play_timed() -> None:
                 )
 
     # Got through all rounds
-    await cmd_handler(f"Congratulate the user on making it through all {num_rounds} rounds!")
+    await cmd_handler(
+        f"Congratulate the user on making it through all {num_rounds} rounds with {num_lives} lives left!"
+    )
     stop_hangman()
 
 
 async def guess_timed(message: str) -> None:
     """Handles a guess during a timed hangman game."""
     # Check for correct guess
-    guess = message.upper()[: len(answer)]
     upper_answer = answer.upper()
-    if guess == upper_answer:
+    guess_dist = check_guess_distance(message)
+    # Allow leniency
+    leniency_correct = len(upper_answer) // 8
+    leniency_hint = 1 + len(upper_answer) // 8
+    if guess_dist <= leniency_correct:
+        # Correct guess
         global is_on_full_guess
         is_on_full_guess = True
         sleep_event.set()  # Signal a correct guess
-        await cmd_handler(
-            "Tell the user that they got it right and comment on the answer. This should be a brief comment, don't output anything else. Do NOT try to print another hangman board."  # noqa: E501
-        )
-        return
-
-    # Check for one letter off
-    if (
-        len(guess) == len(upper_answer)
-        and sum([guess[i] == upper_answer[i] for i in range(len(answer))]) == len(answer) - 1
-    ):  # noqa: E501
-        await cmd_handler("Tell the user that their guess is only 1 letter off.")  # noqa: E501
-        return
-
-    # Wrong guess, send a response
-    responses = [
-        "nope!",
-        "try again.",
-        "wrong!",
-        "not it.",
-        "guess again.",
-        "nope.",
-        "keep trying!",
-        "not quite.",
-        "sorry, no.",
-        "incorrect.",
-        "nah.",
-        "oops!",
-        "nope, not it.",
-        "wrong guess!",
-        "negative.",
-        "not this time.",
-        "guess better!",
-        "wrong again.",
-        "no, try harder.",
-        "not even close.",
-        "no way!",
-        "are u even trying?",
-        "bro come on...",
-    ]
-    await cmd_handler(random.choice(responses), output_directly=True)
+        if guess_dist == 0:
+            await cmd_handler(
+                "Tell the user that they got it right and comment on the answer. This should be a brief comment, don't output anything else. Do NOT try to print another hangman board."  # noqa: E501
+            )
+        else:
+            await cmd_handler(
+                f"Tell the user that they got it right, as their guess was close enough to the answer. Echo that the answer was **{answer}** and comment on it. This should be a brief comment, don't output anything else. Do NOT try to print another hangman board."  # noqa: E501
+            )
+    elif guess_dist <= leniency_hint:
+        # Close guess (but not correct)
+        await cmd_handler("Tell the user that their guess is close to the answer.")  # noqa: E501
+    else:
+        # Wrong guess, send a response
+        responses = [
+            "nope!",
+            "try again.",
+            "wrong!",
+            "not it.",
+            "guess again.",
+            "nope.",
+            "keep trying!",
+            "not quite.",
+            "sorry, no.",
+            "incorrect.",
+            "nah.",
+            "oops!",
+            "nope, not it.",
+            "wrong guess!",
+            "negative.",
+            "not this time.",
+            "guess better!",
+            "wrong again.",
+            "no, try harder.",
+            "not even close.",
+            "no way!",
+            "are u even trying?",
+            "bro come on...",
+        ]
+        await cmd_handler(random.choice(responses), output_directly=True)
 
 
 async def hangman_activity(new_cmd_handler: Callable) -> None:

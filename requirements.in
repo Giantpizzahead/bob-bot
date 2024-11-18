@@ -21,3 +21,4 @@ PyNaCl
 discord-ext-voice-recv
 azure-cognitiveservices-speech
 scipy
+editdistance

@@ -56,6 +56,8 @@ distro==1.9.0
     # via openai
 docker==7.1.0
     # via pyautogen
+editdistance==0.8.1
+    # via -r requirements.in
 flaml==2.2.0
     # via pyautogen
 frozenlist==1.4.1

@@ -73,6 +73,8 @@ docutils==0.20.1
     #   myst-parser
     #   sphinx
     #   sphinx-rtd-theme
+editdistance==0.8.1
+    # via -r requirements.in
 filelock==3.15.4
     # via virtualenv
 flake8==7.1.1
