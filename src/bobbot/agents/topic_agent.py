@@ -72,7 +72,7 @@ async def filter_topics(theme: str, topics: list[str]) -> list[str]:
         topics: The topics to verify.
 
     Returns:
-        The topics that match the theme.
+        The topics that match the theme, removing (case-insensitive) duplicates.
     """
     try:
         messages = [
@@ -84,7 +84,16 @@ async def filter_topics(theme: str, topics: list[str]) -> list[str]:
         results = ast.literal_eval(response.content)
         assert isinstance(results, list)
         assert len(results) <= len(topics)
-        return [topics[i] for i, result in enumerate(results) if result]
+        filtered_results = [topics[i] for i, result in enumerate(results) if result]
+        # Remove duplicates
+        unique_results = set()
+        unique_lowers = set()
+        for result in filtered_results:
+            lower_result = result.lower()
+            if lower_result not in unique_lowers:
+                unique_lowers.add(lower_result)
+                unique_results.add(result)
+        return list(unique_results)
     except Exception as e:
         logger.error(f"Error filtering topics: {e}")
         return [str(e)]
@@ -164,6 +173,7 @@ async def decide_topics(theme: str, num_topics: int) -> list[str]:
         # Remove duplicated (common) topics
         # min_count = min(topic_counts.values())
         # topics = [topic for topic, count in topic_counts.items() if count <= min_count]
+        print(filtered_topics)
         random.shuffle(filtered_topics)
         return filtered_topics[:num_topics]
     except Exception as e:

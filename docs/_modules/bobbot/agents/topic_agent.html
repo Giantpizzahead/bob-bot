@@ -149,7 +149,7 @@
 <span class="sd">        topics: The topics to verify.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        The topics that match the theme.</span>
+<span class="sd">        The topics that match the theme, removing (case-insensitive) duplicates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
@@ -161,7 +161,16 @@
         <span class="n">results</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">topics</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">topics</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="p">]</span>
+        <span class="n">filtered_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">topics</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="p">]</span>
+        <span class="c1"># Remove duplicates</span>
+        <span class="n">unique_results</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">unique_lowers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">filtered_results</span><span class="p">:</span>
+            <span class="n">lower_result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">lower_result</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_lowers</span><span class="p">:</span>
+                <span class="n">unique_lowers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lower_result</span><span class="p">)</span>
+                <span class="n">unique_results</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">unique_results</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error filtering topics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
@@ -243,6 +252,7 @@
         <span class="c1"># Remove duplicated (common) topics</span>
         <span class="c1"># min_count = min(topic_counts.values())</span>
         <span class="c1"># topics = [topic for topic, count in topic_counts.items() if count &lt;= min_count]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">filtered_topics</span><span class="p">)</span>
         <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">filtered_topics</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">filtered_topics</span><span class="p">[:</span><span class="n">num_topics</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
