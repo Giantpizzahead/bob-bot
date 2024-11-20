@@ -205,6 +205,10 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
         if activity == "chess":
             await chess(ctx, 800, "human")
             return
+        elif activity == "hangman":
+            if ctx.author.id % 1000000007 == 380204424:
+                await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
+                return
         act = Activity(activity)
         await ctx.send(f"ok i {activity} now")
         await start_activity(act, gen_command_handler(ctx.channel))
