@@ -13,6 +13,7 @@ from bobbot.activities import (
     Activity,
     configure_chess,
     configure_hangman,
+    configure_school,
     get_activity,
     get_activity_status,
     spectate_activity,
@@ -155,7 +156,7 @@ async def hangman(ctx: commands.Context, theme: str) -> None:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(theme)
-    await ctx.send(f"! reset... ok, ill play hangman with u <@{ctx.author.id}>, lets go!")
+    await ctx.send(f"ok, ill play hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
 
 
@@ -171,11 +172,25 @@ async def timed_hangman(ctx: commands.Context, theme: str) -> None:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(theme, timed=True)
-    await ctx.send(f"! reset... ok, ill play timed hangman with u <@{ctx.author.id}>, lets go!")
+    await ctx.send(f"ok, ill play timed hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
 
 
 # ===== Activity Group Commands =====
+
+
+@bot.hybrid_command(name="accountability")
+async def accountability(ctx: commands.Context, task: str, duration: float) -> None:
+    """Start an accountability task with Bob.
+
+    Args:
+        ctx: The context of the command.
+        task: The task to do.
+        duration: The duration of the task in minutes.
+    """
+    configure_school(duration, task)
+    await ctx.send(f"ok, go do '{task}' for the next {round(duration)} minutes <@{ctx.author.id}>. ill check on u :)")
+    await start_activity(Activity.SCHOOL, gen_command_handler(ctx.channel))
 
 
 @bot.hybrid_group(name="activity", fallback="status")
@@ -195,7 +210,7 @@ async def activity(ctx: commands.Context) -> None:
         app_commands.Choice(name="Shower", value="shower"),
         app_commands.Choice(name="Sleep", value="sleep"),
         app_commands.Choice(name="Chess", value="chess"),
-        app_commands.Choice(name="League", value="league"),
+        # app_commands.Choice(name="League", value="league"),
         app_commands.Choice(name="Hangman", value="hangman"),
     ]
 )

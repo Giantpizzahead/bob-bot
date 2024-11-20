@@ -2,9 +2,11 @@
 
 import asyncio
 import datetime
+import random
 from typing import Callable, Optional
 
 status = "idle"
+curr_task: Optional[str] = None
 end_time: Optional[datetime.datetime] = None
 school_duration: float = 6 * 60 * 60  # 6 hours
 stop_event: Optional[asyncio.Event] = asyncio.Event()
@@ -35,13 +37,19 @@ async def school_activity(cmd_handler: Callable) -> None:
     status = "school"
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=school_duration)
     await sleep_interruptable(school_duration)
+    if curr_task is not None:
+        reward = random.randint(2, 8) * 25
+        await cmd_handler(
+            f"Ask the user if they finished their task '{curr_task}' or not (for accountability). Tell them that if they did (or are close), they get {reward} HP. If they didn't, they lose {reward} HP."  # noqa: E501
+        )
     status = "idle"
 
 
-def configure_school_length(duration: float) -> None:
+def configure_school(duration: float, task: Optional[str] = None) -> None:
     """Configures the length of the school day."""
-    global school_duration
-    school_duration = duration
+    global school_duration, curr_task
+    school_duration = duration * 60  # Minutes to seconds
+    curr_task = task
 
 
 def get_school_info() -> str:

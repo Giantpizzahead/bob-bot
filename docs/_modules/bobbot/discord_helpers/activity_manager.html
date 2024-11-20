@@ -90,6 +90,7 @@
     <span class="n">Activity</span><span class="p">,</span>
     <span class="n">configure_chess</span><span class="p">,</span>
     <span class="n">configure_hangman</span><span class="p">,</span>
+    <span class="n">configure_school</span><span class="p">,</span>
     <span class="n">get_activity</span><span class="p">,</span>
     <span class="n">get_activity_status</span><span class="p">,</span>
     <span class="n">spectate_activity</span><span class="p">,</span>
@@ -241,7 +242,7 @@
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nah do ur work &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;... u got this!&quot;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="n">configure_hangman</span><span class="p">(</span><span class="n">theme</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! reset... ok, ill play hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ok, ill play hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
 
 
@@ -257,11 +258,25 @@
         <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nah do ur work &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;... u got this!&quot;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="n">configure_hangman</span><span class="p">(</span><span class="n">theme</span><span class="p">,</span> <span class="n">timed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! reset... ok, ill play timed hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ok, ill play timed hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
 
 
 <span class="c1"># ===== Activity Group Commands =====</span>
+
+
+<span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;accountability&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">accountability</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">commands</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Start an accountability task with Bob.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ctx: The context of the command.</span>
+<span class="sd">        task: The task to do.</span>
+<span class="sd">        duration: The duration of the task in minutes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">configure_school</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ok, go do &#39;</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&#39; for the next </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span><span class="si">}</span><span class="s2"> minutes &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;. ill check on u :)&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">SCHOOL</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
 
 
 <span class="nd">@bot</span><span class="o">.</span><span class="n">hybrid_group</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
@@ -281,7 +296,7 @@
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Shower&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;shower&quot;</span><span class="p">),</span>
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Sleep&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;sleep&quot;</span><span class="p">),</span>
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Chess&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;chess&quot;</span><span class="p">),</span>
-        <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;League&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;league&quot;</span><span class="p">),</span>
+        <span class="c1"># app_commands.Choice(name=&quot;League&quot;, value=&quot;league&quot;),</span>
         <span class="n">app_commands</span><span class="o">.</span><span class="n">Choice</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Hangman&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;hangman&quot;</span><span class="p">),</span>
     <span class="p">]</span>
 <span class="p">)</span>
