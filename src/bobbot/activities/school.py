@@ -35,12 +35,20 @@ async def school_activity(cmd_handler: Callable) -> None:
         await cmd_handler("Echo this to the user. Failed to start: You are already at school.")
         return
     status = "school"
-    end_time = datetime.datetime.now() + datetime.timedelta(seconds=school_duration)
+    start_time = datetime.datetime.now()
+    end_time = start_time + datetime.timedelta(seconds=school_duration)
     await sleep_interruptable(school_duration)
     if curr_task is not None:
-        reward = random.randint(2, 8) * 25
+        # Get actual time elapsed
+        time_elapsed = (datetime.datetime.now() - start_time).seconds
+        # Reward should be max(25 + Uniform[75, 125] * Uniform[# hours - 0.5, # hours + 0.5], 50), multiple of 25
+        reward = random.uniform(75, 125) * random.uniform(time_elapsed / 3600 - 0.5, time_elapsed / 3600 + 0.5)
+        reward = max(round(reward / 25) * 25, 50)
+        # Punishment with the same formula
+        punishment = random.uniform(75, 125) * random.uniform(time_elapsed / 3600 - 0.5, time_elapsed / 3600 + 0.5)
+        punishment = max(round(punishment / 25) * 25, 50)
         await cmd_handler(
-            f"Ask the user if they finished their task '{curr_task}' or not (for accountability). Tell them that if they did (or are close), they get {reward} HP. If they didn't, they lose {reward} HP."  # noqa: E501
+            f"Ask the user if they finished their task '{curr_task}' or not (for accountability). Tell them that if they did (or are close), they get {reward} HP. If they didn't, they lose {punishment} HP."  # noqa: E501
         )
     status = "idle"
 
