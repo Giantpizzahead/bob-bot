@@ -179,3 +179,44 @@ async def decide_topics(theme: str, num_topics: int) -> list[str]:
     except Exception as e:
         logger.error(f"Error parsing topics: {e}")
         return str(e)
+
+
+HINT_WITH_HELPFULNESS_PROMPT = """
+You are a helpful AI assistant. The user will provide you with a theme, a known topic from that theme, and a helpfulness level (0 to 1). You must produce a single hint that helps someone guess the topic from the theme. The helpfulness level dictates how revealing the hint is:
+- helpfulness=0: The hint is cryptic but still uniquely identifies the topic within the theme, given enough thought.
+- helpfulness=1: The hint is very direct, almost giving away the answer.
+
+At intermediate values, scale how direct and revealing the hint is. A higher helpfulness means more directness and clarity, while a lower helpfulness means more subtlety and obliqueness.
+
+Do not mention the exact topic name. Avoid direct synonyms of the topic name unless helpfulness is very close to 1. Only return a single-line hint.
+
+## One-Shot Example
+Theme: Famous Paintings
+Topic: Mona Lisa
+Helpfulness: 0.3
+Output: A Renaissance portrait whose enigmatic smile has puzzled observers for centuries.
+"""  # noqa: E501
+
+
+async def get_hint_for_topic(theme: str, topic: str, helpfulness: float) -> str:
+    """Generate a hint for a given topic with adjustable helpfulness.
+
+    This function prompts the LLM to produce a hint that will help guess the topic
+    from a given theme. The 'helpfulness' parameter controls how obvious the hint is.
+    At helpfulness=0, the hint is cryptic but uniquely identifying; at helpfulness=1,
+    the hint practically gives away the answer.
+
+    Args:
+        theme: The theme that the topic falls under.
+        topic: The specific topic for which to generate a hint.
+        helpfulness: A float from 0 to 1 indicating how revealing the hint should be.
+
+    Returns:
+        A single-line hint as a string.
+    """
+    messages = [
+        SystemMessage(content=HINT_WITH_HELPFULNESS_PROMPT),
+        HumanMessage(content=f"Theme: {theme}\nTopic: {topic}\nHelpfulness: {helpfulness}"),
+    ]
+    response = await llm_gpt4omini.ainvoke(messages)
+    return response.content.strip()

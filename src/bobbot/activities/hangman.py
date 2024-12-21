@@ -8,7 +8,7 @@ from typing import Callable, Optional
 
 import editdistance
 
-from bobbot.agents import decide_topics
+from bobbot.agents import decide_topics, get_hint_for_topic
 from bobbot.utils import get_logger
 
 logger = get_logger(__name__)
@@ -30,6 +30,7 @@ last_guess_time: float = 0
 num_rounds: int = 0
 curr_round: int = 0
 num_lives: int = 0
+hint: str = "N/A"
 MAX_WRONG_GUESSES = 10
 TIME_BETWEEN_COMMENTS = 5
 TIMED_TIME_PER_ANSWER = 30
@@ -46,11 +47,18 @@ Wrong ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
 
 {"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
     elif mode == "timed":
+        #         return f"""```Theme: {theme}
+        # Lives: {' '.join(['♡'] * num_lives)}
+        # Round: {curr_round}/{num_rounds}
+
+        # {"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
         return f"""```Theme: {theme}
 Lives: {' '.join(['♡'] * num_lives)}
 Round: {curr_round}/{num_rounds}
 
-{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
+{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}
+
+Hint: {hint}```"""
     else:
         return f"Error: Invalid mode {mode}"
 
@@ -216,7 +224,7 @@ async def play_timed() -> None:
     # Get answers
     answers = await decide_topics(theme, TIMED_NUM_ROUNDS)
 
-    global answer, is_revealed, num_rounds, curr_round, num_lives, is_on_full_guess
+    global answer, hint, is_revealed, num_rounds, curr_round, num_lives, is_on_full_guess
     num_rounds = len(answers)
     num_lives = TIMED_NUM_LIVES
     for i in range(num_rounds):
@@ -234,10 +242,15 @@ async def play_timed() -> None:
         )  # Make it gradually harder with more lives
         percent_to_reveal += 0.3 * (TIMED_NUM_LIVES - num_lives) / TIMED_NUM_LIVES  # Make it easier with lost lives
         percent_to_reveal = min(0.9, max(0.1, percent_to_reveal))
+        # Give a hint with this helpfulness instead
+        curr_hint = await get_hint_for_topic(theme, answer, percent_to_reveal + 0.1)
+        hint = curr_hint
         # await cmd_handler(f"Percent revealed: {round(percent_to_reveal * 100, 1)}%", output_directly=True)
         logger.info(f"Hangman percent revealed: {round(percent_to_reveal * 100, 1)}%")
         num_to_reveal = min(len(unrevealed_locs) - 1, math.ceil(percent_to_reveal * len(unrevealed_locs)))
         for j in range(num_to_reveal):
+            if random.random() < 0.5:
+                continue  # Already have a hint
             is_revealed[unrevealed_locs[j]] = True
 
         # Start game
@@ -284,6 +297,9 @@ async def play_timed() -> None:
                 await cmd_handler(
                     f"Tell the user that they ran out of time, and that they have {num_lives} lives left. Echo that the answer was **{answer}** and comment on it."  # noqa: E501
                 )
+        else:
+            # Wait a bit
+            await sleep_interruptable(1)
 
     # Got through all rounds
     await cmd_handler(

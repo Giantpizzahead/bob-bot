@@ -259,6 +259,50 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing topics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
 
+
+
+<span class="n">HINT_WITH_HELPFULNESS_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">You are a helpful AI assistant. The user will provide you with a theme, a known topic from that theme, and a helpfulness level (0 to 1). You must produce a single hint that helps someone guess the topic from the theme. The helpfulness level dictates how revealing the hint is:</span>
+<span class="s2">- helpfulness=0: The hint is cryptic but still uniquely identifies the topic within the theme, given enough thought.</span>
+<span class="s2">- helpfulness=1: The hint is very direct, almost giving away the answer.</span>
+
+<span class="s2">At intermediate values, scale how direct and revealing the hint is. A higher helpfulness means more directness and clarity, while a lower helpfulness means more subtlety and obliqueness.</span>
+
+<span class="s2">Do not mention the exact topic name. Avoid direct synonyms of the topic name unless helpfulness is very close to 1. Only return a single-line hint.</span>
+
+<span class="s2">## One-Shot Example</span>
+<span class="s2">Theme: Famous Paintings</span>
+<span class="s2">Topic: Mona Lisa</span>
+<span class="s2">Helpfulness: 0.3</span>
+<span class="s2">Output: A Renaissance portrait whose enigmatic smile has puzzled observers for centuries.</span>
+<span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+
+<div class="viewcode-block" id="get_hint_for_topic">
+<a class="viewcode-back" href="../../../agents.html#bobbot.agents.get_hint_for_topic">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_hint_for_topic</span><span class="p">(</span><span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">helpfulness</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a hint for a given topic with adjustable helpfulness.</span>
+
+<span class="sd">    This function prompts the LLM to produce a hint that will help guess the topic</span>
+<span class="sd">    from a given theme. The &#39;helpfulness&#39; parameter controls how obvious the hint is.</span>
+<span class="sd">    At helpfulness=0, the hint is cryptic but uniquely identifying; at helpfulness=1,</span>
+<span class="sd">    the hint practically gives away the answer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theme: The theme that the topic falls under.</span>
+<span class="sd">        topic: The specific topic for which to generate a hint.</span>
+<span class="sd">        helpfulness: A float from 0 to 1 indicating how revealing the hint should be.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A single-line hint as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">HINT_WITH_HELPFULNESS_PROMPT</span><span class="p">),</span>
+        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Theme: </span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="se">\n</span><span class="s2">Topic: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="se">\n</span><span class="s2">Helpfulness: </span><span class="si">{</span><span class="n">helpfulness</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">llm_gpt4omini</span><span class="o">.</span><span class="n">ainvoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
 </pre></div>
 
            </div>
