@@ -38,7 +38,7 @@ async def test_question_respond() -> None:
 
 
 async def test_question_wait() -> None:
-    """Should not respond to a question targetted at someone else."""
+    """Should not respond to a question targeted at someone else."""
     history = ManualHistory(
         [
             "Lax: i wanna apex",
