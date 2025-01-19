@@ -2,8 +2,7 @@ This list will evolve as the bot progresses. We'll start getting features workin
 
 ## Current Tasks
 
-- [ ] Make a demo showcasing all the cool features the bot has!
-- [ ] Maintenance mode: Fix any bugs/issues if they come up. No new features or improvements.
+None!
 
 ### Scrapped
 
@@ -73,6 +72,8 @@ This list will evolve as the bot progresses. We'll start getting features workin
 - [x] Make a command that reboots the bot on Heroku (just make the worker terminate)
 - [x] Add tests for stable functions (that likely won't change)
 - [x] Only open Playwright when needed instead of persisting the browser to save memory
+- [x] Make a demo showcasing all the cool features the bot has!
+- [x] Maintenance mode: Fix any bugs/issues if they come up. No new features or improvements.
 
 ### Text
 
