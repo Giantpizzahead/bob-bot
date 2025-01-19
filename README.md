@@ -6,6 +6,24 @@
 
 hi i am bob 2nd edition v2.0 :D
 
+## Demo
+
+[Video Demo](https://www.youtube.com/watch?v=xG6uKz0mZ0E&t=340s) _(With a real-time voice call demonstration)_
+
+![Demo 1](res/demo1.png)
+_Text responses_
+
+![Demo 2](res/demo2.png)
+_Web search tool calling chain_
+
+![Demo 3](res/demo3.png)
+_Chess and vision capabilities_
+
+![Demo 4](res/demo4.png)
+_Timed hangman minigame_
+
+## Features
+
 See [FEATURES.md](https://github.com/Giantpizzahead/bob-bot/blob/main/FEATURES.md) for all currently implemented (and planned) features.
 
 See [TODO.md](https://github.com/Giantpizzahead/bob-bot/blob/main/TODO.md) for the bot's todo list.
