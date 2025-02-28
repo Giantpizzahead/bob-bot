@@ -315,7 +315,7 @@ async def play_timed() -> None:
             await cmd_handler(display_board(), output_directly=True)
         else:
             await cmd_handler(
-                f'Relay this ENTIRE hint to the user in a casual way so they can guess the word/phrase: {hint}. The first line of your message must be "**round {curr_round}/{num_rounds}**", followed by 2 blank lines. Do NOT mention their username, and do not add any comments after the hint.'  # noqa: E501
+                f'Relay this ENTIRE hint to the user in a casual way so they can guess the word/phrase: {hint}. The first line of your message must be "**round {curr_round}/{num_rounds}**: " exactly, with the ending space, followed by 1 blank line. Do NOT mention their username, and do not add any comments after the hint.'  # noqa: E501
             )
 
         # Explain rules on the first round
