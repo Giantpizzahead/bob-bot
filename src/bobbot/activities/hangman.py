@@ -30,7 +30,12 @@ last_guess_time: float = 0
 num_rounds: int = 0
 curr_round: int = 0
 num_lives: int = 0
+
 hint: str = "N/A"
+hint_prompt: Optional[str] = None
+only_hint: bool = False
+hint_helpfulness: float = 1.0
+
 MAX_WRONG_GUESSES = 10
 TIME_BETWEEN_COMMENTS = 5
 TIMED_TIME_PER_ANSWER = 30
@@ -41,24 +46,58 @@ TIMED_NUM_LIVES = 3
 def display_board() -> str:
     """Returns a string representation of the hangman board."""
     if mode == "hangman":
-        return f"""```Theme: {theme}
+        if only_hint:
+            return f"""\
+```Theme: {theme}
 Correct:      {", ".join(correct_guesses)}
 Wrong ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
 
-{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
+{"".join([answer[i] if is_revealed[i] else "" for i in range(len(answer))])}
+
+Hint: {hint}```\
+"""
+        elif hint_prompt:
+            return f"""\
+```Theme: {theme}
+Correct:      {", ".join(correct_guesses)}
+Wrong ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
+
+{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}
+
+Hint: {hint}```\
+"""
+        else:
+            return f"""\
+```Theme: {theme}
+Correct:      {", ".join(correct_guesses)}
+Wrong ({len(wrong_guesses)}/{MAX_WRONG_GUESSES}): {", ".join(wrong_guesses)}
+
+{"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```\
+"""
     elif mode == "timed":
         #         return f"""```Theme: {theme}
         # Lives: {' '.join(['♡'] * num_lives)}
         # Round: {curr_round}/{num_rounds}
 
         # {"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}```"""
-        return f"""```Theme: {theme}
+        if only_hint:
+            return f"""\
+Theme: {theme}
+Lives: {' '.join(['♡'] * num_lives)}
+Round: {curr_round}/{num_rounds}
+
+Hint: {hint}\
+"""
+        else:
+            return f"""\
+```Theme: {theme}
 Lives: {' '.join(['♡'] * num_lives)}
 Round: {curr_round}/{num_rounds}
 
 {"".join([answer[i] if is_revealed[i] else "_" for i in range(len(answer))])}
 
-Hint: {hint}```"""
+Hint: {hint}```\
+"""
     else:
         return f"Error: Invalid mode {mode}"
 
@@ -118,13 +157,17 @@ def stop_hangman() -> None:
 async def play_hangman() -> None:
     """Plays a game of hangman."""
     # Setup round
-    global answer, is_revealed, correct_guesses, wrong_guesses, is_on_full_guess, last_guess_time
+    global answer, is_revealed, correct_guesses, wrong_guesses, is_on_full_guess, last_guess_time, hint
     answer = (await decide_topics(theme, 10))[0]
     is_revealed = [not answer[i].isalpha() for i in range(len(answer))]
     correct_guesses = []
     wrong_guesses = []
     is_on_full_guess = False
     last_guess_time = time.time()
+
+    # Generate hint if needed
+    if hint_prompt or only_hint:
+        hint = await get_hint_for_topic(theme, answer, 5, hint_prompt=hint_prompt)
 
     # Start game
     logger.info(f"Hangman answer: {answer}")
@@ -204,13 +247,15 @@ async def guess_hangman(message: str) -> None:
         num_matches = guess_character(message.upper())
     await cmd_handler(display_board(), output_directly=True)
     if all(is_revealed):
-        await cmd_handler("Tell the user that they won!")
+        await cmd_handler("Tell the user that they won! Do NOT mention their username.")
         stop_hangman()
         return None
     elif len(wrong_guesses) >= MAX_WRONG_GUESSES:
         is_revealed = [True] * len(answer)
         await cmd_handler(display_board(), output_directly=True)
-        await cmd_handler("Tell the user that they lost (too many wrong guesses) and comment on the revealed answer.")
+        await cmd_handler(
+            "Tell the user that they lost (too many wrong guesses) and comment on the revealed answer. Do NOT mention their username."  # noqa: E501
+        )
         stop_hangman()
         return None
     elif guess_duration > TIME_BETWEEN_COMMENTS:
@@ -224,7 +269,7 @@ async def play_timed() -> None:
     # Get answers
     answers = await decide_topics(theme, TIMED_NUM_ROUNDS)
 
-    global answer, hint, is_revealed, num_rounds, curr_round, num_lives, is_on_full_guess
+    global answer, hint, is_revealed, num_rounds, curr_round, num_lives, is_on_full_guess, hint_prompt
     num_rounds = len(answers)
     num_lives = TIMED_NUM_LIVES
     for i in range(num_rounds):
@@ -241,9 +286,20 @@ async def play_timed() -> None:
             0.3 * num_lives / TIMED_NUM_LIVES * curr_round / num_rounds
         )  # Make it gradually harder with more lives
         percent_to_reveal += 0.3 * (TIMED_NUM_LIVES - num_lives) / TIMED_NUM_LIVES  # Make it easier with lost lives
-        percent_to_reveal = min(0.9, max(0.1, percent_to_reveal))
+        percent_to_reveal = max(0.1, percent_to_reveal * hint_helpfulness)
+        if only_hint:
+            # Adjustment to make it easier if we can't see letters
+            curr_hint_prompt = f"{hint_prompt} " if hint_prompt else ""
+            percent_to_reveal = min(0.9, percent_to_reveal * 1.3 + 0.1)
+            curr_hint_prompt += "(Give a detailed hint that **uniquely identifies** the topic. Do not re-mention the theme.)"  # noqa: E501
+            #  If helpfulness is near 1, use revealing, signature facts. Ex: If the theme is league champs, you can mention the position they're played in, signature ability names, and memorable aspects of the champ.  # noqa: E501
+        else:
+            curr_hint_prompt = hint_prompt
+            percent_to_reveal = min(0.9, percent_to_reveal)
         # Give a hint with this helpfulness instead
-        curr_hint = await get_hint_for_topic(theme, answer, percent_to_reveal + 0.1)
+        curr_hint = await get_hint_for_topic(
+            theme, answer, (percent_to_reveal + 0.1) * 10, hint_prompt=curr_hint_prompt
+        )
         hint = curr_hint
         # await cmd_handler(f"Percent revealed: {round(percent_to_reveal * 100, 1)}%", output_directly=True)
         logger.info(f"Hangman percent revealed: {round(percent_to_reveal * 100, 1)}%")
@@ -255,7 +311,12 @@ async def play_timed() -> None:
 
         # Start game
         print(f"Hangman answer: {answer}")
-        await cmd_handler(display_board(), output_directly=True)
+        if not only_hint:
+            await cmd_handler(display_board(), output_directly=True)
+        else:
+            await cmd_handler(
+                f'Relay this ENTIRE hint to the user in a casual way so they can guess the word/phrase: {hint}. The first line of your message must be "**round {curr_round}/{num_rounds}**", followed by 2 blank lines. Do NOT mention their username, and do not add any comments after the hint.'  # noqa: E501
+            )
 
         # Explain rules on the first round
         if curr_round == 1:
@@ -289,7 +350,7 @@ async def play_timed() -> None:
             num_lives -= 1
             if num_lives == 0:
                 await cmd_handler(
-                    f"Tell the user that they lost (ran out of time). They made it to round {curr_round} out of {num_rounds}. Echo that the answer was **{answer}** and comment on it."  # noqa: E501
+                    f"Tell the user that they lost (ran out of time). They made it to round {curr_round} out of {num_rounds}. Echo that the answer was **{answer}** and comment on it. Do NOT mention their username."  # noqa: E501
                 )
                 stop_hangman()
                 return
@@ -303,7 +364,7 @@ async def play_timed() -> None:
 
     # Got through all rounds
     await cmd_handler(
-        f"Congratulate the user on making it through all {num_rounds} rounds with {num_lives} lives left!"
+        f"Congratulate the user on making it through all {num_rounds} rounds with {num_lives} lives left! Do NOT mention their username."  # noqa: E501
     )
     stop_hangman()
 
@@ -393,13 +454,22 @@ async def hangman_on_message(message: str) -> Optional[str]:
         return None
 
 
-def configure_hangman(new_theme: str, timed: bool = False) -> None:
+def configure_hangman(
+    new_theme: str,
+    timed: bool = False,
+    new_hint_prompt: Optional[str] = None,
+    new_only_hint: bool = True,
+    helpfulness_mult: float = 1.0,
+) -> None:
     """Configures the hangman game."""
-    global status, theme, mode
+    global status, theme, mode, hint_prompt, only_hint, hint_helpfulness
     if status != "idle":
         return  # Can't configure while playing
     theme = new_theme
     mode = "hangman" if not timed else "timed"
+    hint_prompt = new_hint_prompt
+    only_hint = new_only_hint
+    hint_helpfulness = helpfulness_mult
 
 
 def get_hangman_info() -> str:
