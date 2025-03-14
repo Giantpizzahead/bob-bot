@@ -18,7 +18,6 @@ from langchain_core.messages import (
 )
 
 from bobbot.agents.llms import (
-    llm_deepseek,
     llm_gpt4omini,
     llm_mythomax,
     llm_perplexity,
@@ -99,7 +98,7 @@ Notes:
 
     # Let the agent self loop
     tool_call_log: list[str] = []
-    base_llm = llm_gpt4omini if not uncensored else llm_deepseek
+    base_llm = llm_gpt4omini if not uncensored else llm_mythomax
     for i in range(MAX_LOOPS):
         # Force a response on the last loop
         tool_choice = "auto" if i != MAX_LOOPS - 1 else "none"

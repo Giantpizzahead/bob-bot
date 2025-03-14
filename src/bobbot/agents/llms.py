@@ -88,6 +88,15 @@ llm_mythomax = ChatOpenAI(
     frequency_penalty=0.05,
     presence_penalty=0.05,
 )
+llm_mythomax_factual = ChatOpenAI(
+    openai_api_key=openrouter_key,
+    openai_api_base="https://openrouter.ai/api/v1",
+    model_name="gryphe/mythomax-l2-13b",
+    temperature=0,
+    max_tokens=512,
+    frequency_penalty=0.05,
+    presence_penalty=0.05,
+)
 del openrouter_key
 
 # Setup Perplexity LLM

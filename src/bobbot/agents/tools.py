@@ -18,7 +18,7 @@ from youtube_comment_downloader import SORT_BY_POPULAR, YoutubeCommentDownloader
 from youtube_transcript_api import Transcript, YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
 
-from bobbot.agents.llms import llm_deepseek_factual, openai_embeddings
+from bobbot.agents.llms import llm_mythomax_factual, openai_embeddings
 from bobbot.utils import (
     close_playwright_browser,
     get_logger,
@@ -188,7 +188,7 @@ async def fetch_webpage(url: str, prompt: str) -> str:
             HumanMessage(content=f"Source: {url}\n{intro}\nSnippets:\n{context}\n\nQuery: {prompt}"),
         ]
         logger.info(f"Full website RAG agent input: {messages[-1].content}")
-        response = await llm_deepseek_factual.ainvoke(messages)  # To prevent request denials based on copyright
+        response = await llm_mythomax_factual.ainvoke(messages)  # To prevent request denials based on copyright
         content = response.content
         # first_index = content.find("Thoughts:")
         # last_index = content.rfind("Answer:")

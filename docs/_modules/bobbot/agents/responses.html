@@ -95,7 +95,6 @@
 <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">bobbot.agents.llms</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">llm_deepseek</span><span class="p">,</span>
     <span class="n">llm_gpt4omini</span><span class="p">,</span>
     <span class="n">llm_mythomax</span><span class="p">,</span>
     <span class="n">llm_perplexity</span><span class="p">,</span>
@@ -178,7 +177,7 @@
 
     <span class="c1"># Let the agent self loop</span>
     <span class="n">tool_call_log</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">base_llm</span> <span class="o">=</span> <span class="n">llm_gpt4omini</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">uncensored</span> <span class="k">else</span> <span class="n">llm_deepseek</span>
+    <span class="n">base_llm</span> <span class="o">=</span> <span class="n">llm_gpt4omini</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">uncensored</span> <span class="k">else</span> <span class="n">llm_mythomax</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAX_LOOPS</span><span class="p">):</span>
         <span class="c1"># Force a response on the last loop</span>
         <span class="n">tool_choice</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">MAX_LOOPS</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;none&quot;</span>
