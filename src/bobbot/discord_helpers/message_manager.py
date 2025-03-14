@@ -61,8 +61,8 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
     if not use_perplexity and message.author == bot.user:
         return
 
-    # Call play hangman if activity is hangman
-    if get_activity() == Activity.HANGMAN:
+    # Call play hangman if activity is hangman and not pinged
+    if get_activity() == Activity.HANGMAN and bot.user not in message.mentions:
         response = await hangman_on_message(message.content)
         if response:
             await lazy_send_message(message.channel, response)
