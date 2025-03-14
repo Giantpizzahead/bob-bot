@@ -18,6 +18,7 @@ from langchain_core.messages import (
 )
 
 from bobbot.agents.llms import (
+    llm_deepseek,
     llm_gpt4omini,
     llm_mythomax,
     llm_perplexity,
@@ -98,7 +99,7 @@ Notes:
 
     # Let the agent self loop
     tool_call_log: list[str] = []
-    base_llm = llm_gpt4omini if not uncensored else llm_mythomax
+    base_llm = llm_gpt4omini if not uncensored else llm_deepseek
     for i in range(MAX_LOOPS):
         # Force a response on the last loop
         tool_choice = "auto" if i != MAX_LOOPS - 1 else "none"
@@ -133,10 +134,10 @@ Notes:
     content = ai_message.content
     modifiers = []
     if uncensored:
-        modifiers.append("uncensored ")
+        modifiers.append(" uncensored")
     if obedient:
-        modifiers.append("obedient ")
-    log_debug_info(f"===== Bob {','.join(modifiers)}response =====\n{content}")
+        modifiers.append(" obedient")
+    log_debug_info(f"===== Bob{','.join(modifiers)} response =====\n{content}")
 
     # Save tool memories in the background
     if store_memories and tool_call_log:

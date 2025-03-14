@@ -43,7 +43,7 @@ if openrouter_key is None:
 llm_deepseek = ChatOpenAI(
     openai_api_key=openrouter_key,
     openai_api_base="https://openrouter.ai/api/v1",
-    model_name="deepseek/deepseek-chat",
+    model_name="latitudegames/wayfarer-large-70b-llama-3.3",
     temperature=1,
     max_tokens=512,
     top_p=0.8,
@@ -53,7 +53,7 @@ llm_deepseek = ChatOpenAI(
 llm_deepseek_factual = ChatOpenAI(
     openai_api_key=openrouter_key,
     openai_api_base="https://openrouter.ai/api/v1",
-    model_name="deepseek/deepseek-chat",
+    model_name="latitudegames/wayfarer-large-70b-llama-3.3",
     temperature=0,
     max_tokens=512,
     frequency_penalty=0.05,
