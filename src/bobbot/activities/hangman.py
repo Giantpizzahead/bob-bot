@@ -394,8 +394,8 @@ async def guess_timed(message: str) -> None:
     elif followup_hints:
         # Potentially give a hint
         judge_prompt = f"""You're playing a guessing game with the user. You gave them a hint and told them to guess, and they just guessed. Judge their answer and follow these rules:
-- If it's close (similar meaning is ok), echo the exact answer. Example: Theme is 'gamer taunts', user guessed 'too easy', correct answer is 'ez', response 'ez'
-- If it matches the hint, echo the exact answer. Example: Hint is 'this term refers to an individual who often engages in aggressive or confrontational behavior in online discussions or gaming environments', guess is 'troll', answer is 'keyboard warrior', response 'keyboard warrior'
+- If it's close (similar meaning is ok), give them the exact answer (bold it like **this**). Example: Theme is 'gamer taunts', user guessed 'too easy', correct answer is 'ez', response 'close enough, the answer is **ez**.'
+- If it matches the hint, give them the exact answer (bold it like **this**). Example: Hint is 'this term refers to an individual who often engages in aggressive or confrontational behavior in online discussions or gaming environments', guess is 'troll', answer is 'keyboard warrior', response 'that works, the answer is **keyboard warrior**.'
 - If it's somewhat close, lead them towards the answer. Example: Theme is 'gamer taunts', user guessed 'clutch', correct answer is 'clutch or kick', response 'clutch or what?'
 - If it's completely wrong, give a vague hint. Do not mention the answer in the hint. Example: Theme is 'household items', User guessed 'book', correct answer is 'spoon', response 'no, its a utensil.
 - Be more lenient when the timer is under 15 seconds.
