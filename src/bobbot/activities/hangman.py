@@ -34,6 +34,7 @@ num_lives: int = 0
 hint: str = "N/A"
 hint_prompt: Optional[str] = None
 only_hint: bool = False
+followup_hints: bool = False
 hint_helpfulness: float = 1.0
 
 MAX_WRONG_GUESSES = 10
@@ -326,23 +327,23 @@ async def play_timed() -> None:
 
         # Run a timer
         await sleep_interruptable(1)
-        if not sleep_event.is_set():
+        if not sleep_event.is_set() and status != "idle":
             await sleep_interruptable(TIMED_TIME_PER_ANSWER / 2)
             time_left = TIMED_TIME_PER_ANSWER - TIMED_TIME_PER_ANSWER / 2
-        if not sleep_event.is_set():
+        if not sleep_event.is_set() and status != "idle":
             await cmd_handler(f"{round(time_left)} seconds left!", output_directly=True)
             await sleep_interruptable(time_left - 3)
-        if not sleep_event.is_set():
+        if not sleep_event.is_set() and status != "idle":
             await cmd_handler("3...", output_directly=True)
             await sleep_interruptable(1.5)
-        if not sleep_event.is_set():
+        if not sleep_event.is_set() and status != "idle":
             await cmd_handler("2...", output_directly=True)
             await sleep_interruptable(1.5)
-        if not sleep_event.is_set():
+        if not sleep_event.is_set() and status != "idle":
             await cmd_handler("1...", output_directly=True)
             await sleep_interruptable(2)
 
-        if stop_event.is_set():
+        if stop_event.is_set() or status == "idle":
             # Quit
             return
         if not is_on_full_guess:
@@ -372,6 +373,7 @@ async def play_timed() -> None:
 async def guess_timed(message: str) -> None:
     """Handles a guess during a timed hangman game."""
     # Check for correct guess
+    global is_on_full_guess
     upper_answer = answer.upper()
     guess_dist = check_guess_distance(message)
     # Allow leniency
@@ -379,7 +381,6 @@ async def guess_timed(message: str) -> None:
     leniency_hint = 1 + len(upper_answer) // 8
     if guess_dist <= leniency_correct:
         # Correct guess
-        global is_on_full_guess
         is_on_full_guess = True
         sleep_event.set()  # Signal a correct guess
         if guess_dist == 0:
@@ -390,6 +391,27 @@ async def guess_timed(message: str) -> None:
             await cmd_handler(
                 f"Tell the user that they got it right, as their guess was close enough to the answer. Echo that the answer was **{answer}** and comment on it. This should be a brief comment, don't output anything else. Do NOT try to print another hangman board."  # noqa: E501
             )
+    elif followup_hints:
+        # Potentially give a hint
+        judge_prompt = f"""You're playing a guessing game with the user. You gave them a hint and told them to guess, and they just guessed. Judge their answer and follow these rules:
+- If it's close (similar meaning is ok), echo the exact answer. Example: Theme is 'gamer taunts', user guessed 'too easy', correct answer is 'ez', response 'ez'
+- If it matches the hint, echo the exact answer. Example: Hint is 'this term refers to an individual who often engages in aggressive or confrontational behavior in online discussions or gaming environments', guess is 'troll', answer is 'keyboard warrior', response 'keyboard warrior'
+- If it's somewhat close, lead them towards the answer. Example: Theme is 'gamer taunts', user guessed 'clutch', correct answer is 'clutch or kick', response 'clutch or what?'
+- If it's completely wrong, give a vague hint. Do not mention the answer in the hint. Example: Theme is 'household items', User guessed 'book', correct answer is 'spoon', response 'no, its a utensil.
+- Be more lenient when the timer is under 15 seconds.
+
+For the topic '{theme}', the hint was '{hint}', the user guessed '{message}' and the correct answer is '{answer}'."""  # noqa: E501
+        judge_resp: str = await cmd_handler(judge_prompt, hide_output=True)
+        if answer.lower().strip() in judge_resp.lower().strip():
+            # Judged as correct guess
+            is_on_full_guess = True
+            sleep_event.set()  # Signal a correct guess
+            await cmd_handler(
+                f"Tell the user that they got it right, as their guess was close enough to the answer. Echo that the answer was **{answer}** and comment on it. This should be a brief comment, don't output anything else. Do NOT try to print another hangman board."  # noqa: E501
+            )
+        else:
+            # Send message
+            await cmd_handler(judge_resp, output_directly=True)
     elif guess_dist <= leniency_hint:
         # Close guess (but not correct)
         await cmd_handler("Tell the user that their guess is close to the answer.")  # noqa: E501
@@ -462,13 +484,14 @@ def configure_hangman(
     helpfulness_mult: float = 1.0,
 ) -> None:
     """Configures the hangman game."""
-    global status, theme, mode, hint_prompt, only_hint, hint_helpfulness
+    global status, theme, mode, hint_prompt, only_hint, followup_hints, hint_helpfulness
     if status != "idle":
         return  # Can't configure while playing
     theme = new_theme
     mode = "hangman" if not timed else "timed"
     hint_prompt = new_hint_prompt
     only_hint = new_only_hint
+    followup_hints = new_only_hint  # Give followup hints if there are no hangman clues
     hint_helpfulness = helpfulness_mult
 
 

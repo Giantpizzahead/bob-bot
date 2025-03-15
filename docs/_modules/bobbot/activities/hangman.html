@@ -111,6 +111,7 @@
 <span class="n">hint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
 <span class="n">hint_prompt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">only_hint</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">followup_hints</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="n">hint_helpfulness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 
 <span class="n">MAX_WRONG_GUESSES</span> <span class="o">=</span> <span class="mi">10</span>
@@ -392,7 +393,7 @@
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">display_board</span><span class="p">(),</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;Relay this ENTIRE hint to the user in a casual way so they can guess the word/phrase: </span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s1">. The first line of your message must be &quot;**round </span><span class="si">{</span><span class="n">curr_round</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">num_rounds</span><span class="si">}</span><span class="s1">**&quot;, followed by 2 blank lines. Do NOT mention their username, and do not add any comments after the hint.&#39;</span>  <span class="c1"># noqa: E501</span>
+                <span class="sa">f</span><span class="s1">&#39;Relay this ENTIRE hint to the user in a casual way so they can guess the word/phrase: </span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s1">. The first line of your message must be &quot;**round </span><span class="si">{</span><span class="n">curr_round</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">num_rounds</span><span class="si">}</span><span class="s1">**: &quot; exactly, with the ending space, followed by 1 blank line. Do NOT mention their username, and do not add any comments after the hint.&#39;</span>  <span class="c1"># noqa: E501</span>
             <span class="p">)</span>
 
         <span class="c1"># Explain rules on the first round</span>
@@ -403,23 +404,23 @@
 
         <span class="c1"># Run a timer</span>
         <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">and</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="n">TIMED_TIME_PER_ANSWER</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">time_left</span> <span class="o">=</span> <span class="n">TIMED_TIME_PER_ANSWER</span> <span class="o">-</span> <span class="n">TIMED_TIME_PER_ANSWER</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">and</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">time_left</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds left!&quot;</span><span class="p">,</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="n">time_left</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">and</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;3...&quot;</span><span class="p">,</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">and</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;2...&quot;</span><span class="p">,</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sleep_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">and</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;1...&quot;</span><span class="p">,</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">await</span> <span class="n">sleep_interruptable</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">stop_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">stop_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span> <span class="ow">or</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
             <span class="c1"># Quit</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">is_on_full_guess</span><span class="p">:</span>
@@ -449,6 +450,7 @@
 <span class="k">async</span> <span class="k">def</span> <span class="nf">guess_timed</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles a guess during a timed hangman game.&quot;&quot;&quot;</span>
     <span class="c1"># Check for correct guess</span>
+    <span class="k">global</span> <span class="n">is_on_full_guess</span>
     <span class="n">upper_answer</span> <span class="o">=</span> <span class="n">answer</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
     <span class="n">guess_dist</span> <span class="o">=</span> <span class="n">check_guess_distance</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c1"># Allow leniency</span>
@@ -456,7 +458,6 @@
     <span class="n">leniency_hint</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">upper_answer</span><span class="p">)</span> <span class="o">//</span> <span class="mi">8</span>
     <span class="k">if</span> <span class="n">guess_dist</span> <span class="o">&lt;=</span> <span class="n">leniency_correct</span><span class="p">:</span>
         <span class="c1"># Correct guess</span>
-        <span class="k">global</span> <span class="n">is_on_full_guess</span>
         <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">sleep_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>  <span class="c1"># Signal a correct guess</span>
         <span class="k">if</span> <span class="n">guess_dist</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -467,6 +468,27 @@
             <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Tell the user that they got it right, as their guess was close enough to the answer. Echo that the answer was **</span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">** and comment on it. This should be a brief comment, don&#39;t output anything else. Do NOT try to print another hangman board.&quot;</span>  <span class="c1"># noqa: E501</span>
             <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">followup_hints</span><span class="p">:</span>
+        <span class="c1"># Potentially give a hint</span>
+        <span class="n">judge_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;You&#39;re playing a guessing game with the user. You gave them a hint and told them to guess, and they just guessed. Judge their answer and follow these rules:</span>
+<span class="s2">- If it&#39;s close (similar meaning is ok), echo the exact answer. Example: Theme is &#39;gamer taunts&#39;, user guessed &#39;too easy&#39;, correct answer is &#39;ez&#39;, response &#39;ez&#39;</span>
+<span class="s2">- If it matches the hint, echo the exact answer. Example: Hint is &#39;this term refers to an individual who often engages in aggressive or confrontational behavior in online discussions or gaming environments&#39;, guess is &#39;troll&#39;, answer is &#39;keyboard warrior&#39;, response &#39;keyboard warrior&#39;</span>
+<span class="s2">- If it&#39;s somewhat close, lead them towards the answer. Example: Theme is &#39;gamer taunts&#39;, user guessed &#39;clutch&#39;, correct answer is &#39;clutch or kick&#39;, response &#39;clutch or what?&#39;</span>
+<span class="s2">- If it&#39;s completely wrong, give a vague hint. Do not mention the answer in the hint. Example: Theme is &#39;household items&#39;, User guessed &#39;book&#39;, correct answer is &#39;spoon&#39;, response &#39;no, its a utensil.</span>
+<span class="s2">- Be more lenient when the timer is under 15 seconds.</span>
+
+<span class="s2">For the topic &#39;</span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s2">&#39;, the hint was &#39;</span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s2">&#39;, the user guessed &#39;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&#39; and the correct answer is &#39;</span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">&#39;.&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">judge_resp</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">judge_prompt</span><span class="p">,</span> <span class="n">hide_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">answer</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">judge_resp</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="c1"># Judged as correct guess</span>
+            <span class="n">is_on_full_guess</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">sleep_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>  <span class="c1"># Signal a correct guess</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Tell the user that they got it right, as their guess was close enough to the answer. Echo that the answer was **</span><span class="si">{</span><span class="n">answer</span><span class="si">}</span><span class="s2">** and comment on it. This should be a brief comment, don&#39;t output anything else. Do NOT try to print another hangman board.&quot;</span>  <span class="c1"># noqa: E501</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Send message</span>
+            <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="n">judge_resp</span><span class="p">,</span> <span class="n">output_directly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">guess_dist</span> <span class="o">&lt;=</span> <span class="n">leniency_hint</span><span class="p">:</span>
         <span class="c1"># Close guess (but not correct)</span>
         <span class="k">await</span> <span class="n">cmd_handler</span><span class="p">(</span><span class="s2">&quot;Tell the user that their guess is close to the answer.&quot;</span><span class="p">)</span>  <span class="c1"># noqa: E501</span>
@@ -544,13 +566,14 @@
     <span class="n">helpfulness_mult</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configures the hangman game.&quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">status</span><span class="p">,</span> <span class="n">theme</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">hint_prompt</span><span class="p">,</span> <span class="n">only_hint</span><span class="p">,</span> <span class="n">hint_helpfulness</span>
+    <span class="k">global</span> <span class="n">status</span><span class="p">,</span> <span class="n">theme</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">hint_prompt</span><span class="p">,</span> <span class="n">only_hint</span><span class="p">,</span> <span class="n">followup_hints</span><span class="p">,</span> <span class="n">hint_helpfulness</span>
     <span class="k">if</span> <span class="n">status</span> <span class="o">!=</span> <span class="s2">&quot;idle&quot;</span><span class="p">:</span>
         <span class="k">return</span>  <span class="c1"># Can&#39;t configure while playing</span>
     <span class="n">theme</span> <span class="o">=</span> <span class="n">new_theme</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;hangman&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">timed</span> <span class="k">else</span> <span class="s2">&quot;timed&quot;</span>
     <span class="n">hint_prompt</span> <span class="o">=</span> <span class="n">new_hint_prompt</span>
     <span class="n">only_hint</span> <span class="o">=</span> <span class="n">new_only_hint</span>
+    <span class="n">followup_hints</span> <span class="o">=</span> <span class="n">new_only_hint</span>  <span class="c1"># Give followup hints if there are no hangman clues</span>
     <span class="n">hint_helpfulness</span> <span class="o">=</span> <span class="n">helpfulness_mult</span></div>
 
 

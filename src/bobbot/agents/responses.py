@@ -181,7 +181,7 @@ async def get_response(
     )
     BOB_PROMPT = f"""{server_intro} There are other users too. The current date is {curr_date_time}.
 
-Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar.{online_suffix}{obedient_suffix}"""  # noqa: E501
+Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. NEVER start messages with 'AI'.{online_suffix}{obedient_suffix}"""  # noqa: E501
 
     # Setup messages
     raw_messages = [
@@ -208,7 +208,8 @@ Avoid rambling for too long, split long messages into short ones, and don't repe
         messages.insert(
             1,
             SystemMessage(
-                content=context + "\n\nYou must follow the rules and messaging style as described previously."
+                content=context
+                + "\n\nYou must follow the rules and messaging style as described previously. NEVER start messages with 'AI'."  # noqa: E501
             ),
         )
 

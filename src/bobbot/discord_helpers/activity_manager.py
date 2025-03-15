@@ -36,18 +36,26 @@ spectate_status: str = "idle"
 
 
 async def command_handler(
-    channel: discord.TextChannel, command: str, expect_response: bool = False, output_directly: bool = False
+    channel: discord.TextChannel,
+    command: str,
+    expect_response: bool = False,
+    output_directly: bool = False,
+    hide_output: bool = False,
+    use_history: bool = True,
 ) -> Optional[str]:
     """Handle a command from the current activity.
 
     Commands are directions to Bob, with info or requests to be relayed to the user.
     If expect_response is True, the user's response will be waited for and returned.
+    Otherwise, the response given to the user is returned.
 
     Args:
         channel: The channel the command is associated with.
         command: The command to give to Bob.
         expect_response: Whether to wait for the user's response.
         output_directly: Whether to send the literal command directly to the user.
+        hide_output: Whether to avoid sending the message to the user (just return it instead).
+        use_history: Whether to include any channel history.
     """
     # Command-specific handlers
     if "start_spectating" in command:
@@ -56,16 +64,27 @@ async def command_handler(
 
     if output_directly:
         logger.info(f"Direct response: {command}")
-        await lazy_send_message(channel, command, force=True)
+        if not hide_output:
+            await lazy_send_message(channel, command, force=True)
+        if not expect_response:
+            return command
     else:
         # Update history
         history: TextChannelHistory = get_channel_history(channel)
         await history.aupdate()
 
         # In-character response
-        response: str = await get_response(history.as_langchain_msgs(bot.user), context=command)
+        if use_history:
+            response: str = await get_response(
+                history.as_langchain_msgs(bot.user), context=command, store_memories=False
+            )
+        else:
+            response: str = await get_response([], context=command, store_memories=False)
         logger.info(f"Command: {command} -> Response: {response}")
-        await lazy_send_message(channel, response, force=True)
+        if not hide_output:
+            await lazy_send_message(channel, response, force=True)
+        if not expect_response:
+            return response
 
     if expect_response:
         # Wait for the user's response
@@ -82,11 +101,9 @@ async def command_handler(
 def gen_command_handler(channel: discord.TextChannel) -> Callable:
     """Generate a command handler for the given channel."""
 
-    async def _channel_command_handler(
-        command: str, expect_response: bool = False, output_directly: bool = False
-    ) -> str:
+    async def _channel_command_handler(command: str, **kwargs) -> str:
         """Handle a command from the current activity."""
-        return await command_handler(channel, command, expect_response, output_directly)
+        return await command_handler(channel, command, **kwargs)
 
     return _channel_command_handler
 

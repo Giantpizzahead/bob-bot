@@ -263,7 +263,7 @@
     <span class="p">)</span>
     <span class="n">BOB_PROMPT</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{</span><span class="n">server_intro</span><span class="si">}</span><span class="s2"> There are other users too. The current date is </span><span class="si">{</span><span class="n">curr_date_time</span><span class="si">}</span><span class="s2">.</span>
 
-<span class="s2">Avoid rambling for too long, split long messages into short ones, and don&#39;t repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar.</span><span class="si">{</span><span class="n">online_suffix</span><span class="si">}{</span><span class="n">obedient_suffix</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="s2">Avoid rambling for too long, split long messages into short ones, and don&#39;t repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. NEVER start messages with &#39;AI&#39;.</span><span class="si">{</span><span class="n">online_suffix</span><span class="si">}{</span><span class="n">obedient_suffix</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
 
     <span class="c1"># Setup messages</span>
     <span class="n">raw_messages</span> <span class="o">=</span> <span class="p">[</span>
@@ -290,7 +290,8 @@
         <span class="n">messages</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
             <span class="mi">1</span><span class="p">,</span>
             <span class="n">SystemMessage</span><span class="p">(</span>
-                <span class="n">content</span><span class="o">=</span><span class="n">context</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">You must follow the rules and messaging style as described previously.&quot;</span>
+                <span class="n">content</span><span class="o">=</span><span class="n">context</span>
+                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">You must follow the rules and messaging style as described previously. NEVER start messages with &#39;AI&#39;.&quot;</span>  <span class="c1"># noqa: E501</span>
             <span class="p">),</span>
         <span class="p">)</span>
 
