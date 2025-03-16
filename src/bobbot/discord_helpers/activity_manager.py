@@ -169,9 +169,9 @@ async def hangman(ctx: commands.Context, theme: str) -> None:
         ctx: The context of the command.
         theme: The theme to play hangman with.
     """
-    # if ctx.author.id % 1000000007 == 380204424:
-    #     await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
-    #     return
+    if ctx.author.id % 1000000007 == 380204424:
+        await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
+        return
     configure_hangman(theme)
     await ctx.send(f"! reset... ok, ill play hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
@@ -185,9 +185,9 @@ async def timed_hangman(ctx: commands.Context, theme: str) -> None:
         ctx: The context of the command.
         theme: The theme to play hangman with.
     """
-    # if ctx.author.id % 1000000007 == 380204424:
-    #     await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
-    #     return
+    if ctx.author.id % 1000000007 == 380204424:
+        await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
+        return
     configure_hangman(theme, timed=True)
     await ctx.send(f"! reset... ok, ill play timed hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
@@ -212,9 +212,9 @@ async def custom_hangman(
         timed: Whether the game should be timed.
         helpfulness_mult: Multiplier adjustment for hint helpfulness.
     """
-    # if ctx.author.id % 1000000007 == 380204424:
-    #     await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
-    #     return
+    if ctx.author.id % 1000000007 == 380204424:
+        await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
+        return
     configure_hangman(
         theme, timed=timed, new_hint_prompt=hint_prompt, new_only_hint=only_hint, helpfulness_mult=helpfulness_mult
     )

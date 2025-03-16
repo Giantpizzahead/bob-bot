@@ -255,9 +255,9 @@
 <span class="sd">        ctx: The context of the command.</span>
 <span class="sd">        theme: The theme to play hangman with.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># if ctx.author.id % 1000000007 == 380204424:</span>
-    <span class="c1">#     await ctx.send(f&quot;nah do ur work &lt;@{ctx.author.id}&gt;... u got this!&quot;)</span>
-    <span class="c1">#     return</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span> <span class="o">%</span> <span class="mi">1000000007</span> <span class="o">==</span> <span class="mi">380204424</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nah do ur work &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;... u got this!&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="n">configure_hangman</span><span class="p">(</span><span class="n">theme</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! reset... ok, ill play hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
@@ -271,9 +271,9 @@
 <span class="sd">        ctx: The context of the command.</span>
 <span class="sd">        theme: The theme to play hangman with.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># if ctx.author.id % 1000000007 == 380204424:</span>
-    <span class="c1">#     await ctx.send(f&quot;nah do ur work &lt;@{ctx.author.id}&gt;... u got this!&quot;)</span>
-    <span class="c1">#     return</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span> <span class="o">%</span> <span class="mi">1000000007</span> <span class="o">==</span> <span class="mi">380204424</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nah do ur work &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;... u got this!&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="n">configure_hangman</span><span class="p">(</span><span class="n">theme</span><span class="p">,</span> <span class="n">timed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;! reset... ok, ill play timed hangman with u &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;, lets go!&quot;</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">start_activity</span><span class="p">(</span><span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">,</span> <span class="n">gen_command_handler</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
@@ -298,9 +298,9 @@
 <span class="sd">        timed: Whether the game should be timed.</span>
 <span class="sd">        helpfulness_mult: Multiplier adjustment for hint helpfulness.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># if ctx.author.id % 1000000007 == 380204424:</span>
-    <span class="c1">#     await ctx.send(f&quot;nah do ur work &lt;@{ctx.author.id}&gt;... u got this!&quot;)</span>
-    <span class="c1">#     return</span>
+    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span> <span class="o">%</span> <span class="mi">1000000007</span> <span class="o">==</span> <span class="mi">380204424</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nah do ur work &lt;@</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&gt;... u got this!&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="n">configure_hangman</span><span class="p">(</span>
         <span class="n">theme</span><span class="p">,</span> <span class="n">timed</span><span class="o">=</span><span class="n">timed</span><span class="p">,</span> <span class="n">new_hint_prompt</span><span class="o">=</span><span class="n">hint_prompt</span><span class="p">,</span> <span class="n">new_only_hint</span><span class="o">=</span><span class="n">only_hint</span><span class="p">,</span> <span class="n">helpfulness_mult</span><span class="o">=</span><span class="n">helpfulness_mult</span>
     <span class="p">)</span>
