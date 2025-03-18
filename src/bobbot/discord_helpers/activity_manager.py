@@ -1,6 +1,7 @@
 """Manages the bot's activity status."""
 
 import asyncio
+import os
 import uuid
 from pathlib import Path
 from typing import Callable, Optional
@@ -169,7 +170,7 @@ async def hangman(ctx: commands.Context, theme: str) -> None:
         ctx: The context of the command.
         theme: The theme to play hangman with.
     """
-    if ctx.author.id % 1000000007 == 380204424:
+    if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(theme)
@@ -185,7 +186,7 @@ async def timed_hangman(ctx: commands.Context, theme: str) -> None:
         ctx: The context of the command.
         theme: The theme to play hangman with.
     """
-    if ctx.author.id % 1000000007 == 380204424:
+    if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(theme, timed=True)
@@ -212,7 +213,7 @@ async def custom_hangman(
         timed: Whether the game should be timed.
         helpfulness_mult: Multiplier adjustment for hint helpfulness.
     """
-    if ctx.author.id % 1000000007 == 380204424:
+    if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(
@@ -267,7 +268,7 @@ async def do_basic_activity(ctx: commands.Context, activity: str) -> None:
             await chess(ctx, 800, "human")
             return
         elif activity == "hangman":
-            if ctx.author.id % 1000000007 == 380204424:
+            if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
                 await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
                 return
         act = Activity(activity)
