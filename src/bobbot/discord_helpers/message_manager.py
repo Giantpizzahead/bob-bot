@@ -99,7 +99,7 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
                 heroku_override = True  # Can't query memories while in a voice channel on Heroku
             if on_heroku():
                 logger.info(f"Heroku memory saver override: {heroku_override}")
-            if not bot.is_incognito and not heroku_override:
+            if not bot.is_incognito and not heroku_override and is_safe:
                 # Find relevant memories using varying methods
                 EACH_LIMIT = 2
                 MAX_MEMORIES = 4
@@ -192,7 +192,7 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
                     history.as_langchain_msgs(bot.user),
                     context=context,
                     uncensored=not is_safe,
-                    obedient=bot.is_obedient,
+                    obedient=bot.is_obedient or not is_safe,
                     store_memories=not bot.is_incognito and not heroku_override,
                 )
             else:
