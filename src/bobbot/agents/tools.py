@@ -39,14 +39,14 @@ from langchain_community.document_loaders import WebBaseLoader  # noqa: E402
 
 @tool(parse_docstring=True)
 async def perform_google_search(query: str) -> dict:
-    """Use to perform a Google online search and get back the search results. Can find info, news, lyrics, etc.
+    """Use to perform a Google online search and get back the search results. Can be used as a calculator, can find info, news, lyrics, etc.
 
     Args:
         query: The query to search for. For present-day queries, do NOT include the date or year.
 
     Returns:
         A JSON representation of the search results, including links, snippets, and titles.
-    """
+    """  # noqa: E501
     try:
         NUM_RESULTS = 3
         search = GoogleSerperAPIWrapper(k=NUM_RESULTS)

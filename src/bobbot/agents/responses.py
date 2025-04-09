@@ -22,6 +22,7 @@ from bobbot.agents.llms import (
     llm_gpt4omini,
     llm_mythomax,
     llm_perplexity,
+    llm_reasoning,
     messages_to_string,
 )
 from bobbot.agents.tools import TOOL_BY_NAME, TOOL_LIST
@@ -69,10 +70,12 @@ async def get_response_with_tools(
 Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar.
 
 Notes:
-1. You can send at most ONE image to the user as a PLAIN URL. Do NOT use markdown formatting.
-2. Try not to send links to the user. Instead, fetch the webpage yourself to find relevant information.
-3. A typical tool calling pattern is to first perform a Google search, then fetch the most relevant webpage. Only skip fetching a webpage if you're absolutely sure the answer is in the search snippets.
-4. For info you don't know, if it can be found online, search online! If you really can't find the answer to a factual question, say you don't know - do not make up info.{obedient_suffix}"""  # noqa: E501
+1. Do NOT cut off your messages.
+2. You can send at most ONE image to the user as a PLAIN URL. Do NOT use markdown formatting. Avoid images with long tokens at the end.
+3. In addition to sending links to the user, fetch the webpage yourself to find relevant information.
+4. A typical tool calling pattern is to first perform a Google search, then fetch the most relevant webpage. Only skip fetching a webpage if you're absolutely sure the answer is in the search snippets.
+5. Briefly inform the user on what sources and/or tools you used!
+6. For info you don't know, if it can be found online, search online! If you really can't find the answer to a factual question, say you don't know - do not make up info.{obedient_suffix}"""  # noqa: E501
 
     # Setup messages
     messages = [
@@ -103,7 +106,10 @@ Notes:
     for i in range(MAX_LOOPS):
         # Force a response on the last loop
         tool_choice = "auto" if i != MAX_LOOPS - 1 else "none"
-        llm_with_tools = base_llm.bind_tools(TOOL_LIST, tool_choice=tool_choice, strict=True)
+        if not uncensored:
+            llm_with_tools = base_llm.bind_tools(TOOL_LIST, tool_choice=tool_choice, strict=True)
+        else:
+            llm_with_tools = base_llm.bind_tools(TOOL_LIST, tool_choice=tool_choice)
         # If model doesn't support images, it will gracefully ignore them
         ai_message = await llm_with_tools.ainvoke(messages)
         messages.append(ai_message)
@@ -124,13 +130,18 @@ Notes:
                 logger.info(f"Full tool call result: {tool_message.content}")
         elif "tool▁sep" in ai_message.content and "tool▁call▁end" in ai_message.content:
             # Sanity check for improper tool call format
-            logger.warning(f"Improper tool call detected, switching to OpenAI: {ai_message.content}")
+            logger.warning(f"Improper tool call detected, switching to OpenAI: {ai_message}")
+            base_llm = llm_gpt4omini
+        elif len(ai_message.content.strip()) == 0:
+            # Sanity check for empty response
+            logger.warning(f"Empty response detected, switching to OpenAI: {ai_message, ai_message.tool_calls}")
             base_llm = llm_gpt4omini
         else:
             break  # Valid response
 
     # Output response
-    assert len(ai_message.content.strip()) > 0
+    if len(ai_message.content.strip()) == 0:
+        raise Exception("len(ai_message.content.strip()) == 0")
     content = ai_message.content
     modifiers = []
     if uncensored:
@@ -151,6 +162,7 @@ async def get_response(
     obedient: bool = False,
     store_memories: bool = True,
     use_perplexity: bool = False,
+    use_reasoning: bool = False,
 ) -> str:
     """Get a response from Bob given the server's messages, with optional system context.
 
@@ -160,6 +172,7 @@ async def get_response(
         obedient: Whether to use obedient mode.
         store_memories: Whether to store tool memories.
         use_perplexity: Whether to use perplexity's AI search.
+        use_reasoning: Whether to use a reasoning model.
     """
     # Setup prompt
     current_time_pst = datetime.now(ZoneInfo("America/New_York"))
@@ -179,9 +192,16 @@ async def get_response(
         if use_perplexity
         else ""
     )
+    reasoning_suffix = (
+        """\n\nRules:
+1. Don't reason for too long. Do not exceed ~600 tokens.
+2. Very briefly summarize your reasoning (1 sentence is fine) in your final answer."""
+        if use_reasoning
+        else ""
+    )
     BOB_PROMPT = f"""{server_intro} There are other users too. The current date is {curr_date_time}.
 
-Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. NEVER start messages with 'AI'.{online_suffix}{obedient_suffix}"""  # noqa: E501
+Avoid rambling for too long, split long messages into short ones, and don't repeat yourself. Keep messages like reddit comments - short, witty, and in all lowercase, with abbreviations and little care for grammar. NEVER start messages with 'AI'. Do NOT cut off your messages.{online_suffix}{obedient_suffix}{reasoning_suffix}"""  # noqa: E501
 
     # Setup messages
     raw_messages = [
@@ -215,10 +235,17 @@ Avoid rambling for too long, split long messages into short ones, and don't repe
 
     log_debug_info(f"===== Bob all messages =====\n{messages_to_string(messages)}")
     # log_debug_info(f"===== Bob context/history =====\n{messages_to_string(msg_history)}")
-    if not use_perplexity:
-        response = await llm_gpt4omini.ainvoke(messages)
-    else:
+    assert not (use_perplexity and use_reasoning)
+    response = None
+    if use_perplexity:
         response = await llm_perplexity.ainvoke(messages)
+    elif use_reasoning:
+        response = await llm_reasoning.ainvoke(messages)
+    # Output response
+    if response is None or len(response.content.strip()) == 0:
+        if response is not None:
+            logger.warning(f"Empty response detected, switching to OpenAI: {response}")
+        response = await llm_gpt4omini.ainvoke(messages)
     content = response.content
     log_debug_info(f"===== Bob response =====\n{content}")
     return content

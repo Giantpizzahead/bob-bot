@@ -104,6 +104,8 @@ async def lazy_send_message(
 
     # Fetch all guild members to replace display names with mentions
     for member in get_users_in_channel(channel):
+        if member.id % 1000000007 == 41172034:  # Avoid matching a specific user
+            continue
         display_name = member.display_name
         # Escape spaces in display name for regex matching
         escaped_display_name = re.escape(display_name)

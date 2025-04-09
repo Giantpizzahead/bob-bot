@@ -44,6 +44,9 @@ command prefix is `!`, slash commands work too
 `vc join` - Tell Bob to join your voice channel.\t\t`vc leave` - Tell Bob to leave your voice channel.
 `tts [text]` - Speak the given text in a familiar voice.\t\t`vc log` - Show the current VC conversation history.
 
+`research` - Use Bob's online research capabilities. Can also include the `-research` flag anywhere in your message.
+`reason` - Use Bob's reasoning capabilities. Can also include the `-reason` flag anywhere in your message.
+
 `memory reset` - Wipes the bot's short term conversation history. No effect on long term memories.
 `memory query [query]` - Query Bob's long term memory. Must provide a search query.
 `memory delete [id]` - Delete a long term memory by ID. Use to remove private/unwanted info.

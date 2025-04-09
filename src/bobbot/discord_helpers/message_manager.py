@@ -39,8 +39,8 @@ logger = get_logger(__name__)
 
 
 @bot.event
-async def on_message(message: discord.Message, use_perplexity: bool = False):
-    """Respond to messages, using or not using smart search (Perplexity)."""
+async def on_message(message: discord.Message, use_perplexity: bool = False, use_reasoning: bool = False):
+    """Respond to messages, using or not using smart search (Perplexity) and reasoning."""
     # Only respond to messages in DMs and specified channels
     if not (use_perplexity or message.channel.id in bot.CHANNELS or isinstance(message.channel, discord.DMChannel)):
         return
@@ -58,7 +58,7 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
             )
         return
     # For now, don't respond to self messages
-    if not use_perplexity and message.author == bot.user:
+    if not use_perplexity and not use_reasoning and message.author == bot.user:
         return
 
     # Call play hangman if activity is hangman and not pinged
@@ -69,8 +69,21 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
         return
 
     # Don't respond further unless pinged or in a DM
-    if not (use_perplexity or bot.user in message.mentions or isinstance(message.channel, discord.DMChannel)):
+    if not (
+        use_perplexity
+        or use_reasoning
+        or bot.user in message.mentions
+        or isinstance(message.channel, discord.DMChannel)
+    ):
         return
+
+    # Check for research or reasoning queries
+    if "-research" in message.content.strip().split():
+        use_perplexity = True
+    if "-reason" in message.content.strip().split():
+        use_reasoning = True
+    if use_perplexity and use_reasoning:
+        use_reasoning = False  # Perplexity includes reasoning
 
     # Get history for the current channel
     history: TextChannelHistory = get_channel_history(curr_channel)
@@ -99,7 +112,8 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
                 heroku_override = True  # Can't query memories while in a voice channel on Heroku
             if on_heroku():
                 logger.info(f"Heroku memory saver override: {heroku_override}")
-            if not bot.is_incognito and not heroku_override and is_safe:
+            # Don't use memories if unsafe or using Perplexity/reasoning
+            if not bot.is_incognito and not heroku_override and is_safe and not use_perplexity and not use_reasoning:
                 # Find relevant memories using varying methods
                 EACH_LIMIT = 2
                 MAX_MEMORIES = 4
@@ -187,7 +201,7 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
             # logger.info(f"Context:\n{context}")
 
             # Get response and send message
-            if not use_perplexity:
+            if not use_perplexity and not use_reasoning:
                 response: str = await get_response_with_tools(
                     history.as_langchain_msgs(bot.user),
                     context=context,
@@ -199,9 +213,10 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
                 response: str = await get_response(
                     history.as_langchain_msgs(bot.user),
                     context=context,
-                    obedient=bot.is_obedient,
+                    obedient=bot.is_obedient or not is_safe,
                     store_memories=not bot.is_incognito and not heroku_override,
-                    use_perplexity=True,
+                    use_perplexity=use_perplexity,
+                    use_reasoning=use_reasoning,
                 )
         if history.message_count == saved_message_count:
             await lazy_send_message(message.channel, response)
@@ -211,7 +226,22 @@ async def on_message(message: discord.Message, use_perplexity: bool = False):
 
 
 @bot.hybrid_command(name="research")
-async def research(ctx: commands.Context, query: str) -> None:
+async def research(ctx: commands.Context, *, query: str) -> None:
     """Return a response using research from online."""
+    # if ctx.interaction is not None:
+    #     message = await ctx.send(f'researching query: "{query}"')
+    # else:
+    #     return
     message = await ctx.send(f'researching query: "{query}"')
     await on_message(message, use_perplexity=True)
+
+
+@bot.hybrid_command(name="reason")
+async def reason(ctx: commands.Context, *, query: str) -> None:
+    """Return a response using reasoning."""
+    # if ctx.interaction is not None:
+    #     message = await ctx.send(f'reasoning through query: "{query}"')
+    # else:
+    #     return
+    message = await ctx.send(f'researching query: "{query}"')
+    await on_message(message, use_reasoning=True)

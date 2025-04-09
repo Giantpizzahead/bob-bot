@@ -199,9 +199,10 @@ async def custom_hangman(
     ctx: commands.Context,
     theme: str,
     hint_prompt: Optional[str] = None,
-    only_hint: bool = False,
+    only_hint: bool = True,
     timed: bool = True,
     helpfulness_mult: float = 1.0,
+    time_per_answer: int = 30,
 ) -> None:
     """Start a custom hangman game with Bob.
 
@@ -212,12 +213,18 @@ async def custom_hangman(
         only_hint: Whether to only show the hint (no blanks or letters).
         timed: Whether the game should be timed.
         helpfulness_mult: Multiplier adjustment for hint helpfulness.
+        time_per_answer: The amount of time given for each round.
     """
     if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
     configure_hangman(
-        theme, timed=timed, new_hint_prompt=hint_prompt, new_only_hint=only_hint, helpfulness_mult=helpfulness_mult
+        theme,
+        timed=timed,
+        new_hint_prompt=hint_prompt,
+        new_only_hint=only_hint,
+        helpfulness_mult=helpfulness_mult,
+        time_per_answer=time_per_answer,
     )
     await ctx.send(f"! reset... ok, ill play custom hangman with u <@{ctx.author.id}>, lets go :)")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))

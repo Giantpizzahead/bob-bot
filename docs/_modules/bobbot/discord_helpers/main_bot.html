@@ -192,6 +192,8 @@
 
     <span class="c1"># Fetch all guild members to replace display names with mentions</span>
     <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">get_users_in_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">id</span> <span class="o">%</span> <span class="mi">1000000007</span> <span class="o">==</span> <span class="mi">41172034</span><span class="p">:</span>  <span class="c1"># Avoid matching a specific user</span>
+            <span class="k">continue</span>
         <span class="n">display_name</span> <span class="o">=</span> <span class="n">member</span><span class="o">.</span><span class="n">display_name</span>
         <span class="c1"># Escape spaces in display name for regex matching</span>
         <span class="n">escaped_display_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">display_name</span><span class="p">)</span>

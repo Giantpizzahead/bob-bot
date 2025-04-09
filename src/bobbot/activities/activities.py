@@ -94,7 +94,7 @@ async def stop_activity() -> None:
     elif current_activity == Activity.CHESS:
         stop_playing_chess()
     elif current_activity == Activity.HANGMAN:
-        stop_hangman()
+        await stop_hangman()
     else:
         raise NotImplementedError
     current_activity = None
@@ -148,5 +148,10 @@ async def spectate_activity() -> Optional[list[str] | Path]:
         return ["https://tenor.com/view/zzz-hello-kitty-gif-12194146", "go to sleep..."]
     elif current_activity == Activity.CHESS:
         return await screenshot_chess_activity()
+    elif current_activity == Activity.HANGMAN:
+        return [
+            "hangman?",
+            "hangman!",
+        ]
     else:
         return NotImplementedError

@@ -179,7 +179,7 @@
     <span class="k">elif</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">:</span>
         <span class="n">stop_playing_chess</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">:</span>
-        <span class="n">stop_hangman</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">stop_hangman</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     <span class="n">current_activity</span> <span class="o">=</span> <span class="kc">None</span></div>
@@ -242,6 +242,11 @@
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;https://tenor.com/view/zzz-hello-kitty-gif-12194146&quot;</span><span class="p">,</span> <span class="s2">&quot;go to sleep...&quot;</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">CHESS</span><span class="p">:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">screenshot_chess_activity</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">current_activity</span> <span class="o">==</span> <span class="n">Activity</span><span class="o">.</span><span class="n">HANGMAN</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s2">&quot;hangman?&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;hangman!&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="ne">NotImplementedError</span></div>
 
