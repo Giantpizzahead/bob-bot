@@ -169,6 +169,8 @@ async def play_hangman() -> None:
     last_guess_time = time.time()
 
     # Generate hint if needed
+    if only_hint is None:
+        hint_prompt = None
     if hint_prompt or only_hint:
         hint = await get_hint_for_topic(theme, answer, 5, hint_prompt=hint_prompt)
 

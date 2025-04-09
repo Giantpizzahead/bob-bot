@@ -163,7 +163,7 @@ async def chess(ctx: commands.Context, elo: int, against: Optional[str]) -> None
 
 
 @bot.hybrid_command(name="hangman")
-async def hangman(ctx: commands.Context, theme: str) -> None:
+async def hangman(ctx: commands.Context, *, theme: str) -> None:
     """Start a hangman game with Bob.
 
     Args:
@@ -173,13 +173,13 @@ async def hangman(ctx: commands.Context, theme: str) -> None:
     if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
-    configure_hangman(theme)
+    configure_hangman(theme, new_only_hint=None)
     await ctx.send(f"! reset... ok, ill play hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
 
 
 @bot.hybrid_command(name="timedhangman")
-async def timed_hangman(ctx: commands.Context, theme: str) -> None:
+async def timed_hangman(ctx: commands.Context, *, theme: str) -> None:
     """Start a timed hangman game with Bob.
 
     Args:
@@ -189,7 +189,7 @@ async def timed_hangman(ctx: commands.Context, theme: str) -> None:
     if os.getenv("WORK_BLOCK") and ctx.author.id % 1000000007 == 380204424:
         await ctx.send(f"nah do ur work <@{ctx.author.id}>... u got this!")
         return
-    configure_hangman(theme, timed=True)
+    configure_hangman(theme, new_only_hint=True, timed=True)
     await ctx.send(f"! reset... ok, ill play timed hangman with u <@{ctx.author.id}>, lets go!")
     await start_activity(Activity.HANGMAN, gen_command_handler(ctx.channel))
 

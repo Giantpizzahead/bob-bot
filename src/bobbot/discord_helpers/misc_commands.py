@@ -30,38 +30,38 @@ logger = get_logger(__name__)
 async def help(ctx: commands.Context) -> None:
     """Show the help message."""
     await ctx.send(
-        """! hi i am bob 2nd edition v2.0
+        """! hi i am bob 2nd edition v3.0
 command prefix is `!`, slash commands work too
+
+`research` - Use Bob's online research capabilities. Or include the `-research` flag in your message.
+`reason` - Use Bob's reasoning capabilities. Or include the `-reason` flag in your message.
 
 `activity status` - Check Bob's current activity status.
 `activity [school/eat/shower/sleep/chess/league]` - Start an activity with default parameters.
 `activity stop` - Stops the current activity.
 `chess [elo] [human/bot]` - Start a chess game with Bob playing at the given elo (in 200-1600), against a human or bot.
-`hangman "[theme]"` - Start a game of hangman with Bob. If using command prefix, include the double quotes.
-`timedhangman "[theme]"` - Start a game of timed hangman with Bob. If using command prefix, include the double quotes.
+`hangman "[theme]"` - Start a game of hangman with Bob.
+`timedhangman "[theme]"` - Start a game of timed hangman with Bob.\t\t`customhangman` - Configure more settings.
 `spectate start` - Spectate the current activity.\t\t`spectate stop` - Stop spectating the current activity.
 
 `vc join` - Tell Bob to join your voice channel.\t\t`vc leave` - Tell Bob to leave your voice channel.
 `tts [text]` - Speak the given text in a familiar voice.\t\t`vc log` - Show the current VC conversation history.
 
-`research` - Use Bob's online research capabilities. Can also include the `-research` flag anywhere in your message.
-`reason` - Use Bob's reasoning capabilities. Can also include the `-reason` flag anywhere in your message.
-
 `memory reset` - Wipes the bot's short term conversation history. No effect on long term memories.
-`memory query [query]` - Query Bob's long term memory. Must provide a search query.
+`memory query [query]` - Query Bob's long term memory.
 `memory delete [id]` - Delete a long term memory by ID. Use to remove private/unwanted info.
 
 `config on` - Turn the bot on.\t\t`config off` - Turn the bot off.
 `config get` - Show the bot's current configuration.
 `config speed [default/instant]` - Set the typing speed of the bot.
-`config obedient [true/false]` - Force the bot to try to fulfill all requests.
-`config incognito [true/false]` - Prevent the bot from accessing or storing long term memories.
+`config obedient [true/false]` - Force the bot to fulfill requests.
+`config incognito [true/false]` - Prevent the bot from using/storing long term memories.
 
-`admin debug` - Show debug info for the last message Bob processed.
-`admin prune [count]` - Delete up to count messages sent by the bot in recent history.
-`admin reboot` - Reboot the bot. May take a while.
+`admin debug` - Show debug info for the last message.
+`admin prune [count]` - Delete up to count recent messages sent by the bot.
+`admin reboot` - Reboot the bot.
 
-`help` - Show this help message.\t\t`ping` - Ping the bot."""
+`help` - Show help.\t\t`ping` - Ping the bot."""
     )
 
 

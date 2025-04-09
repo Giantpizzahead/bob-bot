@@ -246,6 +246,8 @@
     <span class="n">last_guess_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
     <span class="c1"># Generate hint if needed</span>
+    <span class="k">if</span> <span class="n">only_hint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hint_prompt</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">hint_prompt</span> <span class="ow">or</span> <span class="n">only_hint</span><span class="p">:</span>
         <span class="n">hint</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_hint_for_topic</span><span class="p">(</span><span class="n">theme</span><span class="p">,</span> <span class="n">answer</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">hint_prompt</span><span class="o">=</span><span class="n">hint_prompt</span><span class="p">)</span>
 
