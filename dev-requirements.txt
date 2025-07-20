@@ -61,13 +61,13 @@ discord-py==2.4.0
     #   -r requirements.in
     #   discord-ext-voice-recv
 diskcache==5.6.3
-    # via pyautogen
+    # via ag2
 distlib==0.3.8
     # via virtualenv
 distro==1.9.0
     # via openai
 docker==7.1.0
-    # via pyautogen
+    # via ag2
 docutils==0.20.1
     # via
     #   myst-parser
@@ -87,7 +87,7 @@ flake8-docstrings==1.7.0
 flake8-pyproject==1.2.3
     # via -r dev-requirements.in
 flaml==2.2.0
-    # via pyautogen
+    # via ag2
 frozenlist==1.4.1
     # via
     #   aiohttp
@@ -188,12 +188,12 @@ numpy==1.26.4
     #   langchain
     #   langchain-community
     #   pinecone-text
-    #   pyautogen
+    #   ag2
     #   scipy
 openai==1.42.0
     # via
     #   langchain-openai
-    #   pyautogen
+    #   ag2
 orjson==3.10.7
     # via langsmith
 packaging==24.1
@@ -201,7 +201,7 @@ packaging==24.1
     #   black
     #   langchain-core
     #   marshmallow
-    #   pyautogen
+    #   ag2
     #   pytest
     #   sphinx
 pathspec==0.12.1
@@ -234,7 +234,7 @@ pre-commit==3.8.0
     # via -r dev-requirements.in
 psutil==6.0.0
     # via -r requirements.in
-pyautogen==0.2.35
+ag2==0.2.35
     # via -r requirements.in
 pycodestyle==2.12.1
     # via flake8
@@ -246,7 +246,7 @@ pydantic==2.8.2
     #   langchain-core
     #   langsmith
     #   openai
-    #   pyautogen
+    #   ag2
 pydantic-core==2.20.1
     # via pydantic
 pydocstyle==6.3.0
@@ -273,7 +273,7 @@ python-dotenv==1.0.1
     # via
     #   -r requirements.in
     #   pinecone-text
-    #   pyautogen
+    #   ag2
 pytube==15.0.0
     # via -r requirements.in
 pytz==2024.1
@@ -350,11 +350,11 @@ tenacity==8.5.0
     #   langchain-community
     #   langchain-core
 termcolor==2.4.0
-    # via pyautogen
+    # via ag2
 tiktoken==0.7.0
     # via
     #   langchain-openai
-    #   pyautogen
+    #   ag2
 tqdm==4.66.5
     # via
     #   nltk
